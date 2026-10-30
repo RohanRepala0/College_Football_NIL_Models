@@ -71,6 +71,7 @@ is needed where a sport has both.
 | `docs/ARCHITECTURE.md` | sources, schema, pipeline, checks, rules for using the numbers |
 | `docs/BENCHMARK.md` | the curve method and its validation |
 | `docs/SCHOOL_LAYER.md` | research: proxies for school-level pay, which the CSC does not publish |
+| `docs/MARKET_RESEARCH.md` | research: Dropback and the market for NIL intelligence tools; where this data fits |
 
 The rating model this started next to is
 [CollegeFootballRatings2026](https://github.com/RohanRepala0/CollegeFootballRatings2026).
