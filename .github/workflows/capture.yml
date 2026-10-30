@@ -1,0 +1,56 @@
+# Daily capture of the College Sports Commission compensation reports.
+#
+# Nothing else keeps old versions of these pages, so this job is the archive. It loads every release
+# already in data/csc/releases/, fetches both pages, and commits only when a payload it has never seen
+# appears: the new archive file, the refreshed exports and benchmark curves, and a release report.
+# A day with no change commits nothing. A failed check or a page whose layout changed fails the run
+# (GitHub emails the owner), but a new release is committed first, and the raw pages are kept as a
+# workflow artifact for 30 days.
+name: Capture CSC releases
+
+on:
+  schedule:
+    - cron: "17 13 * * *"     # every day at 13:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run pytest
+      - name: Refresh
+        id: refresh
+        continue-on-error: true
+        run: uv run nil refresh
+      - name: Commit a new release
+        run: |
+          git add data/csc data/benchmark reports
+          if git diff --cached --quiet; then
+            echo "No new release."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Capture CSC release $(date -u +%Y-%m-%d)"
+          git push
+      - name: Keep the raw pages
+        if: steps.refresh.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-pages
+          path: data/raw
+          retention-days: 30
+      - name: Fail the run when the refresh failed
+        if: steps.refresh.outcome == 'failure'
+        run: exit 1
