@@ -34,7 +34,13 @@ flowchart LR
 - **Benchmark.** A curve per cohort through the published percentiles. It is validated out of sample
   (within about 2 percentile points on revenue share) and stored as a value at every whole percentile.
 
-The two reports are never compared or combined. They cover different athletes, windows and
+The two reports are never compared or combined.
+
+**Dashboard:** [College Athlete Pay Benchmarks](https://claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) has four
+views: an offer check that reads an amount off each report's curve, football pay by position, a
+searchable table of every cohort, and the benchmark's validation. Its page is `dashboard/index.html`, and
+its data is `data/dashboard/*.json`, which `nil refresh` rewrites with each new release (or
+`nil dashboard-data` on demand). Re-upload those files to the dashboard after a new release. They cover different athletes, windows and
 rounding.
 
 ## Setup
@@ -54,6 +60,7 @@ nil benchmark --sport Football --position Quarterback --cohort A4 --revenue-shar
 nil curve --sport Football --position Quarterback --cohort A4 [--report nil_go]
 nil query "SELECT position, value_usd FROM csc_latest WHERE sport = 'Football' AND cohort = 'A4'
            AND population = 'paid' AND percentile = 50 ORDER BY value_usd DESC"
+nil dashboard-data               # rewrite data/dashboard/*.json for the dashboard
 nil status
 ```
 

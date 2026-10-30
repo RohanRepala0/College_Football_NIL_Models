@@ -1,0 +1,745 @@
+<meta name="dash-one-writer">
+<style>
+.pb { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+.pb-head { display: grid; gap: var(--cds-gap-xs); }
+.pb-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+.pb-take { margin: 0; max-width: 72ch; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); }
+.pb .pb-take b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.pb-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+.pb-tab { appearance: none; background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: var(--cds-pad-sm) var(--cds-pad-md); font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); cursor: pointer; }
+.pb-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.pb-tab:focus-visible, .pb-seg button:focus-visible, .pb-table th button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.pb-page { display: grid; gap: var(--cds-gap-md); }
+.pb-filters { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: end; }
+.pb-filters label { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pb-filters select, .pb-filters input { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); min-width: 0; max-width: 100%; }
+.pb-filters select:focus-visible, .pb-filters input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.pb-amt { width: 9.5rem; font-variant-numeric: tabular-nums; }
+.pb-search { width: 16rem; }
+.pb-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; }
+.pb-seg button { appearance: none; border: 0; background: var(--color-panel); color: var(--color-fg-muted); font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-md); cursor: pointer; }
+.pb-seg button + button { border-left: 1px solid var(--color-border-line); }
+.pb-seg button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.pb-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); }
+.pb-card { display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); }
+.pb-card h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.pb-card h3 { margin: var(--cds-gap-sm) 0 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.pb-card p, .pb-foot { margin: 0; max-width: 72ch; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.pb-result { display: grid; }
+.pb-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--cds-gap-md); align-items: center; padding-block: var(--cds-pad-sm); border-top: 1px solid var(--color-border-line); }
+.pb-row-name { font-size: var(--cds-font-size-body); }
+.pb-row-detail { grid-column: 1; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pb-row-pct { grid-column: 2; grid-row: 1 / span 2; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-align: right; }
+.pb-row-est { display: block; font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pb-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pb-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.pb-sw { display: inline-block; width: 0.75rem; height: 0.25rem; border-radius: 1px; background: var(--cds-chart-muted); }
+.pb-sw-dash { background: none; border-top: 2px dashed var(--cds-chart-muted); height: 0; }
+.pb-chart { position: relative; min-height: 4rem; }
+.pb-chart svg { display: block; overflow: visible; }
+.pb-axis text, .pb-lab { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.pb-lab-strong { fill: var(--color-fg); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+.pb-gridline { stroke: var(--cds-chart-grid); stroke-width: 1; }
+.pb-axisline { stroke: var(--cds-chart-axis); stroke-width: 1; }
+.pb-ref { stroke: var(--cds-chart-reference); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.pb-guide { stroke: var(--cds-chart-axis); stroke-width: 1; }
+.pb-tip { position: absolute; z-index: 2; pointer-events: none; display: grid; gap: 2px; white-space: nowrap; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.pb-tip-h { color: var(--cds-text-secondary); }
+.pb-tip-l { display: flex; align-items: center; gap: var(--cds-gap-xs); color: var(--color-fg); }
+.pb-scroll { overflow: auto; max-height: 34rem; }
+.pb-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.pb-table th, .pb-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border-line); }
+.pb-table th { position: sticky; top: 0; background: var(--color-panel); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
+.pb-table .num { text-align: right; }
+.pb-table th button { all: unset; cursor: pointer; }
+.pb-steps { margin: 0; padding-left: 1.25rem; display: grid; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); max-width: 72ch; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+[data-dash-source-state=empty] { color: transparent; }
+</style>
+
+<div class="pb">
+  <header class="pb-head">
+    <h1 class="pb-title">College athlete pay benchmarks</h1>
+    <p class="pb-take">Where an offer sits against what the College Sports Commission reports athletes are paid. The latest release was first seen <b data-draw="latest" data-source="summary" data-field="first_seen">—</b>, with <b data-draw="ncohorts" data-source="summary" data-field="cohorts">—</b> published cohorts across <b data-draw="nsports" data-source="summary" data-field="sports">—</b> sports. Revenue share and NIL Go are separate reports, and this page never combines them.</p>
+  </header>
+
+  <nav class="pb-tabs" role="tablist" aria-label="Views">
+    <button class="pb-tab" role="tab" data-tab="offer" aria-selected="true">Offer check</button>
+    <button class="pb-tab" role="tab" data-tab="football" aria-selected="false">Football market</button>
+    <button class="pb-tab" role="tab" data-tab="sports" aria-selected="false">All sports</button>
+    <button class="pb-tab" role="tab" data-tab="method" aria-selected="false">Method</button>
+  </nav>
+
+  <section class="pb-page" id="offer">
+    <div class="pb-filters">
+      <label>Sport <select id="pb-sport" data-draw="sport-select" data-source="cohorts"></select></label>
+      <label>Gender <select id="pb-gender" data-draw="gender-select" data-source="cohorts"></select></label>
+      <label>Position <select id="pb-position" data-draw="position-select" data-source="cohorts"></select></label>
+      <label>Group <select id="pb-cohort" data-draw="cohort-select" data-source="cohorts"></select></label>
+      <label>Revenue share, dollars <input id="pb-rs" class="pb-amt" data-param="rs" type="number" min="0" step="500" inputmode="numeric"></label>
+      <label>NIL deals, dollars <input id="pb-nil" class="pb-amt" data-param="nil" type="number" min="0" step="500" inputmode="numeric"></label>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card" id="offer-rs">
+        <h2>Revenue share</h2>
+        <p>Payments from the school, reported to CAPS. <span data-draw="rs-window" data-source="cohorts" data-field="window_label">—</span></p>
+        <p data-when="rs-none" hidden>The revenue-share report publishes no table for this group.</p>
+        <p data-when="rs-bracket" hidden>Too few published percentiles for a curve, so only the published bracket is shown.</p>
+        <span data-draw="rs-state"></span>
+        <div class="pb-result" data-draw="rs-result" data-source="curves cohorts"></div>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Paid athletes</span>
+          <span><i class="pb-sw" data-color="1"></i>Everyone rostered</span>
+          <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
+        </div>
+        <div class="pb-chart" id="offer-rs-chart" data-draw="rs-chart" data-source="curves cohorts"></div>
+      </article>
+      <article class="pb-card" id="offer-nil">
+        <h2>NIL Go</h2>
+        <p>Third-party deals cleared through NIL Go, at full contract value, not per year. <span data-draw="nil-window" data-source="cohorts" data-field="window_label">—</span></p>
+        <p data-when="nil-none" hidden>The NIL Go report publishes no table for this group.</p>
+        <p data-when="nil-bracket" hidden>Too few published percentiles for a curve, so only the published bracket is shown.</p>
+        <span data-draw="nil-state"></span>
+        <div class="pb-result" data-draw="nil-result" data-source="curves cohorts"></div>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Athletes with a deal</span>
+          <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
+        </div>
+        <div class="pb-chart" id="offer-nil-chart" data-draw="nil-chart" data-source="curves cohorts"></div>
+      </article>
+    </div>
+    <p class="pb-foot">The large number is the curve's estimate. Under it, "published" names the percentiles the CSC printed on either side of the amount, which hold with no model at all. A range such as "10th to 50th" means many athletes got exactly that amount. Dots are the published percentiles; the dashed line is the amount you entered.</p>
+  </section>
+
+  <section class="pb-page" id="football" hidden>
+    <div class="pb-filters">
+      <div class="pb-seg" role="group" aria-label="Group">
+        <button class="pb-cut" data-cut="A4" aria-pressed="true">A4 conferences</button>
+        <button class="pb-cut" data-cut="Non-A4" aria-pressed="false">Non-A4</button>
+      </div>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card" id="market-rs">
+        <h2>Revenue share by position</h2>
+        <p>Paid athletes, calendar 2026. The line runs from the 10th to the 90th percentile, the bar covers the middle half, and the dot is the median. Log scale.</p>
+        <div class="pb-chart" data-draw="market-rs" data-source="cohorts"></div>
+      </article>
+      <article class="pb-card" id="paid-share">
+        <h2>Share of the roster paid</h2>
+        <p>Revenue share: rostered players with any payment in calendar 2026.</p>
+        <div class="pb-chart" data-draw="paid-share" data-source="paid_share"></div>
+      </article>
+    </div>
+    <article class="pb-card" id="market-nil">
+      <h2>NIL Go by position</h2>
+      <p>Athletes with at least one cleared deal, Jan 1 to Sep 30, 2026, at full contract value. Same marks as above, on this report's own log scale.</p>
+      <div class="pb-chart" data-draw="market-nil" data-source="cohorts"></div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="sports" hidden>
+    <div class="pb-filters">
+      <div class="pb-seg" role="group" aria-label="Report">
+        <button class="pb-rep" data-report="revenue_share" aria-pressed="true">Revenue share</button>
+        <button class="pb-rep" data-report="nil_go" aria-pressed="false">NIL Go</button>
+      </div>
+      <label>Search <input id="pb-search" class="pb-search" type="search" placeholder="Sport, position or group"></label>
+    </div>
+    <article class="pb-card" id="sports-table">
+      <h2>Every published cohort</h2>
+      <p>One row per cohort and population in the latest release. A blank cell is a percentile the CSC hid because too few athletes were in the group. Select a column to sort.</p>
+      <div class="pb-scroll">
+        <table class="pb-table" data-source="cohorts" data-row-key="id">
+          <thead><tr>
+            <th data-field="sport"><button data-sort="sport">Sport</button></th>
+            <th data-field="gender"><button data-sort="gender">Gender</button></th>
+            <th data-field="position"><button data-sort="position">Position</button></th>
+            <th data-field="cohort"><button data-sort="cohort">Group</button></th>
+            <th data-field="population_label"><button data-sort="population_label">Among</button></th>
+            <th class="num" data-field="n"><button data-sort="n">Athletes</button></th>
+            <th class="num" data-field="p10"><button data-sort="p10">10th</button></th>
+            <th class="num" data-field="p25"><button data-sort="p25">25th</button></th>
+            <th class="num" data-field="p50"><button data-sort="p50">Median</button></th>
+            <th class="num" data-field="p75"><button data-sort="p75">75th</button></th>
+            <th class="num" data-field="p90"><button data-sort="p90">90th</button></th>
+          </tr></thead>
+          <tbody data-draw="sports-rows"></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="method" hidden>
+    <div class="pb-grid">
+      <article class="pb-card" id="validation">
+        <h2>How close the benchmark gets</h2>
+        <p>Mean miss, in percentile points, when a published value is held out and placed with a curve fit to the rest. Lower is better. This page uses linear.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Linear</span>
+          <span><i class="pb-sw" data-color="1"></i>PCHIP</span>
+          <span><i class="pb-sw" data-color="2"></i>Lognormal</span>
+        </div>
+        <div class="pb-chart" data-draw="validation-chart" data-source="validation"></div>
+        <div class="pb-scroll">
+          <table class="pb-table" data-source="validation" data-row-key="id">
+            <thead><tr>
+              <th data-field="report_label">Report</th><th data-field="test_label">Test</th><th data-field="method">Method</th>
+              <th class="num" data-field="points">Points</th><th class="num" data-field="mean">Mean</th>
+              <th class="num" data-field="median">Median</th><th class="num" data-field="p90">90th</th>
+            </tr></thead>
+            <tbody data-draw="validation-rows"></tbody>
+          </table>
+        </div>
+      </article>
+      <article class="pb-card" id="how">
+        <h2>How the curves work</h2>
+        <ol class="pb-steps">
+          <li>The CSC publishes up to five percentiles per cohort: the 10th, 25th, median, 75th and 90th.</li>
+          <li>A curve runs through them on a scale of log dollars against the normal score of the percentile, straight between published points.</li>
+          <li>Revenue share prints each cohort twice, with and without athletes paid $0. Those are one distribution, so the With $0 table adds points to the paid curve.</li>
+          <li>Past the published 10th and 90th the curve continues on a lognormal slope. Answers out there are estimates.</li>
+          <li>Equal neighbouring percentiles mean many athletes got the same amount, so an amount there gets a range.</li>
+        </ol>
+        <h3>Releases on file</h3>
+        <p>A release is one distinct version of a report. A daily job checks both pages and keeps every new version.</p>
+        <div class="pb-scroll">
+          <table class="pb-table" data-source="releases" data-row-key="id">
+            <thead><tr>
+              <th data-field="report">Report</th><th data-field="release">Release</th>
+              <th data-field="first_seen">First seen</th><th class="num" data-field="cohorts">Cohorts</th>
+            </tr></thead>
+            <tbody data-draw="release-rows"></tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>
+
+<script>
+const PCTS = [10, 25, 50, 75, 90];
+const BASE = { revenue_share: 'paid', nil_go: 'deal_holders' };
+const POP_LABEL = { paid: 'Paid athletes', all_rostered: 'Everyone rostered', deal_holders: 'Athletes with a deal' };
+const POS_ORDER = ['All Positions', 'Quarterback', 'Running Back', 'Wide Receiver', 'Tight End', 'Offensive Lineman',
+  'Defensive Lineman', 'Linebacker', 'Defensive Back', 'Kicker', 'Punter', 'Long Snapper', 'Position Unspecified'];
+const COHORT_ORDER = ['A4', 'ACC', 'Big Ten', 'Big 12', 'SEC', 'Non-A4'];
+const GENDER_LABEL = { men: "Men's", women: "Women's", mixed: 'Mixed' };
+
+const fmtUsd = (v) => (v == null ? '—' : '$' + d3.format(',.0f')(v));
+const fmtAxis = (v) => '$' + d3.format('~s')(v).replace('G', 'B');
+const ord = (x) => {
+  const n = Math.round(x);
+  const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  return n + s;
+};
+const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : null; };
+const keyOf = (report, p, pop) => [report, p.gender, p.sport, p.position, p.cohort, pop].join('|');
+const orderBy = (list) => (a, b) => {
+  const ia = list.indexOf(a), ib = list.indexOf(b);
+  return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || String(a).localeCompare(String(b));
+};
+
+// ---- choices: sport, then gender, position and group, each limited to what is published
+function options(coh, p) {
+  const uniq = (rows, k) => [...new Set(rows.map((r) => r[k]))];
+  const sports = uniq(coh, 'sport').sort(orderBy(['Football', 'Basketball']));
+  const inSport = coh.filter((r) => r.sport === p.sport);
+  const genders = uniq(inSport, 'gender').sort();
+  const inGender = inSport.filter((r) => r.gender === p.gender);
+  const positions = uniq(inGender, 'position').sort(orderBy(POS_ORDER));
+  const cohorts = uniq(inGender.filter((r) => r.position === p.position), 'cohort').sort(orderBy(COHORT_ORDER));
+  return { sport: sports, gender: genders, position: positions, cohort: cohorts };
+}
+function normalized(coh, params) {
+  const p = { ...params };
+  const fix = (k, pref) => { const o = options(coh, p)[k]; if (!o.includes(p[k])) p[k] = o.includes(pref) ? pref : o[0]; };
+  fix('sport', 'Football'); fix('gender', 'men'); fix('position', 'All Positions'); fix('cohort', 'A4');
+  return p;
+}
+for (const param of ['sport', 'gender', 'position', 'cohort']) {
+  dash.draw(param + '-select', (sel) => {
+    const coh = rowsOf('cohorts');
+    if (!coh) { sel.replaceChildren(); return; }
+    const p = normalized(coh, dash.params());
+    const label = (v) => (param === 'gender' ? GENDER_LABEL[v] || v : v === 'All Positions' ? 'All positions' : v);
+    sel.replaceChildren(...options(coh, p)[param].map((v) => new Option(label(v), v)));
+    sel.value = p[param];
+    sel.onchange = () => dash.setParams(normalized(coh, { ...dash.params(), [param]: sel.value }));
+  });
+}
+
+// ---- reading an amount off a curve and off the published percentiles
+function rankIn(curve, amount) {
+  const v = curve.values;
+  if (!(amount > 0)) return curve.zero_pct > 0 ? { lo: 0, hi: curve.zero_pct } : { lo: 1, hi: 1, under: true };
+  const eq = [];
+  v.forEach((x, i) => { if (x > 0 && Math.abs(x - amount) <= 1e-6 * amount) eq.push(i + 1); });
+  if (eq.length) return { lo: eq[0], hi: eq[eq.length - 1] };
+  const pos = v.map((x, i) => (x > 0 ? i : -1)).filter((i) => i >= 0);
+  if (!pos.length) return null;
+  if (amount < v[pos[0]]) return { lo: pos[0] + 1, hi: pos[0] + 1, under: true };
+  if (amount > v[98]) return { lo: 99, hi: 99, over: true };
+  for (let k = 0; k < pos.length - 1; k++) {
+    const i = pos[k], j = pos[k + 1];
+    if (v[i] < amount && amount < v[j]) {
+      const t = (Math.log(amount) - Math.log(v[i])) / (Math.log(v[j]) - Math.log(v[i]));
+      const p = i + 1 + t * (j - i);
+      return { lo: p, hi: p };
+    }
+  }
+  return null;
+}
+const outside = (curve, p) => p > curve.zero_pct && (p < curve.pub_lo - 1e-6 || p > curve.pub_hi + 1e-6);
+function publishedPoints(coh, report, p, pop, curve) {
+  const row = coh.find((r) => r.id === keyOf(report, p, pop));
+  if (!row) return [];
+  const pts = PCTS.filter((q) => row['p' + q] != null).map((q) => [q, row['p' + q]]);
+  if (pop !== 'all_rostered') return pts;
+  const paid = coh.find((r) => r.id === keyOf(report, p, 'paid'));
+  if (!paid) return pts;
+  const z = curve ? curve.zero_pct / 100 : 1 - paid.n / row.n;
+  return pts.concat(PCTS.filter((q) => paid['p' + q] != null).map((q) => [100 * (z + (1 - z) * q / 100), paid['p' + q]]));
+}
+function publishedText(pts, a) {
+  const eq = pts.filter((d) => d[1] === a).map((d) => d[0]).sort((x, y) => x - y);
+  if (eq.length) return 'Published: equals the ' + (eq.length === 1 ? ord(eq[0]) : `${ord(eq[0])} to ${ord(eq[eq.length - 1])}`);
+  const below = d3.max(pts.filter((d) => d[1] < a), (d) => d[0]) ?? 0;
+  const above = d3.min(pts.filter((d) => d[1] > a), (d) => d[0]) ?? 100;
+  if (below === 0) return `Published: below the ${ord(above)}`;
+  if (above === 100) return `Published: above the ${ord(below)}`;
+  return `Published: between the ${ord(below)} and ${ord(above)}`;
+}
+function estimateText(r, curve) {
+  if (!r) return ['—', ''];
+  if (r.over) return ['99th+', 'above every curve point'];
+  if (r.under) return [r.lo <= 1 ? '<1st' : `<${ord(r.lo)}`, 'below every paid amount'];
+  const text = r.hi - r.lo >= 1 ? `${ord(r.lo)}–${ord(r.hi)}` : ord(r.lo);
+  const extra = outside(curve, r.lo) || outside(curve, r.hi);
+  return [text, extra ? 'estimate past the published range' : 'percentile'];
+}
+
+// ---- the offer cards
+const amountFor = (report) => { const v = Number(dash.params()[report === 'nil_go' ? 'nil' : 'rs']); return Number.isFinite(v) ? v : 0; };
+const populations = (report) => (report === 'nil_go' ? ['deal_holders'] : ['paid', 'all_rostered']);
+
+function drawWindow(el, report) {
+  const coh = rowsOf('cohorts');
+  if (!coh) { el.textContent = '—'; return; }
+  const p = normalized(coh, dash.params());
+  const row = coh.find((r) => r.id === keyOf(report, p, BASE[report]));
+  el.dataset.where = 'id=' + encodeURIComponent(row ? row.id : '');
+  el.textContent = row ? row.window_label : '—';
+}
+function drawState(el, report, prefix) {
+  el.textContent = '';
+  const coh = rowsOf('cohorts'), cur = rowsOf('curves');
+  const p = coh ? normalized(coh, dash.params()) : null;
+  const base = coh && coh.find((r) => r.id === keyOf(report, p, BASE[report]));
+  const fitted = !!(base && cur && cur.some((c) => c.id === base.id));
+  document.querySelectorAll(`[data-when="${prefix}-none"]`).forEach((e) => { e.hidden = !coh || !!base; });
+  document.querySelectorAll(`[data-when="${prefix}-bracket"]`).forEach((e) => { e.hidden = !base || !cur || fitted; });
+}
+function drawResult(el, report) {
+  el.replaceChildren();
+  const coh = rowsOf('cohorts'), cur = rowsOf('curves');
+  if (!coh || !cur) return;
+  const p = normalized(coh, dash.params());
+  const amount = amountFor(report);
+  for (const pop of populations(report)) {
+    const row = coh.find((r) => r.id === keyOf(report, p, pop));
+    if (!row) continue;
+    const curve = cur.find((c) => c.id === row.id);
+    const [pct, note] = curve ? estimateText(rankIn(curve, amount), curve) : ['—', 'no curve'];
+    const div = document.createElement('div');
+    div.className = 'pb-row';
+    const name = document.createElement('span');
+    name.className = 'pb-row-name';
+    name.textContent = `${POP_LABEL[pop]} · ${row.n != null ? d3.format(',')(row.n) : row.n_text} athletes`;
+    const big = document.createElement('span');
+    big.className = 'pb-row-pct';
+    big.textContent = pct;
+    const est = document.createElement('span');
+    est.className = 'pb-row-est';
+    est.textContent = note;
+    big.append(est);
+    const detail = document.createElement('span');
+    detail.className = 'pb-row-detail';
+    detail.textContent = `${publishedText(publishedPoints(coh, report, p, pop, curve), amount)} · ${fmtUsd(amount)}`;
+    div.append(name, big, detail);
+    el.append(div);
+  }
+}
+
+// ---- chart helpers
+function measure(svg, labels, cls = 'pb-axis') {
+  const g = svg.append('g').attr('class', cls);
+  let w = 0;
+  for (const l of labels) w = Math.max(w, g.append('text').text(l).node().getComputedTextLength());
+  g.remove();
+  return w;
+}
+function logTicks(lo, hi, max = 5) {
+  const out = [];
+  for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++)
+    for (const m of [1, 2, 5]) { const t = m * 10 ** e; if (t >= lo && t <= hi) out.push(t); }
+  if (out.length <= max) return out;
+  const tens = out.filter((t) => Number.isInteger(Math.log10(t)));
+  return tens.length >= 2 ? tens : out.filter((_, i) => i % Math.ceil(out.length / max) === 0);
+}
+function tip(el) { const t = document.createElement('div'); t.className = 'pb-tip'; t.hidden = true; el.append(t); return t; }
+function tipLines(t, head, lines) {
+  const h = document.createElement('div'); h.className = 'pb-tip-h'; h.textContent = head;
+  t.replaceChildren(h, ...lines.map(([color, text]) => {
+    const l = document.createElement('div'); l.className = 'pb-tip-l';
+    if (color) { const s = document.createElement('i'); s.className = 'pb-sw'; s.style.background = color; l.append(s); }
+    l.append(text);
+    return l;
+  }));
+}
+function place(el, t, x, y) {
+  t.hidden = false;
+  const w = t.offsetWidth, h = t.offsetHeight, W = el.clientWidth;
+  let left = x + 14;
+  if (left + w > W) left = Math.max(0, x - w - 14);
+  t.style.left = left + 'px';
+  t.style.top = Math.max(0, y - h - 10) + 'px';
+}
+
+function drawOfferChart(el, report) {
+  el.replaceChildren();
+  const coh = rowsOf('cohorts'), cur = rowsOf('curves');
+  if (!coh || !cur) return;
+  const p = normalized(coh, dash.params());
+  const amount = amountFor(report);
+  const series = [];
+  populations(report).forEach((pop, i) => {
+    const curve = cur.find((c) => c.id === keyOf(report, p, pop));
+    if (curve) series.push({ pop, color: dash.colors[i], curve, row: coh.find((r) => r.id === curve.id) });
+  });
+  if (!series.length) return;
+  const W = Math.max(260, el.clientWidth), H = 280, mt = 16, mb = 30, mr = 12;
+  const vals = series.flatMap((s) => s.curve.values.filter((v) => v > 0));
+  if (amount > 0) vals.push(amount);
+  const lo = d3.min(vals) / 1.2, hi = d3.max(vals) * 1.25;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Benchmark curve: dollars at each percentile');
+  const yt = logTicks(lo, hi);
+  const ml = measure(svg, yt.map(fmtAxis)) + 10;
+  const x = d3.scaleLinear([1, 99], [ml, W - mr]);
+  const y = d3.scaleLog([lo, hi], [H - mb, mt]);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('class', 'pb-gridline')
+    .attr('x1', ml).attr('x2', W - mr).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(yt).join('text')
+    .attr('x', ml - 8).attr('y', (d) => y(d)).attr('dy', '0.32em').attr('text-anchor', 'end').text(fmtAxis);
+  svg.append('line').attr('class', 'pb-axisline').attr('x1', ml).attr('x2', W - mr).attr('y1', H - mb).attr('y2', H - mb);
+  const xt = W < 360 ? [10, 50, 90] : PCTS;
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(xt).join('text')
+    .attr('x', (d) => x(d)).attr('y', H - 10).attr('text-anchor', 'middle').text(ord);
+  for (const s of series) {
+    if (!(s.curve.zero_pct > 0)) continue;
+    const x1 = x(Math.max(1, s.curve.zero_pct));
+    svg.append('rect').attr('x', ml).attr('y', H - mb - 5).attr('width', Math.max(0, x1 - ml)).attr('height', 4)
+      .attr('rx', 1).attr('fill', s.color).attr('opacity', 0.5);
+    if (x1 - ml > 70) svg.append('text').attr('class', 'pb-lab').attr('x', ml + 4).attr('y', H - mb - 10).text(`unpaid to the ${ord(s.curve.zero_pct)}`);
+  }
+  const line = d3.line().x((d) => x(d[0])).y((d) => y(d[1]));
+  for (const s of series) {
+    const pts = s.curve.values.map((v, i) => [i + 1, v]).filter((d) => d[1] > 0);
+    svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', 1.5)
+      .attr('stroke-dasharray', '3 3').attr('opacity', 0.75);
+    const inside = pts.filter((d) => !outside(s.curve, d[0]));
+    if (inside.length > 1) svg.append('path').attr('d', line(inside)).attr('fill', 'none').attr('stroke', s.color)
+      .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    const pub = s.row ? PCTS.filter((q) => s.row['p' + q] > 0).map((q) => [q, s.row['p' + q]]) : [];
+    svg.append('g').selectAll('circle').data(pub).join('circle').attr('cx', (d) => x(d[0])).attr('cy', (d) => y(d[1]))
+      .attr('r', 4).attr('fill', s.color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+  }
+  if (amount > 0) {
+    svg.append('line').attr('class', 'pb-ref').attr('x1', ml).attr('x2', W - mr).attr('y1', y(amount)).attr('y2', y(amount));
+    svg.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr).attr('y', y(amount) - 6).attr('text-anchor', 'end').text(fmtUsd(amount));
+    for (const s of series) {
+      const r = rankIn(s.curve, amount);
+      if (!r || r.under || r.over) continue;
+      svg.append('circle').attr('cx', x((r.lo + r.hi) / 2)).attr('cy', y(amount)).attr('r', 6)
+        .attr('fill', s.color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    }
+  }
+  const t = tip(el);
+  const guide = svg.append('line').attr('class', 'pb-guide').attr('y1', mt).attr('y2', H - mb).attr('opacity', 0);
+  const hov = series.map((s) => svg.append('circle').attr('r', 4).attr('fill', s.color).attr('opacity', 0));
+  svg.append('rect').attr('x', ml).attr('y', mt).attr('width', W - mr - ml).attr('height', H - mb - mt).attr('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [mx, my] = d3.pointer(ev);
+      const pct = Math.max(1, Math.min(99, Math.round(x.invert(mx))));
+      guide.attr('x1', x(pct)).attr('x2', x(pct)).attr('opacity', 1);
+      series.forEach((s, i) => { const v = s.curve.values[pct - 1]; hov[i].attr('cx', x(pct)).attr('cy', v > 0 ? y(v) : H - mb).attr('opacity', v > 0 ? 1 : 0); });
+      tipLines(t, `${ord(pct)} percentile`, series.map((s) => [series.length > 1 ? s.color : null,
+        `${POP_LABEL[s.pop]}: ${fmtUsd(s.curve.values[pct - 1])}${outside(s.curve, pct) ? ' (estimate)' : ''}`]));
+      place(el, t, x(pct), my);
+    })
+    .on('pointerleave', () => { t.hidden = true; guide.attr('opacity', 0); hov.forEach((h) => h.attr('opacity', 0)); });
+}
+
+for (const [report, prefix] of [['revenue_share', 'rs'], ['nil_go', 'nil']]) {
+  dash.draw(prefix + '-window', (el) => drawWindow(el, report));
+  dash.draw(prefix + '-state', (el) => drawState(el, report, prefix));
+  dash.draw(prefix + '-result', (el) => drawResult(el, report));
+  dash.draw(prefix + '-chart', (el) => drawOfferChart(el, report));
+}
+
+// ---- football market by position
+function drawMarket(el, report) {
+  el.replaceChildren();
+  const coh = rowsOf('cohorts');
+  if (!coh) return;
+  const cut = dash.params().cut || 'A4';
+  const rows = POS_ORDER.map((pos) => coh.find((r) => r.report === report && r.sport === 'Football' && r.gender === 'men'
+    && r.position === pos && r.cohort === cut && r.population === BASE[report])).filter(Boolean);
+  if (!rows.length) return;
+  const color = dash.colors[0];
+  const W = Math.max(260, el.clientWidth), rowH = 28, mt = 4, mb = 28;
+  const H = mt + rows.length * rowH + mb;
+  const vals = rows.flatMap((r) => PCTS.map((q) => r['p' + q]).filter((v) => v > 0));
+  const lo = d3.min(vals) / 1.3, hi = d3.max(vals) * 1.3;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Pay range by position');
+  const ml = measure(svg, rows.map((r) => r.position)) + 12;
+  const mr = measure(svg, rows.map((r) => fmtUsd(r.p50))) + 14;
+  const x = d3.scaleLog([lo, hi], [ml, W - mr]);
+  const yb = d3.scaleBand(rows.map((r) => r.position), [mt, mt + rows.length * rowH]).padding(0.2);
+  const xt = logTicks(lo, hi, W < 420 ? 3 : 5);
+  svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
+    .attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', mt).attr('y2', H - mb);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(xt).join('text')
+    .attr('x', (d) => x(d)).attr('y', H - 10).attr('text-anchor', 'middle').text(fmtAxis);
+  const t = tip(el);
+  for (const r of rows) {
+    const cy = yb(r.position) + yb.bandwidth() / 2;
+    const have = PCTS.filter((q) => r['p' + q] > 0);
+    const g = svg.append('g');
+    g.append('text').attr('class', 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em').attr('text-anchor', 'end')
+      .text(r.position);
+    if (have.length > 1) g.append('line').attr('x1', x(r['p' + have[0]])).attr('x2', x(r['p' + have[have.length - 1]]))
+      .attr('y1', cy).attr('y2', cy).attr('stroke', color).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('opacity', 0.45);
+    if (r.p25 > 0 && r.p75 > 0) g.append('rect').attr('x', x(r.p25)).attr('y', cy - 5).attr('width', Math.max(2, x(r.p75) - x(r.p25)))
+      .attr('height', 10).attr('rx', 3).attr('fill', color).attr('opacity', 0.55);
+    if (r.p50 > 0) {
+      g.append('circle').attr('cx', x(r.p50)).attr('cy', cy).attr('r', 4.5).attr('fill', color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+      g.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr + 10).attr('y', cy).attr('dy', '0.32em').text(fmtUsd(r.p50));
+    }
+    g.append('rect').attr('x', 0).attr('y', yb(r.position) - 2).attr('width', W).attr('height', yb.bandwidth() + 4).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [, my] = d3.pointer(ev);
+        tipLines(t, `${r.position} · ${cut}`, [[null, `${POP_LABEL[r.population]}: ${r.n != null ? d3.format(',')(r.n) : r.n_text}`],
+          ...PCTS.map((q) => [null, `${q === 50 ? 'Median' : ord(q)}: ${r['p' + q] != null ? fmtUsd(r['p' + q]) : 'not published'}`])]);
+        place(el, t, x(r.p50 || r['p' + have[0]] || lo), my);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  }
+}
+dash.draw('market-rs', (el) => drawMarket(el, 'revenue_share'));
+dash.draw('market-nil', (el) => drawMarket(el, 'nil_go'));
+
+dash.calc('paid_share', {
+  inputs: ['cohorts'],
+  title: 'Share of the football roster paid',
+  description: 'Revenue share: paid athletes divided by everyone rostered, per football position and group, with an all-positions total.',
+  fn: (cohorts) => {
+    const fb = cohorts.filter((r) => r.report === 'revenue_share' && r.sport === 'Football' && r.gender === 'men');
+    const out = [];
+    for (const cut of ['A4', 'Non-A4']) {
+      let rostered = 0, paidTotal = 0;
+      for (const all of fb.filter((r) => r.cohort === cut && r.population === 'all_rostered')) {
+        const paid = fb.find((r) => r.cohort === cut && r.position === all.position && r.population === 'paid');
+        if (!paid) continue;
+        rostered += all.n; paidTotal += paid.n;
+        out.push({ key: `${cut}|${all.position}`, cut, position: all.position, rostered: all.n, paid: paid.n, share: paid.n / all.n });
+      }
+      out.push({ key: `${cut}|All positions`, cut, position: 'All positions', rostered, paid: paidTotal, share: paidTotal / rostered });
+    }
+    return out;
+  },
+});
+dash.draw('paid-share', (el) => {
+  el.replaceChildren();
+  const d = dash.data('paid_share');
+  if (d.status !== 'ok') return;
+  const cut = dash.params().cut || 'A4';
+  const rows = d.data.filter((r) => r.cut === cut).sort((a, b) => orderBy(['All positions', ...POS_ORDER])(a.position, b.position));
+  const color = dash.colors[0];
+  const W = Math.max(260, el.clientWidth), rowH = 26, mt = 2, mb = 4;
+  const H = mt + rows.length * rowH + mb;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Share of the roster paid, by position');
+  const ml = measure(svg, rows.map((r) => r.position)) + 12, mr = measure(svg, ['100%']) + 12;
+  const x = d3.scaleLinear([0, 1], [ml, W - mr]);
+  const yb = d3.scaleBand(rows.map((r) => r.position), [mt, mt + rows.length * rowH]).padding(0.3);
+  const t = tip(el);
+  for (const r of rows) {
+    const cy = yb(r.position) + yb.bandwidth() / 2, total = r.position === 'All positions';
+    svg.append('text').attr('class', total ? 'pb-lab-strong' : 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em')
+      .attr('text-anchor', 'end').text(r.position);
+    svg.append('rect').attr('x', ml).attr('y', cy - 6).attr('width', W - mr - ml).attr('height', 12).attr('rx', 3)
+      .attr('fill', 'var(--cds-chart-grid)');
+    svg.append('rect').attr('x', ml).attr('y', cy - 6).attr('width', Math.max(2, x(r.share) - ml)).attr('height', 12).attr('rx', 3)
+      .attr('fill', color).attr('opacity', total ? 1 : 0.8);
+    svg.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr + 8).attr('y', cy).attr('dy', '0.32em').text(d3.format('.0%')(r.share));
+    svg.append('rect').attr('x', 0).attr('y', yb(r.position) - 3).attr('width', W).attr('height', yb.bandwidth() + 6).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        tipLines(t, `${r.position} · ${r.cut}`, [[null, `${d3.format(',')(r.paid)} paid of ${d3.format(',')(r.rostered)} rostered`]]);
+        place(el, t, x(r.share), d3.pointer(ev)[1]);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  }
+});
+
+// ---- all sports table
+let sortKey = 'sport', sortDir = 1;
+dash.draw('sports-rows', (tb) => {
+  tb.replaceChildren();
+  const coh = rowsOf('cohorts');
+  if (!coh) return;
+  const report = dash.params().report || 'revenue_share';
+  const q = (document.querySelector('.pb-search')?.value || '').trim().toLowerCase();
+  let rows = coh.filter((r) => r.report === report);
+  if (q) rows = rows.filter((r) => [r.sport, GENDER_LABEL[r.gender], r.position, r.cohort, r.population_label].join(' ').toLowerCase().includes(q));
+  const numeric = ['n', ...PCTS.map((p) => 'p' + p)].includes(sortKey);
+  rows.sort((a, b) => {
+    const va = a[sortKey], vb = b[sortKey];
+    if (numeric) return ((va ?? -1) - (vb ?? -1)) * sortDir;
+    return String(va).localeCompare(String(vb)) * sortDir || a.position.localeCompare(b.position) || a.cohort.localeCompare(b.cohort);
+  });
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.id;
+    const cells = [r.sport, GENDER_LABEL[r.gender] || r.gender, r.position === 'All Positions' ? 'All positions' : r.position, r.cohort,
+      r.population_label, r.n != null ? d3.format(',')(r.n) : r.n_text || '', ...PCTS.map((p) => (r['p' + p] != null ? fmtUsd(r['p' + p]) : ''))];
+    cells.forEach((c, i) => { const td = document.createElement('td'); if (i >= 5) td.className = 'num'; td.textContent = c; tr.append(td); });
+    tb.append(tr);
+  }
+});
+document.querySelectorAll('.pb-table th button[data-sort]').forEach((b) => b.addEventListener('click', () => {
+  const k = b.dataset.sort;
+  sortDir = sortKey === k ? -sortDir : (['n', 'p10', 'p25', 'p50', 'p75', 'p90'].includes(k) ? -1 : 1);
+  sortKey = k;
+  document.querySelectorAll('.pb-table th button[data-sort]').forEach((o) => {
+    o.closest('th').setAttribute('aria-sort', o.dataset.sort === sortKey ? (sortDir > 0 ? 'ascending' : 'descending') : 'none');
+  });
+  dash.draw('sports-rows');
+}));
+document.querySelectorAll('.pb-search').forEach((s) => s.addEventListener('input', () => dash.draw('sports-rows')));
+
+// ---- method
+dash.draw('validation-chart', (el) => {
+  el.replaceChildren();
+  const d = dash.data('validation');
+  if (d.status !== 'ok') return;
+  const methods = ['linear', 'pchip', 'lognormal'];
+  const groups = [...new Map(d.data.map((r) => [`${r.report}|${r.test}`, r])).values()]
+    .sort((a, b) => a.report_label.localeCompare(b.report_label) || a.test.localeCompare(b.test));
+  const W = Math.max(260, el.clientWidth), labelH = 18, barH = 9, gap = 4, groupGap = 14, mb = 26;
+  const groupH = labelH + methods.length * (barH + gap) + groupGap;
+  const H = groups.length * groupH + mb;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Mean miss by method and test');
+  const mr = measure(svg, ['10.4']) + 10;
+  const x = d3.scaleLinear([0, d3.max(d.data, (r) => r.mean) * 1.08], [0, W - mr]);
+  const xt = x.ticks(W < 420 ? 3 : 5);
+  svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
+    .attr('x1', (v) => x(v)).attr('x2', (v) => x(v)).attr('y1', 0).attr('y2', H - mb);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(xt).join('text')
+    .attr('x', (v) => x(v)).attr('y', H - 8).attr('text-anchor', 'middle').text((v) => d3.format('~g')(v));
+  const t = tip(el);
+  groups.forEach((g, gi) => {
+    const y0 = gi * groupH;
+    svg.append('text').attr('class', 'pb-lab-strong').attr('x', 0).attr('y', y0 + 12).text(`${g.report_label}: ${g.test_label}`);
+    methods.forEach((m, mi) => {
+      const r = d.data.find((v) => v.report === g.report && v.test === g.test && v.method === m);
+      if (!r) return;
+      const y = y0 + labelH + mi * (barH + gap);
+      svg.append('rect').attr('x', 0).attr('y', y).attr('width', Math.max(2, x(r.mean))).attr('height', barH).attr('rx', 2).attr('fill', dash.colors[mi]);
+      svg.append('rect').attr('x', 0).attr('y', y - gap / 2).attr('width', W).attr('height', barH + gap).attr('fill', 'transparent')
+        .on('pointermove', (ev) => {
+          tipLines(t, `${g.report_label}: ${g.test_label}`, [[dash.colors[mi], `${m}: mean ${r.mean}, median ${r.median}, 90th ${r.p90} (${r.points} points)`]]);
+          place(el, t, x(r.mean), d3.pointer(ev)[1]);
+        })
+        .on('pointerleave', () => { t.hidden = true; });
+    });
+  });
+});
+dash.draw('validation-rows', (tb) => {
+  tb.replaceChildren();
+  const d = dash.data('validation');
+  if (d.status !== 'ok') return;
+  for (const r of d.data) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.id;
+    [r.report_label, r.test_label, r.method, r.points, r.mean, r.median, r.p90].forEach((c, i) => {
+      const td = document.createElement('td'); if (i >= 3) td.className = 'num'; td.textContent = c; tr.append(td);
+    });
+    tb.append(tr);
+  }
+});
+dash.draw('release-rows', (tb) => {
+  tb.replaceChildren();
+  const d = dash.data('releases');
+  if (d.status !== 'ok') return;
+  for (const r of d.data) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.id;
+    [r.report, r.release, r.first_seen, r.cohorts].forEach((c, i) => {
+      const td = document.createElement('td'); if (i === 3) td.className = 'num'; td.textContent = c; tr.append(td);
+    });
+    tb.append(tr);
+  }
+});
+
+// ---- header
+dash.calc('summary', {
+  inputs: ['cohorts', 'releases'],
+  title: 'Release summary',
+  description: 'How many cohorts and sports the latest releases publish, and when the newest release was first seen.',
+  fn: (cohorts, releases) => [{
+    cohorts: cohorts.length,
+    sports: new Set(cohorts.map((r) => `${r.gender}|${r.sport}`)).size,
+    first_seen: releases.map((r) => r.first_seen).sort().slice(-1)[0],
+  }],
+});
+const summaryField = (k, f) => (el) => {
+  const d = dash.data('summary');
+  el.textContent = d.status === 'ok' && d.data.length ? f(d.data[0][k]) : '—';
+};
+dash.draw('latest', summaryField('first_seen', (v) => d3.utcFormat('%B %-d, %Y')(new Date(v + 'T00:00:00Z'))));
+dash.draw('ncohorts', summaryField('cohorts', d3.format(',')));
+dash.draw('nsports', summaryField('sports', String));
+
+// ---- controls, tabs, legend swatches
+document.querySelectorAll('.pb-amt').forEach((inp) => {
+  let timer;
+  inp.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      const v = inp.value === '' ? null : Math.max(0, Number(inp.value));
+      dash.setParams({ [inp.dataset.param]: Number.isFinite(v) ? v : null });
+    }, 250);
+  });
+});
+document.querySelectorAll('.pb-cut').forEach((b) => b.addEventListener('click', () => dash.setParams({ cut: b.dataset.cut })));
+document.querySelectorAll('.pb-rep').forEach((b) => b.addEventListener('click', () => dash.setParams({ report: b.dataset.report })));
+const showTab = (id) => {
+  document.querySelectorAll('.pb-page').forEach((s) => { s.hidden = s.id !== id; });
+  document.querySelectorAll('.pb-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+};
+document.querySelectorAll('.pb-tab').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.tab); dash.setLink(b.dataset.tab); }));
+const named = location.hash.slice(1);
+if (['offer', 'football', 'sports', 'method'].includes(named)) showTab(named);
+dash.onData(() => {
+  const p = dash.params();
+  document.querySelectorAll('.pb-amt').forEach((inp) => {
+    if (inp !== document.activeElement) inp.value = p[inp.dataset.param] ?? '';
+  });
+  document.querySelectorAll('.pb-cut').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cut === (p.cut || 'A4'))));
+  document.querySelectorAll('.pb-rep').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.report === (p.report || 'revenue_share'))));
+  document.querySelectorAll('.pb-sw[data-color]').forEach((s) => { s.style.background = dash.colors[Number(s.dataset.color)]; });
+});
+</script>

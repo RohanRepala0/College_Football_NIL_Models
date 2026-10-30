@@ -3,15 +3,15 @@
 1. Load every archived release (data/csc/releases/), so a fresh checkout knows what it has seen.
 2. Fetch both CSC pages. A payload not seen before is a new release: archived, then stored.
 3. Check the latest release of each report and fit the offer benchmark to it.
-4. Only when something is new (or on request), rewrite the exports and the release report. A day
-   with no change therefore commits nothing.
+4. Only when something is new (or on request), rewrite the exports, the release report and the
+   dashboard's data files. A day with no change therefore commits nothing.
 """
 
 from __future__ import annotations
 
 import duckdb
 
-from . import benchmark, config, csc, reports
+from . import benchmark, config, csc, dashboard, reports
 from .fetch import Fetcher
 
 
@@ -38,5 +38,6 @@ def refresh(con: duckdb.DuckDBPyConnection, fetcher: Fetcher | None = None, arch
     if new or export:
         files = [csc.export_latest(con),
                  benchmark.export(con, config.DATA_DIR / "benchmark" / "curves.csv"),
-                 reports.release_report(con, issues, benchmark.validate(df), curves)]
+                 reports.release_report(con, issues, benchmark.validate(df), curves),
+                 *dashboard.export(con)]
     return {"archived": archived, "fetched": fetched, "new": new, "issues": issues, "files": files}

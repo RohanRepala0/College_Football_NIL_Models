@@ -112,6 +112,15 @@ def query(sql: str = typer.Argument(..., help="SQL over csc_latest, csc_percenti
     typer.echo(_table(_con().execute(sql).df()))
 
 
+@app.command("dashboard-data")
+def dashboard_data():
+    """Write the dashboard's data files to data/dashboard/ from the latest releases."""
+    from .dashboard import export
+
+    for path in export(_con()):
+        typer.echo(f"wrote {path} ({path.stat().st_size:,} bytes)")
+
+
 @app.command()
 def status():
     """Releases on file and table sizes."""
