@@ -9,7 +9,7 @@ import pandas as pd
 import typer
 
 from . import benchmark as bm
-from . import db, pipeline
+from . import config, db, pipeline
 from .reports import POPULATIONS, benchmark_rows, ordinal
 
 app = typer.Typer(no_args_is_help=True, help="College Sports Commission compensation data and the offer benchmark.")
@@ -135,6 +135,24 @@ def simulate(seeds: int = typer.Option(3, help="Synthetic markets per scenario."
     from .reports import simulation_report
 
     typer.echo(f"wrote {simulation_report(_con(), tuple(range(seeds)))}")
+
+
+@app.command()
+def players(season: int = typer.Option(2026), fresh: bool = typer.Option(False, help="Call CFBD again instead of reusing snapshots.")):
+    """Pull CFBD rosters, recruiting, portal and production; value each A4 roster at market rates."""
+    from . import players as pl
+    from . import simulate as sim
+    from .fetch import Fetcher
+    from .reports import rosters_report
+
+    con = _con()
+    typer.echo(pl.pull(con, Fetcher(con, min_interval=0.5), season=season, fresh=fresh))
+    feats = pl.features(con)
+    table, _ = pl.roster_values(feats, sim.football_transports(con.execute("SELECT * FROM csc_latest").df()))
+    out = config.DATA_DIR / "players" / f"roster_values_{season}.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    table.round({"value": 0, "low": 0, "high": 0, "paid_players": 0, "top5_share": 3}).to_csv(out, index=False)
+    typer.echo(f"wrote {out}\nwrote {rosters_report(con, season, table, feats)}")
 
 
 @app.command("dashboard-data")

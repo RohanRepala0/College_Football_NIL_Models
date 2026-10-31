@@ -12,6 +12,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlencode
 
 import duckdb
 import httpx
@@ -44,27 +45,32 @@ class Fetcher:
         self._last_request = 0.0
 
     def cached(self, url: str) -> Snapshot | None:
-        row = self.con.execute("SELECT path_on_disk, fetched_at FROM raw_snapshots WHERE url = ? "
-                               "ORDER BY fetched_at DESC LIMIT 1", [url]).fetchone()
+        rows = self.con.execute("SELECT path_on_disk, fetched_at FROM raw_snapshots WHERE url = ? "
+                                "ORDER BY fetched_at DESC LIMIT 1", [url]).fetchall()   # fetchall closes the result
+        row = rows[0] if rows else None
         if row and Path(row[0]).exists():
             return Snapshot(Path(row[0]).read_bytes(), row[1], Path(row[0]), url)
         return None
 
-    def fetch(self, source: str, url: str, fresh: bool = False, ext: str = "txt") -> Snapshot:
-        snap = None if fresh else self.cached(url)
+    def fetch(self, source: str, url: str, fresh: bool = False, ext: str = "txt", params: dict | None = None,
+              headers: dict | None = None) -> Snapshot:
+        """`params` join the URL (and the cache key); `headers` (credentials) are sent but never stored."""
+        params = {k: v for k, v in (params or {}).items() if v is not None}
+        full = f"{url}?{urlencode(sorted(params.items()))}" if params else url
+        snap = None if fresh else self.cached(full)
         if snap is not None:
             return snap
         wait = self.min_interval - (time.monotonic() - self._last_request)
         if wait > 0:
             time.sleep(wait)
-        resp = self.client.get(url)
+        resp = self.client.get(url, params=params or None, headers=headers)
         self._last_request = time.monotonic()
         resp.raise_for_status()
         fetched_at = utcnow()
         out_dir = self.raw_dir / source / fetched_at.strftime("%Y-%m-%d")
         out_dir.mkdir(parents=True, exist_ok=True)
-        out = out_dir / f"{_slug(url)}_{fetched_at.strftime('%H%M%S%f')}.{ext}"
+        out = out_dir / f"{_slug(full)}_{fetched_at.strftime('%H%M%S%f')}.{ext}"
         out.write_bytes(resp.content)
         self.con.execute("INSERT INTO raw_snapshots VALUES (?, ?, ?, ?, ?)",
-                         [source, url, fetched_at, str(out), hashlib.sha256(resp.content).hexdigest()])
-        return Snapshot(resp.content, fetched_at, out, url)
+                         [source, full, fetched_at, str(out), hashlib.sha256(resp.content).hexdigest()])
+        return Snapshot(resp.content, fetched_at, out, full)

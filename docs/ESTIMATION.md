@@ -109,8 +109,11 @@ and lets truth discovery compare sources.
 
 ## What's next
 
-- **Real features.** A CFBD key brings rosters, recruiting and portal ratings, and usage: the ranker for
-  real players. The simulation says what to expect from features of a given quality.
+- **Real features: started.** `nil players` pulls CollegeFootballData rosters, recruiting, the transfer
+  portal and last season's production (12 calls), maps positions to the CSC's groups (the 2026 A4 rosters,
+  7,844 players, agree with the CSC's 7,743 within a few percent by group), and values each A4 roster at
+  market rates ([`reports/rosters_2026.md`](../reports/rosters_2026.md)). The feature weights are a prior
+  until representative claims can teach better ones.
 - **Your claims.** The ledger you research goes straight into `nil claims`; sources reporting the same
   athletes, and any school records, make the bias estimates sharp.
 - **School totals.** UCLA, Cal and San Diego State's disclosures, and the NCAA financial reports, are

@@ -63,6 +63,7 @@ nil query "SELECT position, value_usd FROM csc_latest WHERE sport = 'Football' A
 nil triangulate                  # floors and calibrated tails for football totals
 nil claims my_claims.csv         # credibility of reported deals (columns: data/claims/template.csv)
 nil simulate                     # test the estimation methods on synthetic markets (about 2 minutes)
+nil players                      # CFBD rosters, recruiting, portal, production; A4 roster market values (needs CFBD_API_KEY in .env)
 nil dashboard-data               # rewrite data/dashboard/*.json for the dashboard
 nil status
 ```
@@ -81,6 +82,7 @@ is needed where a sport has both.
 | `docs/ARCHITECTURE.md` | sources, schema, pipeline, checks, rules for using the numbers |
 | `docs/BENCHMARK.md` | the curve method and its validation |
 | `docs/SCHOOL_LAYER.md` | research: proxies for school-level pay, which the CSC does not publish |
+| `data/players/roster_values_2026.csv` | each A4 roster's revenue-share market value with its range (team totals only) |
 | `docs/ESTIMATION.md` | the estimation approach: floors, calibrated tails, rank-to-pay transport, claims as anchors, credibility tests, and the simulation that validates them |
 | `docs/MARKET_RESEARCH.md` | research: Dropback and the market for NIL intelligence tools; where this data fits |
 

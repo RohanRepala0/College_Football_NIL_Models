@@ -328,3 +328,72 @@ def tri_programs() -> int:
     from .triangulate import A4_FOOTBALL_PROGRAMS
 
     return A4_FOOTBALL_PROGRAMS
+
+
+def rosters_report(con, season: int, table: pd.DataFrame, players: pd.DataFrame, path: Path | None = None) -> Path:
+    """A4 roster market values: the roster layer checked against the CSC, feature coverage, and each
+    program's value with its range. Team totals only; no individual estimates."""
+    from . import players as pl
+    from . import triangulate as tri
+
+    published = con.execute("SELECT * FROM csc_latest").df()
+    calls = con.execute("SELECT count(*) FROM raw_snapshots WHERE source = 'cfbd'").fetchone()[0]
+    check = pl.roster_check(players, published)
+    cov = players.groupby("group").agg(players=("id", "size"), rating=("rating", lambda s: s.notna().mean()),
+                                       production=("production", lambda s: s.notna().mean()),
+                                       transfers=("transfer", "mean")).reset_index()
+    for col in ("rating", "production", "transfers"):
+        cov[col] = cov[col].map("{:.0%}".format)
+
+    def m(v):
+        return f"${v / 1e6:.1f}M"
+
+    teams = pd.DataFrame({
+        "rank": range(1, len(table) + 1), "program": table.team, "conference": table.conference,
+        "players": table.players, "market value": table.value.map(m),
+        "80% range": [f"{m(a)} to {m(b)}" for a, b in zip(table.low, table.high)],
+        "vs cap": (table.value / tri.CAP_CALENDAR_2026).map("{:.0%}".format),
+        "top-5 share": table.top5_share.map("{:.0%}".format)})
+    conf = table.groupby("conference").value.agg(programs="count", mean="mean", low="min", high="max").reset_index()
+    for col in ("mean", "low", "high"):
+        conf[col] = conf[col].map(m)
+    over = int((table.value > tri.CAP_CALENDAR_2026).sum())
+    parts = [
+        f"# A4 roster market values, {season}\n",
+        "What each A4 football roster would cost in revenue share if every player were paid his position's A4 "
+        "market rate at his rank. The rates are the CSC's published distributions (with the cap-calibrated tail); "
+        "the ranks come from public data. **This is not what a school spends**: it is the market price of the "
+        "roster, the first half of a surplus-value comparison. Team totals only; individual estimates stay in "
+        f"the local database. Data: CollegeFootballData, {calls} API calls. Method: "
+        "[`docs/ESTIMATION.md`](../docs/ESTIMATION.md).\n",
+        "## Rosters against the CSC\n",
+        f"A4 players on {season} rosters by CSC group, against the CSC's count of everyone on a {season} roster "
+        "during the calendar year. They agree within a few percent, except that the CSC leaves 162 players' "
+        "positions unspecified and counts fewer defensive linemen.\n",
+        _md(check),
+        "## What ranks the players\n",
+        "Within each group: last season's production (usage and expected points added on offense; tackles, "
+        f"sacks, tackles for loss, pass breakups and interceptions on defense) {pl.WEIGHTS['production']:.0%}, "
+        f"recruiting or portal rating {pl.WEIGHTS['rating']:.0%}, class year {pl.WEIGHTS['experience']:.0%}. "
+        f"Groups without individual production (linemen on offense, specialists) use rating "
+        f"{pl.WEIGHTS_NO_PRODUCTION['rating']:.0%} and class year {pl.WEIGHTS_NO_PRODUCTION['experience']:.0%}. "
+        "These weights are a stated prior. A missing rating counts as the group's 10th percentile; no production "
+        f"last season counts as the group's lowest. Ranks are treated as tracking pay at {pl.RANK_CORR}, inside "
+        "the simulation's 0.43 to 0.66 range, and that uncertainty gives each program's range.\n",
+        _md(cov),
+        "## Market value by program\n",
+        f"Average ${table.value.mean() / 1e6:.1f}M against a calendar-2026 cap of "
+        f"${tri.CAP_CALENDAR_2026 / 1e6:.2f}M. {over} rosters would cost more than the cap at market rates, so "
+        "their players must take less than market in revenue share or be paid through NIL.\n",
+        _md(teams),
+        "## By conference\n", _md(conf),
+        "## Limits\n",
+        "- Ranks come from public features with prior weights, not from contracts.",
+        "- Transfers are matched to the portal by name and school; transfers from outside FBS have no production here.",
+        "- Linemen on offense and specialists rank on rating and class year alone.",
+        "- Rosters include walk-ons; they rank low and mostly add $0, as the CSC's unpaid share says they should.",
+    ]
+    path = path or config.REPORTS_DIR / f"rosters_{season}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(parts))
+    return path
