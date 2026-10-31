@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from . import benchmark as bm
@@ -207,16 +208,17 @@ def claims_report(con, claims_path: Path, path: Path | None = None) -> Path:
     curves = bm.curves(df)[0]
     claims, issues = cl.load(claims_path)
     placed = cl.place(claims, curves)
-    tails = cl.lenient_tails(df)
-    order = cl.order_test(placed, curves, tails)
+    high, central = cl.lenient_tails(df, "high"), cl.lenient_tails(df, "central")
+    ev = cl.evidence(placed, curves, df)
     bias = cl.source_bias(claims)
     counts = cl.tail_counts(placed, df)
-    summary = cl.summary(placed, order, bias)
+    summary = cl.summary(placed, ev, bias)
     if len(summary):
-        summary["flagged_share"] = summary.flagged_share.map(lambda v: "" if pd.isna(v) else f"{v:.0%}")
         summary["bias"] = summary.bias.map(lambda v: "" if pd.isna(v) else _pct_signed(v))
-    flagged = order[order.flagged].assign(value=lambda d: d.value.map(_usd),
-                                          p_value=lambda d: d.p_value.map(lambda v: "<0.001" if v < 0.001 else f"{v:.3f}"))
+    pfmt = lambda v: "<0.001" if v < 0.001 else f"{v:.3f}"        # noqa: E731
+    flagged = ev[ev.strong | ev.moderate].assign(
+        value=lambda d: d.value.map(_usd), evidence=lambda d: np.where(d.strong, "strong", "moderate"),
+        p_strong=lambda d: d.p_strong.map(pfmt), p_central=lambda d: d.p_central.map(pfmt))
     over = counts[counts.excess > 0].assign(threshold=lambda d: d.threshold.map(_usd))
     unplaced = placed[~placed.placed][["claim_id", "source", "report", "position", "cohort", "why"]]
     parts = [
@@ -230,10 +232,11 @@ def claims_report(con, claims_path: Path, path: Path | None = None) -> Path:
         "Each excess is a floor on how many of those claims overstate pay or count money the report doesn't.\n",
         _md(over),
         "## Flagged by the order test\n",
-        f"Claims that even the cohort's k-th best-paid athlete is unlikely (p < {cl.ALPHA}) to reach, under the "
-        "heaviest football tail the outside totals allow "
-        f"(x{tails.get('revenue_share', 1):.2f} revenue share, x{tails.get('nil_go', 1):.2f} NIL Go).\n",
-        _md(flagged[["claim_id", "source", "position", "cohort", "value", "k", "n", "p_value"]]),
+        f"Claims that even the cohort's k-th best-paid athlete is unlikely (p < {cl.ALPHA}) to reach. **Strong**: "
+        "fails under the most generous football tail the outside totals allow "
+        f"(x{high.get('revenue_share', 1):.2f} revenue share, x{high.get('nil_go', 1):.2f} NIL Go). **Moderate**: "
+        f"fails only under the central tail (x{central.get('revenue_share', 1):.2f}, x{central.get('nil_go', 1):.2f}).\n",
+        _md(flagged[["claim_id", "source", "position", "cohort", "value", "k", "n", "evidence", "p_strong", "p_central"]]),
         "## Source bias\n",
         "From athletes reported by more than one source: each source's typical over- or under-statement, anchored "
         "to school records where they overlap.\n",
@@ -245,3 +248,83 @@ def claims_report(con, claims_path: Path, path: Path | None = None) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts))
     return path
+
+
+def simulation_report(con, seeds: tuple[int, ...] = (0, 1, 2), path: Path | None = None) -> Path:
+    """The estimation and credibility methods on synthetic markets built from the real curves, where the
+    truth is known."""
+    from . import simulate as sim
+
+    df = con.execute("SELECT * FROM csc_latest").df()
+    newest = con.execute("SELECT strftime(max(first_seen_at), '%Y-%m-%d') FROM csc_releases").fetchone()[0]
+    transports = sim.football_transports(df)
+    mult = next(iter(transports.values())).tail_mult
+    methods, cred = sim.run(df, seeds)
+    order = ["features only", "+ claims as training labels", "+ claims as anchors", "+ anchors + school totals"]
+    m = (methods.groupby(["scenario", "players", "method"], as_index=False)[["rank_corr", "median_log_error", "coverage_80"]]
+         .mean())
+    m["method"] = pd.Categorical(m.method, order, ordered=True)
+    m = m.sort_values(["scenario", "players", "method"])
+    table = pd.DataFrame({"features": m.scenario, "players": m.players, "method": m.method.astype(str),
+                          "rank correlation": m.rank_corr.map("{:.3f}".format),
+                          "typical miss": np.exp(m.median_log_error).map("x{:.2f}".format),
+                          "80% interval covers": m.coverage_80.map("{:.0%}".format)})
+    c = cred.groupby("source", as_index=False).agg(true_bias=("true_bias", "first"), mean=("estimated_bias", "mean"),
+                                                   low=("estimated_bias", "min"), high=("estimated_bias", "max"),
+                                                   claims=("claims", "sum"), strong=("strong", "sum"),
+                                                   moderate=("moderate", "sum"))
+    src = pd.DataFrame({"source": c.source, "true bias": c.true_bias.map(_pct_signed),
+                        "estimated bias": c["mean"].map(_pct_signed),
+                        "range over markets": [f"{_pct_signed(a)} to {_pct_signed(b)}" for a, b in zip(c.low, c.high)],
+                        "claims": c.claims, "strong flags": c.strong, "moderate flags": c.moderate})
+
+    def val(scen, players, method, col):
+        return float(m[(m.scenario == scen) & (m.players == players) & (m.method == method)][col].iloc[0])
+
+    lines = []
+    for scen in sim.SCENARIOS:
+        f, lab, anc, tot = (val(scen, "all", x, "rank_corr") for x in order)
+        cf, ca = val(scen, "claimed", order[0], "median_log_error"), val(scen, "claimed", order[2], "median_log_error")
+        da, dt = val(scen, "disclosed schools", order[2], "rank_corr"), val(scen, "disclosed schools", order[3], "rank_corr")
+        lines.append(f"- **{scen.capitalize()}**: features alone rank pay at {f:.3f}. Training on the claims drops that "
+                     f"to {lab:.3f}; anchoring on them keeps {anc:.3f} and cuts the typical miss for claimed players "
+                     f"from x{np.exp(cf):.2f} to x{np.exp(ca):.2f}. School totals lift the disclosed schools from "
+                     f"{da:.3f} to {dt:.3f} (all players {tot:.3f}).")
+    world = sim.market(transports, seed=seeds[0])
+    parts = [
+        f"# Simulation, release {newest}\n",
+        "Real individual pay is private, so the methods are tested on synthetic markets where it is known. Each "
+        f"market has the CSC's {len(world['players']):,} rostered A4 football players by position, spread over "
+        f"{tri_programs()} programs. A player's latent value is talent plus his school's spending effect plus "
+        "noise, and his true revenue share is his position's quantile at that rank, so every position reproduces "
+        f"the published percentiles, with the tail calibrated to the cap (x{mult:.2f}). The analyst sees two noisy "
+        f"features, {len(world['disclosed'])} schools' disclosed totals, and claims about the best-paid players "
+        f"from {len(sim.SOURCES)} sources with known biases. {len(seeds)} markets per scenario; method: "
+        "[`docs/ESTIMATION.md`](../docs/ESTIMATION.md).\n",
+        "## Estimating each player's pay\n",
+        "Rank correlation is between the estimated and true pay rankings within each position. Typical miss is the "
+        "median factor between estimate and truth (on 1 + pay, so an unpaid player estimated at $0 is exact).\n",
+        _md(table, ".3f"),
+        *lines,
+        "\n## Checking sources\n",
+        "Estimated bias comes from athletes reported by more than one source, anchored to school records. Strong "
+        "flags fail the order test under the most generous tail the cap allows; moderate flags fail only under "
+        "the central tail.\n",
+        _md(src),
+        "## Limits\n",
+        "- The synthetic market is built to match what is published; how pay really depends on talent and school "
+        "is assumed, and the features' quality is set by the scenario. Real features need the CFBD data.",
+        "- Moderate inflation (+30%) is caught through overlapping sources, not by the aggregate tests; those catch "
+        "only claims far beyond what the distribution allows.",
+        "- The intervals cover the truth somewhat more often than 80%, so they are cautious.",
+    ]
+    path = path or config.REPORTS_DIR / f"simulation_{newest}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(parts))
+    return path
+
+
+def tri_programs() -> int:
+    from .triangulate import A4_FOOTBALL_PROGRAMS
+
+    return A4_FOOTBALL_PROGRAMS

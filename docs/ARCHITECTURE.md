@@ -159,5 +159,6 @@ geometry and must agree, and a test pins the real layout.
 | N1 | CSC capture, release archive, checks, exports | Done |
 | N2 | Offer benchmark: per-cohort curves, lookups, validation | Done |
 | Ops | Daily capture pipeline (GitHub Actions) | Done; runs once the repository is on GitHub |
-| N3 | School layer: proxies for school-level pay (see `SCHOOL_LAYER.md`) | Research |
+| N3 | Triangulation, claims credibility, rank-to-pay estimation, simulation (see `ESTIMATION.md`) | Done on public data; waits on claims and real features |
+| N3b | School layer from public totals (see `SCHOOL_LAYER.md`) | Research |
 | N4 | Player layer: CFBD rosters, recruiting, portal, usage; rank within cohort → benchmark curve | Needs a CFBD key |

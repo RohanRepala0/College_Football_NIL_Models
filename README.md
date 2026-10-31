@@ -60,6 +60,9 @@ nil benchmark --sport Football --position Quarterback --cohort A4 --revenue-shar
 nil curve --sport Football --position Quarterback --cohort A4 [--report nil_go]
 nil query "SELECT position, value_usd FROM csc_latest WHERE sport = 'Football' AND cohort = 'A4'
            AND population = 'paid' AND percentile = 50 ORDER BY value_usd DESC"
+nil triangulate                  # floors and calibrated tails for football totals
+nil claims my_claims.csv         # credibility of reported deals (columns: data/claims/template.csv)
+nil simulate                     # test the estimation methods on synthetic markets (about 2 minutes)
 nil dashboard-data               # rewrite data/dashboard/*.json for the dashboard
 nil status
 ```
@@ -78,6 +81,7 @@ is needed where a sport has both.
 | `docs/ARCHITECTURE.md` | sources, schema, pipeline, checks, rules for using the numbers |
 | `docs/BENCHMARK.md` | the curve method and its validation |
 | `docs/SCHOOL_LAYER.md` | research: proxies for school-level pay, which the CSC does not publish |
+| `docs/ESTIMATION.md` | the estimation approach: floors, calibrated tails, rank-to-pay transport, claims as anchors, credibility tests, and the simulation that validates them |
 | `docs/MARKET_RESEARCH.md` | research: Dropback and the market for NIL intelligence tools; where this data fits |
 
 The rating model this started next to is

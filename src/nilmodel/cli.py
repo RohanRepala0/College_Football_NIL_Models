@@ -129,6 +129,14 @@ def claims(path: Path = typer.Argument(..., help="CSV with the columns of data/c
     typer.echo(f"wrote {claims_report(_con(), path)}")
 
 
+@app.command()
+def simulate(seeds: int = typer.Option(3, help="Synthetic markets per scenario.")):
+    """Test the estimation and credibility methods where the truth is known; writes reports/simulation_<date>.md."""
+    from .reports import simulation_report
+
+    typer.echo(f"wrote {simulation_report(_con(), tuple(range(seeds)))}")
+
+
 @app.command("dashboard-data")
 def dashboard_data():
     """Write the dashboard's data files to data/dashboard/ from the latest releases."""

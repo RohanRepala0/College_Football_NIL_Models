@@ -137,11 +137,24 @@ def tail_counts(placed: pd.DataFrame, published: pd.DataFrame) -> pd.DataFrame:
                                        "claimed_above", "most_possible", "excess"])
 
 
-def lenient_tails(published: pd.DataFrame) -> dict[str, float]:
-    """Per report, the heaviest football tail the outside totals allow: the triangulation's high case."""
+def lenient_tails(published: pd.DataFrame, case: str = "high") -> dict[str, float]:
+    """Per report, a football tail multiplier from the triangulation: "high" is the heaviest tail the
+    outside totals allow (strong evidence when a claim fails even under it); "central" is the best
+    estimate (moderate evidence)."""
     cal = tri.calibrate(published)
-    high = cal[cal.case == "high"].set_index("report").tail_mult
-    return {r: (1.0 if pd.isna(m) else float(m)) for r, m in high.items()}
+    mult = cal[cal.case == case].set_index("report").tail_mult
+    return {r: (1.0 if pd.isna(m) else float(m)) for r, m in mult.items()}
+
+
+def evidence(placed: pd.DataFrame, curves: list[bm.Curve], published: pd.DataFrame, alpha: float = ALPHA) -> pd.DataFrame:
+    """The order test at both levels: `strong` when a claim fails under the most generous tail the
+    outside totals allow, `moderate` when it fails only under the central tail."""
+    strong = order_test(placed, curves, lenient_tails(published, "high"), alpha)
+    central = order_test(placed, curves, lenient_tails(published, "central"), alpha)
+    out = strong.rename(columns={"p_value": "p_strong", "flagged": "strong"})
+    out["p_central"] = central.p_value.to_numpy()
+    out["moderate"] = central.flagged.to_numpy() & ~out.strong
+    return out
 
 
 def order_test(placed: pd.DataFrame, curves: list[bm.Curve], tails: dict[str, float] | None = None,
@@ -202,13 +215,13 @@ def source_bias(claims: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
-def summary(placed: pd.DataFrame, order: pd.DataFrame, bias: pd.DataFrame) -> pd.DataFrame:
-    """One row per source: claims, how many could be placed, how many the order test flags, and its bias."""
+def summary(placed: pd.DataFrame, ev: pd.DataFrame, bias: pd.DataFrame) -> pd.DataFrame:
+    """One row per source: claims, how many could be placed, strong and moderate flags, and its bias."""
     rows = []
     for s, g in placed.groupby("source"):
-        o = order[order.source == s]
+        o = ev[ev.source == s]
         b = bias[bias.source == s]
         rows.append({"source": s, "source_type": g.source_type.iloc[0], "claims": len(g), "placed": int(g.placed.sum()),
-                     "flagged": int(o.flagged.sum()), "flagged_share": (o.flagged.mean() if len(o) else np.nan),
+                     "strong": int(o.strong.sum()), "moderate": int(o.moderate.sum()),
                      "bias": (b.bias.iloc[0] if len(b) else np.nan)})
     return pd.DataFrame(rows)

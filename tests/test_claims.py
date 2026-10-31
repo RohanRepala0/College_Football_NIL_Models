@@ -58,6 +58,8 @@ def test_order_test_flags_the_impossible_not_the_plausible(release):
     o = cl.order_test(cl.place(claims, curves), curves, tails).set_index("claim_id")
     assert o.loc["big", "flagged"] and not o.loc["ok", "flagged"]
     assert not cl.order_test(cl.place(claims, curves), curves, {"revenue_share": 1.5}).set_index("claim_id").loc["big", "flagged"]
+    ev = cl.evidence(cl.place(claims, curves), curves, df).set_index("claim_id")
+    assert ev.loc["big", "strong"] and not ev.loc["ok", "strong"] and not ev.loc["ok", "moderate"]
 
 
 def test_truth_discovery_recovers_source_bias():

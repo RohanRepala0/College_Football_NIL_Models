@@ -172,13 +172,17 @@ def calibrate(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def tail_value(curve: bm.Curve, percentile: float, tail_mult: float) -> float:
-    """Dollars at a percentile of the positive part, with the tail slope scaled by `tail_mult`."""
-    q = percentile / 100
+def tail_quantile(curve: bm.Curve, q, tail_mult: float = 1.0) -> np.ndarray:
+    """Dollars at quantiles `q` (0-1) of the positive part, with the tail slope scaled by `tail_mult`."""
+    q = np.asarray(q, float)
     (q0, v0, _), (q1, v1, _) = curve.knots[0], curve.knots[-1]
-    if q0 <= q <= q1:
-        return float(curve.quantile(q))
     s = curve.tail_slope * tail_mult
     z = norm.ppf(q)
-    return v1 * math.exp(s * (z - norm.ppf(q1))) if q > q1 else v0 * math.exp(s * (z - norm.ppf(q0)))
+    out = curve.quantile(np.clip(q, q0, q1))
+    out = np.where(q > q1, v1 * np.exp(s * (z - norm.ppf(q1))), out)
+    return np.where(q < q0, v0 * np.exp(s * (z - norm.ppf(q0))), out)
 
+
+def tail_value(curve: bm.Curve, percentile: float, tail_mult: float) -> float:
+    """Dollars at a percentile of the positive part, with the tail slope scaled by `tail_mult`."""
+    return float(tail_quantile(curve, percentile / 100, tail_mult))
