@@ -13,3 +13,17 @@ DB_PATH = Path(os.environ.get("NIL_DB", DATA_DIR / "nil.duckdb"))
 
 USER_AGENT = "nilmodel/0.1 (personal research; contact via GitHub RohanRepala0)"
 TIMEOUT_SECONDS = 30
+
+
+def secret(name: str) -> str | None:
+    """A secret from the environment, else from the git-ignored .env file in the repository root."""
+    if os.environ.get(name):
+        return os.environ[name]
+    env = ROOT / ".env"
+    if env.exists():
+        for line in env.read_text().splitlines():
+            key, _, value = line.partition("=")
+            if key.strip() == name and value.strip():
+                return value.strip()
+    return None
+
