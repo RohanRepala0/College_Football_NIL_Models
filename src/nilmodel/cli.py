@@ -112,6 +112,14 @@ def query(sql: str = typer.Argument(..., help="SQL over csc_latest, csc_percenti
     typer.echo(_table(_con().execute(sql).df()))
 
 
+@app.command()
+def triangulate():
+    """What the latest release implies about football totals; writes reports/triangulation_<date>.md."""
+    from .reports import triangulation_report
+
+    typer.echo(f"wrote {triangulation_report(_con())}")
+
+
 @app.command("dashboard-data")
 def dashboard_data():
     """Write the dashboard's data files to data/dashboard/ from the latest releases."""

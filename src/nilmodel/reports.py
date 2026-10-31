@@ -122,3 +122,73 @@ def release_report(con, issues: list[dict], errors: pd.DataFrame, curves: list[b
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts))
     return path
+
+
+def triangulation_report(con, path: Path | None = None) -> Path:
+    """What the latest release implies about football totals: hard floors, tail scenarios, and the tail
+    calibrated to outside totals. Each report is totalled on its own."""
+    from . import triangulate as tri
+
+    df = con.execute("SELECT * FROM csc_latest").df()
+    newest = con.execute("SELECT strftime(max(first_seen_at), '%Y-%m-%d') FROM csc_releases").fetchone()[0]
+    rolled = tri.roll_up(tri.cohort_totals(df))
+    pp = tri.per_program(rolled)
+
+    def m(v):
+        return "" if pd.isna(v) else f"${v / 1e6:,.1f}M"
+
+    totals = pd.DataFrame({
+        "report": rolled.report, "group": rolled.cohort, "athletes": rolled.athletes.astype(int),
+        "floor (no model)": rolled.floor.map(m), "light tail (x0.5)": rolled.light.map(m),
+        "fitted tail (x1.0)": rolled.fitted.map(m), "heavy tail (x1.5)": rolled.heavy.map(m)})
+    cal = tri.calibrate(df)
+    cal_table = pd.DataFrame({
+        "report": cal.report, "assumption": cal.case, "football share": cal.assumed_share.map("{:.0%}".format),
+        "target": cal.target.map(m), "flat-tail total": cal.flat_tail_total.map(m),
+        "fitted-tail total": cal.fitted_total.map(m),
+        "tail multiplier": ["below a flat tail" if pd.isna(v) else f"x{v:.2f}" for v in cal.tail_mult]})
+
+    curves = bm.curves(df)[0]
+    rows = []
+    for report in ("revenue_share", "nil_go"):
+        mult = cal[(cal.report == report) & (cal.case == "central")].tail_mult.iloc[0]
+        for pos in ("Quarterback", "Wide Receiver", "Offensive Lineman", "Defensive Lineman"):
+            c = bm.find(curves, report, "Football", pos, "A4")
+            rows.append({"report": report, "A4 position": pos, "published 90th": m(dict(c.published[c.population]).get(90)),
+                         "95th fitted": m(tri.tail_value(c, 95, 1.0)), "95th calibrated": m(tri.tail_value(c, 95, mult)),
+                         "99th fitted": m(tri.tail_value(c, 99, 1.0)), "99th calibrated": m(tri.tail_value(c, 99, mult))})
+
+    parts = [
+        f"# Triangulation, release {newest}\n",
+        "What the published percentiles imply about football totals, first with no model and then with the "
+        "benchmark curves. Revenue share and NIL Go are totalled separately and never added together. Method: "
+        "[`docs/ESTIMATION.md`](../docs/ESTIMATION.md).\n",
+        "## Hard floors\n",
+        "Each athlete between two published percentiles is paid at least the lower of the two, so share x lower "
+        "value, summed, is a floor that needs no model. Nothing caps the top 10%, so there is no matching ceiling.\n",
+        f"- A4 football revenue share is at least **{m(pp['floor'])} per program** across the {pp['programs']} A4 "
+        f"programs, **{pp['floor_cap_share']:.0%} of the calendar-2026 cap** (${tri.CAP_CALENDAR_2026 / 1e6:.2f}M, "
+        "which also has to cover every other sport).",
+        f"- The CSC counts {pp['rostered_per_program']:.0f} rostered football players per A4 program, above the "
+        "105-player roster limit: everyone on a 2026 roster at any point in the calendar year is counted, so "
+        "turnover adds names.\n",
+        "## Totals under each tail\n",
+        "Between published percentiles the curve is the benchmark's; past the 10th and 90th it is lognormal with "
+        "the fitted slope times the multiplier.\n",
+        _md(totals),
+        f"Under the fitted tail, A4 football alone would take {pp['fitted_cap_share']:.0%} of the cap, and under "
+        f"the heavy tail {pp['heavy_cap_share']:.0%}, which is impossible.\n",
+        "## Tails calibrated to outside totals\n",
+        *[f"- {note}" for note in tri.CONSTRAINT_NOTES],
+        "\nThe multiplier is solved so the football total matches the target. \"Below a flat tail\" means even "
+        "paying everyone in the top 10% exactly the published 90th overshoots, so that assumption is ruled out.\n",
+        _md(cal_table),
+        "## What calibration changes at the top\n",
+        "Dollars past the published 90th, A4 football, at the central assumption. The fitted tail is what the "
+        "benchmark extrapolates with today.\n",
+        _md(pd.DataFrame(rows)),
+    ]
+    path = path or config.REPORTS_DIR / f"triangulation_{newest}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(parts))
+    return path
