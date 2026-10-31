@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS benchmark_fits (
     method          VARCHAR NOT NULL,      -- pchip | linear | lognormal | bracket_only
     n_knots         INTEGER NOT NULL,
     tail_slope      DOUBLE,                -- log dollars per normal score beyond the published percentiles
+    top_tail_mult   DOUBLE,                -- scale on that slope past the top point (calibrated football tails)
     knots           VARCHAR NOT NULL       -- JSON [[q, dollars, source], ...]
 );
 
@@ -113,6 +114,7 @@ def connect(path: Path | str | None = None) -> duckdb.DuckDBPyConnection:
 
 def init_db(con: duckdb.DuckDBPyConnection) -> list[str]:
     con.execute(SCHEMA)
+    con.execute("ALTER TABLE benchmark_fits ADD COLUMN IF NOT EXISTS top_tail_mult DOUBLE")
     return sorted(r[0] for r in con.execute("SELECT table_name FROM information_schema.tables").fetchall())
 
 

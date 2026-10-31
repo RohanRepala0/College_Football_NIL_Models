@@ -50,7 +50,7 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
 
     df = con.execute("SELECT * FROM csc_latest").df()
     curves = []
-    for c in bm.curves(df)[0]:
+    for c in bm.calibrated_curves(df)[0]:
         if not c.fitted:
             continue
         k = c.key
@@ -62,7 +62,7 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
         for pop, zero, lo, hi, n in pops:
             curves.append({"id": _key(k.report, k.gender, k.sport, k.position, k.cohort, pop), "report": k.report,
                            "gender": k.gender, "sport": k.sport, "position": k.position, "cohort": k.cohort,
-                           "population": pop, "n": n, "method": c.method,
+                           "population": pop, "n": n, "method": c.method, "top_tail_mult": c.top_mult,
                            "zero_pct": round(100 * zero, 2), "pub_lo": round(100 * lo, 2), "pub_hi": round(100 * hi, 2),
                            "values": [round(bm.value_at(c, p, pop)[0], 2) for p in range(1, 100)]})
 

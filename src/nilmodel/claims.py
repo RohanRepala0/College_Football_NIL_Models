@@ -75,11 +75,10 @@ def cdf(curve: bm.Curve, amount: float, tail_mult: float = 1.0) -> float:
     """Share of the cohort's positive part paid at most `amount`, with the tail slope scaled by `tail_mult`.
     Inside the published range it takes the upper end of a flat stretch, which favours the claim."""
     (q0, v0, _), (q1, v1, _) = curve.knots[0], curve.knots[-1]
-    s = max(curve.tail_slope * tail_mult, 1e-9)
     if amount > v1:
-        return float(norm.cdf(norm.ppf(q1) + math.log(amount / v1) / s))
+        return float(norm.cdf(norm.ppf(q1) + math.log(amount / v1) / max(curve.tail_slope * tail_mult, 1e-9)))
     if amount < v0:
-        return float(norm.cdf(norm.ppf(q0) - math.log(v0 / amount) / s))
+        return float(norm.cdf(norm.ppf(q0) - math.log(v0 / amount) / curve.tail_slope))
     return curve.rank(amount)[1]
 
 

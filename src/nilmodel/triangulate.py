@@ -27,7 +27,7 @@ A4_FOOTBALL_PROGRAMS = 68
 CAP_2025_26 = 20_500_000
 CAP_2026_27 = 21_580_000
 CAP_CALENDAR_2026 = (CAP_2025_26 + CAP_2026_27) / 2
-TAIL_SCENARIOS = {"light": 0.5, "fitted": 1.0, "heavy": 1.5}   # multipliers on the curve's tail slope
+TAIL_SCENARIOS = {"light": 0.5, "fitted": 1.0, "heavy": 1.5}   # multipliers on the upper tail's slope
 
 # Outside totals that each report's football total must respect. Each is (central, low, high), and every
 # assumption is named in `CONSTRAINT_NOTES`, which the report prints beside the results.
@@ -65,12 +65,13 @@ def floor_mean(points: list[tuple[float, float]]) -> float:
 
 def curve_mean(curve: bm.Curve, tail_mult: float = 1.0, grid: int = 4001) -> float:
     """Mean of the curve's positive part. Between the published ends it integrates the curve; beyond
-    them the tails are lognormal with the curve's slope times `tail_mult`, integrated exactly."""
+    them the tails are lognormal, the upper with the curve's slope times `tail_mult` and the lower with
+    the fitted slope, both integrated exactly."""
     (q0, v0, _), (q1, v1, _) = curve.knots[0], curve.knots[-1]
-    s = curve.tail_slope * tail_mult
+    s, s0 = curve.tail_slope * tail_mult, curve.tail_slope
     z0, z1 = norm.ppf(q0), norm.ppf(q1)
     upper = v1 * math.exp(-s * z1 + s * s / 2) * norm.sf(z1 - s)
-    lower = v0 * math.exp(-s * z0 + s * s / 2) * norm.cdf(z0 - s)
+    lower = v0 * math.exp(-s0 * z0 + s0 * s0 / 2) * norm.cdf(z0 - s0)
     q = np.linspace(q0, q1, grid)
     return lower + float(_trapezoid(curve.quantile(q), q)) + upper
 
@@ -128,9 +129,9 @@ class _Part:
     def mean(self, tail_mult: float) -> float:
         if self.floor is not None:
             return self.floor
-        s = self.slope * tail_mult
+        s, s0 = self.slope * tail_mult, self.slope
         upper = self.v1 * math.exp(-s * self.z1 + s * s / 2) * norm.sf(self.z1 - s)
-        lower = self.v0 * math.exp(-s * self.z0 + s * s / 2) * norm.cdf(self.z0 - s)
+        lower = self.v0 * math.exp(-s0 * self.z0 + s0 * s0 / 2) * norm.cdf(self.z0 - s0)
         return lower + self.interior + upper
 
 
@@ -173,14 +174,13 @@ def calibrate(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def tail_quantile(curve: bm.Curve, q, tail_mult: float = 1.0) -> np.ndarray:
-    """Dollars at quantiles `q` (0-1) of the positive part, with the tail slope scaled by `tail_mult`."""
+    """Dollars at quantiles `q` (0-1) of the positive part, with the upper tail's slope scaled by `tail_mult`."""
     q = np.asarray(q, float)
     (q0, v0, _), (q1, v1, _) = curve.knots[0], curve.knots[-1]
-    s = curve.tail_slope * tail_mult
     z = norm.ppf(q)
     out = curve.quantile(np.clip(q, q0, q1))
-    out = np.where(q > q1, v1 * np.exp(s * (z - norm.ppf(q1))), out)
-    return np.where(q < q0, v0 * np.exp(s * (z - norm.ppf(q0))), out)
+    out = np.where(q > q1, v1 * np.exp(curve.tail_slope * tail_mult * (z - norm.ppf(q1))), out)
+    return np.where(q < q0, v0 * np.exp(curve.tail_slope * (z - norm.ppf(q0))), out)
 
 
 def tail_value(curve: bm.Curve, percentile: float, tail_mult: float) -> float:

@@ -4,7 +4,8 @@ Each cohort publishes up to five percentiles (90/75/50/25/10). A curve is a quan
 them, Q(q) = exp(g(z)) with z the normal score of q and g non-decreasing. Between published
 percentiles g is linear: on the first release `validate` put it level with PCHIP and well ahead of a
 plain lognormal. Beyond them it continues in a straight line whose slope is a lognormal fit to all the
-points, and any answer out there is flagged as extrapolated.
+points, and any answer out there is flagged as extrapolated. Past the top point, football cohorts whose
+totals an outside constraint pins use a slope calibrated to it (`calibrated_curves`, from triangulate.py).
 
 Revenue share publishes a cohort twice: everyone rostered ("With $0") and only the paid ("Without
 $0"). That is one distribution with zero share z = 1 - n_paid / n_all, so all-rostered percentile p
@@ -55,8 +56,9 @@ class CohortKey:
         return f"{self.report} · {self.gender}'s {self.sport}{pos} · {self.cohort}"
 
 
-def _shape(xs: np.ndarray, ys: np.ndarray, method: str):
-    """g and its tail slope for points (normal score, log dollars), xs increasing, ys non-decreasing."""
+def _shape(xs: np.ndarray, ys: np.ndarray, method: str, top_mult: float = 1.0):
+    """g and its tail slope for points (normal score, log dollars), xs increasing, ys non-decreasing.
+    Past the top point the slope is scaled by `top_mult` (a tail calibrated to outside totals)."""
     slope = max(float(np.polyfit(xs, ys, 1)[0]), TAIL_FLOOR) if len(xs) >= 2 else None
     if slope is None:
         return None, None
@@ -69,7 +71,7 @@ def _shape(xs: np.ndarray, ys: np.ndarray, method: str):
         z = np.asarray(z, float)
         mid = inner(np.clip(z, xs[0], xs[-1]))
         return np.where(z < xs[0], ys[0] + slope * (z - xs[0]),
-                        np.where(z > xs[-1], ys[-1] + slope * (z - xs[-1]), mid))
+                        np.where(z > xs[-1], ys[-1] + slope * top_mult * (z - xs[-1]), mid))
     return g, slope
 
 
@@ -85,6 +87,7 @@ class Curve:
     zero_share: float | None = None
     n_all: int | None = None
     method: str = METHOD
+    top_mult: float = 1.0                             # scale on the tail slope past the top point
     _g: object = field(init=False, repr=False, default=None)
     tail_slope: float | None = field(init=False, default=None)
 
@@ -92,7 +95,7 @@ class Curve:
         if len(self.knots) >= 2:
             xs = norm.ppf([q for q, _, _ in self.knots])
             ys = np.log([v for _, v, _ in self.knots])
-            self._g, self.tail_slope = _shape(xs, ys, self.method)
+            self._g, self.tail_slope = _shape(xs, ys, self.method, self.top_mult)
 
     @property
     def fitted(self) -> bool:
@@ -153,8 +156,11 @@ def _monotone(knots: list[tuple[float, float, str]]) -> list[tuple[float, float,
     return out
 
 
-def curves(df: pd.DataFrame, method: str = METHOD) -> tuple[list[Curve], list[dict]]:
-    """One curve per cohort of a release, from `csc_percentiles` rows (for example `csc_latest`)."""
+def curves(df: pd.DataFrame, method: str = METHOD,
+           top_mults: dict[tuple[str, str, str], float] | None = None) -> tuple[list[Curve], list[dict]]:
+    """One curve per cohort of a release, from `csc_percentiles` rows (for example `csc_latest`).
+    `top_mults` scales the tail past the top point for cohorts keyed (report, sport, cohort)."""
+    top_mults = top_mults or {}
     out: list[Curve] = []
     issues: list[dict] = []
     for key, g in df.groupby(KEY, dropna=False, sort=True):
@@ -178,9 +184,32 @@ def curves(df: pd.DataFrame, method: str = METHOD) -> tuple[list[Curve], list[di
             published["all_rostered"] = [(int(p), float(v)) for p, v in zip(pa.percentile, pa.value_usd)]
             knots += [((p / 100 - z) / (1 - z), v, "all_rostered")
                       for p, v in published["all_rostered"] if v > 0 and p / 100 > z + ZERO_TOL]
-        out.append(Curve(k, base_pop, n, _monotone(knots), published, z, n_all, method))
+        out.append(Curve(k, base_pop, n, _monotone(knots), published, z, n_all, method,
+                         top_mults.get((k.report, k.sport, k.cohort), 1.0)))
     return out, issues
 
+
+
+def calibrated_mults(df: pd.DataFrame) -> dict[tuple[str, str, str], float]:
+    """Tail multipliers past the top point, from the triangulation's central case, for the cohorts whose
+    totals an outside constraint pins: A4 football revenue share (the cap) and football NIL Go (NIL Go's
+    all-sports totals). Every other cohort keeps the fitted tail."""
+    from .triangulate import calibrate
+
+    cal = calibrate(df)
+    central = cal[cal.case == "central"].set_index("report").tail_mult
+    out = {}
+    if pd.notna(central.get("revenue_share")):
+        out[("revenue_share", "Football", "A4")] = float(central["revenue_share"])
+    if pd.notna(central.get("nil_go")):
+        for cut in ("A4", "Non-A4"):
+            out[("nil_go", "Football", cut)] = float(central["nil_go"])
+    return out
+
+
+def calibrated_curves(df: pd.DataFrame) -> tuple[list[Curve], list[dict]]:
+    """The curves the benchmark answers with: fitted, with the calibrated football tails."""
+    return curves(df, top_mults=calibrated_mults(df))
 
 # ---------------------------------------------------------------- answers
 
@@ -273,7 +302,8 @@ def fit_frames(cs: list[Curve], payload_sha: dict[str, str]) -> tuple[pd.DataFra
                  "position": k.position, "cohort": k.cohort, "window_label": k.window_label}
         fits.append({**ident, "population": c.population, "n": c.n, "n_all": c.n_all, "zero_share": c.zero_share,
                      "method": c.method if c.fitted else "bracket_only", "n_knots": len(c.knots),
-                     "tail_slope": c.tail_slope, "knots": json.dumps([[round(q, 6), v, s] for q, v, s in c.knots])})
+                     "tail_slope": c.tail_slope, "top_tail_mult": c.top_mult,
+                     "knots": json.dumps([[round(q, 6), v, s] for q, v, s in c.knots])})
         if not c.fitted:
             continue
         pops = [c.population] + (["all_rostered"] if c.zero_share is not None else [])

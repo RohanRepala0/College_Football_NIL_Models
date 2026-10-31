@@ -205,7 +205,7 @@ def claims_report(con, claims_path: Path, path: Path | None = None) -> Path:
     from . import claims as cl
 
     df = con.execute("SELECT * FROM csc_latest").df()
-    curves = bm.curves(df)[0]
+    curves = bm.calibrated_curves(df)[0]
     claims, issues = cl.load(claims_path)
     placed = cl.place(claims, curves)
     high, central = cl.lenient_tails(df, "high"), cl.lenient_tails(df, "central")

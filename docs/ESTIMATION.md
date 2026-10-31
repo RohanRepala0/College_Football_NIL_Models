@@ -68,8 +68,9 @@ flowchart LR
   every sport**, with no model.
 - The fitted lognormal tail would put football at 97% of the cap, and NIL Go football above every sport's
   cleared value through August. Calibrated to the cap (football at 75% of it) and to NIL Go's totals
-  (football at 55%), the tails are **x0.19 and x0.48** of the fitted slope. The A4 QB 99th percentile moves
-  from $9.4M to $2.2M in revenue share, and from $13.6M to $3.5M in NIL.
+  (football at 55%), the upper tails are **x0.20 and x0.48** of the fitted slope. The A4 QB 99th percentile
+  moves from $9.4M to $2.3M in revenue share, and from $13.6M to $3.5M in NIL. The benchmark, the offer check
+  and the dashboard now answer with these tails for A4 football revenue share and all football NIL.
 
 **Simulation** ([`reports/simulation_2026-10-30.md`](../reports/simulation_2026-10-30.md)), 3 markets per
 scenario, rank correlation between estimated and true pay:
@@ -77,18 +78,19 @@ scenario, rank correlation between estimated and true pay:
 | | Weak features | Strong features |
 |---|---|---|
 | Features only | 0.425 | 0.661 |
-| Claims as training labels | **0.249** | 0.619 |
-| Claims as anchors | 0.438 | 0.664 |
+| Claims as training labels | **0.335** | 0.636 |
+| Claims as anchors | 0.437 | 0.664 |
 | Anchors + 10 schools' totals (all players) | 0.450 | 0.675 |
 | … players at the disclosed schools | 0.511 | 0.732 |
 
 Anchoring leaves unclaimed players exactly where the features put them and cuts the typical miss for
-claimed players from about x1.9 to x1.1. The 80% intervals cover the truth 86–93% of the time.
+claimed players from x1.99 to x1.09 (weak features) and from x1.27 to x1.10 (strong). The 80% intervals cover
+the truth 86–93% of the time, and 89% for claimed players.
 
-**Credibility**, same markets: truth discovery recovers each source's bias (+28% for a +30% outlet, +121%
+**Credibility**, same markets: truth discovery recovers each source's bias (+28% for a +30% outlet, +132%
 for a +150% one, 0% for school records). The order test at moderate evidence flags 74 of 75 claims from the
-+150% source and 82 of 120 from the +30% outlet. It also flags 26 of 120 from an honest but noisy outlet and
-6 of 75 school records, where noise pushed claims above the truth. No claim reaches strong evidence, because
++150% source and 76 of 120 from the +30% outlet. It also flags 29 of 120 from an honest but noisy outlet and
+7 of 75 school records, where noise pushed claims above the truth. No claim reaches strong evidence, because
 even the most generous tail allows a single quarterback near $11M; that level is reserved for impossible
 claims.
 
@@ -113,5 +115,3 @@ and lets truth discovery compare sources.
   athletes, and any school records, make the bias estimates sharp.
 - **School totals.** UCLA, Cal and San Diego State's disclosures, and the NCAA financial reports, are
   all-sports totals; raking needs football's share of each, so they enter as ranges.
-- **Calibrated tails in the benchmark.** The offer check still extrapolates with the fitted tail. Using
-  the calibrated football tails would change its answers past the 90th; that is a choice for the owner.

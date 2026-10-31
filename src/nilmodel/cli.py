@@ -27,7 +27,7 @@ def _con(load: bool = True):
 
 
 def _curves(con) -> list[bm.Curve]:
-    return bm.curves(con.execute("SELECT * FROM csc_latest").df())[0]
+    return bm.calibrated_curves(con.execute("SELECT * FROM csc_latest").df())[0]
 
 
 def _table(rows) -> str:

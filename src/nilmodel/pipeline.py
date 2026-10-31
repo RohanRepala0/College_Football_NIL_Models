@@ -29,7 +29,7 @@ def refresh(con: duckdb.DuckDBPyConnection, fetcher: Fetcher | None = None, arch
             issues += r["issues"]
     df = con.execute("SELECT * FROM csc_latest").df()
     issues += csc.check(df)
-    curves, curve_issues = benchmark.curves(df)
+    curves, curve_issues = benchmark.calibrated_curves(df)
     issues += curve_issues
     benchmark.store(con, curves)
 
