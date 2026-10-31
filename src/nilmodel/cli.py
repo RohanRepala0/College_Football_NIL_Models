@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Optional
 
 import pandas as pd
@@ -118,6 +119,14 @@ def triangulate():
     from .reports import triangulation_report
 
     typer.echo(f"wrote {triangulation_report(_con())}")
+
+
+@app.command()
+def claims(path: Path = typer.Argument(..., help="CSV with the columns of data/claims/template.csv.")):
+    """Check reported pay claims against the latest release; writes reports/claims_<file>.md."""
+    from .reports import claims_report
+
+    typer.echo(f"wrote {claims_report(_con(), path)}")
 
 
 @app.command("dashboard-data")

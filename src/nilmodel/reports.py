@@ -192,3 +192,56 @@ def triangulation_report(con, path: Path | None = None) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts))
     return path
+
+
+def _pct_signed(v: float) -> str:
+    return "0%" if abs(v) < 0.005 else f"{v:+.0%}"
+
+
+def claims_report(con, claims_path: Path, path: Path | None = None) -> Path:
+    """Credibility of a claims file against the latest release: per-source summary, tail counts,
+    order-test flags and source bias."""
+    from . import claims as cl
+
+    df = con.execute("SELECT * FROM csc_latest").df()
+    curves = bm.curves(df)[0]
+    claims, issues = cl.load(claims_path)
+    placed = cl.place(claims, curves)
+    tails = cl.lenient_tails(df)
+    order = cl.order_test(placed, curves, tails)
+    bias = cl.source_bias(claims)
+    counts = cl.tail_counts(placed, df)
+    summary = cl.summary(placed, order, bias)
+    if len(summary):
+        summary["flagged_share"] = summary.flagged_share.map(lambda v: "" if pd.isna(v) else f"{v:.0%}")
+        summary["bias"] = summary.bias.map(lambda v: "" if pd.isna(v) else _pct_signed(v))
+    flagged = order[order.flagged].assign(value=lambda d: d.value.map(_usd),
+                                          p_value=lambda d: d.p_value.map(lambda v: "<0.001" if v < 0.001 else f"{v:.3f}"))
+    over = counts[counts.excess > 0].assign(threshold=lambda d: d.threshold.map(_usd))
+    unplaced = placed[~placed.placed][["claim_id", "source", "report", "position", "cohort", "why"]]
+    parts = [
+        f"# Claims check: {claims_path.name}\n",
+        f"{len(claims)} claims read, {len(issues)} rejected. Each claim is read against one CSC report; "
+        "revenue-share amounts are per year, NIL amounts are full contract value. Method: "
+        "[`docs/ESTIMATION.md`](../docs/ESTIMATION.md).\n",
+        "## By source\n", _md(summary),
+        "## Provable overstatements (no model)\n",
+        "Distinct claimed athletes above a published percentile, against the most the cohort can have there. "
+        "Each excess is a floor on how many of those claims overstate pay or count money the report doesn't.\n",
+        _md(over),
+        "## Flagged by the order test\n",
+        f"Claims that even the cohort's k-th best-paid athlete is unlikely (p < {cl.ALPHA}) to reach, under the "
+        "heaviest football tail the outside totals allow "
+        f"(x{tails.get('revenue_share', 1):.2f} revenue share, x{tails.get('nil_go', 1):.2f} NIL Go).\n",
+        _md(flagged[["claim_id", "source", "position", "cohort", "value", "k", "n", "p_value"]]),
+        "## Source bias\n",
+        "From athletes reported by more than one source: each source's typical over- or under-statement, anchored "
+        "to school records where they overlap.\n",
+        _md(bias.assign(bias=bias.bias.map(_pct_signed), se=bias.se.map("{:.2f}".format)) if len(bias) else bias),
+        "## Not placed\n", _md(unplaced),
+        *([ "## Rejected rows\n", _md(pd.DataFrame(issues))] if issues else []),
+    ]
+    path = path or config.REPORTS_DIR / f"claims_{claims_path.stem}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(parts))
+    return path
