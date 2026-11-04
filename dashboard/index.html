@@ -569,7 +569,7 @@ function drawOfferChart(el, report) {
     const inside = pts.filter((d) => !outside(s.curve, d[0]));
     if (inside.length > 1) svg.append('path').attr('d', line(inside)).attr('fill', 'none').attr('stroke', s.color)
       .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
-    const pub = s.row ? PCTS.filter((q) => s.row['p' + q] > 0).map((q) => [q, s.row['p' + q]]) : [];
+    const pub = s.row ? PCTS.filter((q) => s.row['p' + q] >= y.domain()[0]).map((q) => [q, s.row['p' + q]]) : [];
     svg.append('g').selectAll('circle').data(pub).join('circle').attr('cx', (d) => x(d[0])).attr('cy', (d) => y(d[1]))
       .attr('r', 4).attr('fill', s.color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
   }
