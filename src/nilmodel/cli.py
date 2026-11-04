@@ -155,6 +155,22 @@ def players(season: int = typer.Option(2026), fresh: bool = typer.Option(False, 
     typer.echo(f"wrote {out}\nwrote {rosters_report(con, season, table, feats)}")
 
 
+@app.command()
+def surplus(season: int = typer.Option(2026), fresh: bool = typer.Option(False, help="Call CFBD again.")):
+    """On-field value against market value for every A4 roster (needs `nil players` first)."""
+    from . import surplus as su
+    from .fetch import Fetcher
+    from .reports import surplus_report
+
+    con = _con()
+    typer.echo(su.pull_season(con, Fetcher(con, min_interval=0.5), season, fresh))
+    result = su.run(con, season)
+    out = config.DATA_DIR / "players" / f"surplus_{season}.csv"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    result["teams"].drop(columns=["paid_players"]).round(3).to_csv(out, index=False)
+    typer.echo(f"wrote {out}\nwrote {surplus_report(con, season, result)}")
+
+
 @app.command("dashboard-data")
 def dashboard_data():
     """Write the dashboard's data files to data/dashboard/ from the latest releases."""

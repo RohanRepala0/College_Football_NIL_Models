@@ -397,3 +397,62 @@ def rosters_report(con, season: int, table: pd.DataFrame, players: pd.DataFrame,
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts))
     return path
+
+
+def surplus_report(con, season: int, result: dict, path: Path | None = None) -> Path:
+    """Surplus value per A4 program: learned weights, position values, and on-field value against market value."""
+    from . import surplus as su
+
+    def m(v):
+        return f"${v / 1e6:.1f}M"
+
+    grid, best = result["grid"], result["best"].set_index("unit")
+    prior = grid[grid.prior].set_index("unit").cv_r2
+    weights = pd.DataFrame([{"unit": u.replace("_", " "), "production": f"{b.production:.1f}", "rating": f"{b.rating:.1f}",
+                             "class year": f"{b.experience:.1f}", "R² learned": f"{b.cv_r2:.2f}",
+                             "R² prior weights": f"{prior[u]:.2f}"} for u, b in best.iterrows()])
+    g = result["groups"]
+    groups = pd.DataFrame({"unit": g.unit.str.replace("_", " "), "position": g.group, "starters": g.starters,
+                           "points per starter group": g.starter_points.map("{:.2f}".format)})
+    t = result["teams"]
+    teams = pd.DataFrame({
+        "rank": range(1, len(t) + 1), "program": t.team, "conference": t.conference,
+        "market value": t.value.map(m), "on-field points": t.points.map("{:.1f}".format),
+        "on-field value": t.on_field_value.map(m), "surplus": t.surplus.map(lambda v: ("+" if v >= 0 else "-") + m(abs(v))),
+        "points per $1M": t.points_per_million.map("{:.2f}".format), "SP+": t.sp_rating.map("{:.1f}".format)})
+    conf = t.groupby("conference").agg(programs=("team", "count"), surplus=("surplus", "mean"),
+                                       efficiency=("points_per_million", "mean")).reset_index()
+    conf["surplus"] = conf.surplus.map(lambda v: ("+" if v >= 0 else "-") + m(abs(v)))
+    conf["efficiency"] = conf.efficiency.map("{:.2f}".format)
+    parts = [
+        f"# Surplus value, {season}\n",
+        "What each A4 roster delivers on the field against what it would cost at market rates. On-field value "
+        f"comes from SP+ team ratings for all {result['fit_teams']} FBS teams: a regression of each unit's rating "
+        "(offense, defense, special teams) on its position groups' quality (starters' scores above a national "
+        "replacement level, weights kept non-negative) prices each position in rating points. The player score's "
+        "weights are learned the same way, by cross-validation against every team's rating, so no selection is "
+        f"involved. Points are priced at the A4 market: **${result['price_per_point']:,.0f} per rating point** "
+        "(total A4 roster market value / total A4 points). Market value uses last season's production (what was "
+        "known when deals were struck); on-field points use this season's. Team totals only. Method: "
+        "[`docs/ESTIMATION.md`](../docs/ESTIMATION.md).\n",
+        "## Weights learned from team results\n",
+        "Out-of-sample R² of each unit's regression (5 folds) under the best weights on a 0.1 grid, against the "
+        "prior weights the market value uses.\n", _md(weights, ".2f"),
+        "## What each position is worth\n",
+        f"The average team's points from each position's starters (and rotation), above replacement. Summed, player "
+        f"quality correlates {result['check_corr']:.2f} with SP+ overall team ratings.\n", _md(groups),
+        "## Surplus by program\n",
+        f"On-field value minus market value. One rating point is about {su.WINS_PER_POINT:.2f} wins over a 12-game "
+        "season.\n", _md(teams),
+        "## By conference\n", _md(conf),
+        "## Limits\n",
+        "- This season's production partly reflects team quality, so strong teams' players look productive; the "
+        "regression measures that association, not cause.",
+        "- Offensive linemen and specialists have no individual production; special teams show almost no signal.",
+        "- Market value is a market price for the roster, not what the school pays; surplus is relative to that price.",
+        "- Ratings are SP+ as of this pull, mid-season.",
+    ]
+    path = path or config.REPORTS_DIR / f"surplus_{season}.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(parts))
+    return path

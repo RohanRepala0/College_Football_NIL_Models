@@ -97,14 +97,16 @@ def _z(x: pd.Series) -> pd.Series:
     return (x - x.mean()) / sd if sd and sd > 0 else x * 0.0
 
 
-def features(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
-    """A4 players with their CSC group, features and score. Missing production counts as the group's
-    lowest (no stats last season usually means little playing time); a missing rating as the group's
-    10th percentile."""
+def base_frame(con: duckdb.DuckDBPyConnection, scope: str = "a4", usage: str = "cfbd_usage", ppa: str = "cfbd_ppa",
+               stats: str = "cfbd_stats") -> pd.DataFrame:
+    """Players with their CSC group, raw features and standardized features (z within group over the
+    scope: "a4" or "fbs"). Production comes from the named usage, PPA and stats tables (one season).
+    Missing production counts as the group's lowest (no stats usually means little playing time); a
+    missing rating as the group's 10th percentile."""
     teams = con.execute("SELECT school, conference FROM cfbd_teams").df()
     roster = con.execute("SELECT * FROM cfbd_roster").df().merge(teams, left_on="team", right_on="school", how="left")
     roster["a4"] = roster.conference.isin(A4_CONFERENCES) | roster.team.isin(A4_INDEPENDENTS)
-    p = roster[roster.a4].copy()
+    p = roster[roster.a4 if scope == "a4" else roster.conference.notna()].copy()
     p["id"] = p["id"].astype(str)
     p["group"] = p.position.map(POSITION_GROUPS).fillna("Position Unspecified")
     p["experience"] = pd.to_numeric(p.year, errors="coerce").clip(1, 6)
@@ -125,20 +127,20 @@ def features(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
     p["transfer"] = p.portal_rating.notna() | p.key.isin(portal.key)
     p["rating"] = p.recruit_rating.fillna(p.portal_rating)
 
-    usage = con.execute("SELECT id, \"usage.overall\" AS usage FROM cfbd_usage").df()
-    ppa = con.execute("SELECT id, \"totalPPA.all\" AS ppa FROM cfbd_ppa").df()
-    stats = con.execute("SELECT playerId AS id, category, statType, stat FROM cfbd_stats "
-                        "WHERE category IN ('defensive', 'interceptions')").df()
-    stats["stat"] = pd.to_numeric(stats.stat, errors="coerce")
-    d = stats.pivot_table(index="id", columns=["category", "statType"], values="stat", aggfunc="sum")
+    u = con.execute(f'SELECT id, "usage.overall" AS usage FROM {usage}').df()
+    pp = con.execute(f'SELECT id, "totalPPA.all" AS ppa FROM {ppa}').df()
+    st = con.execute(f"SELECT playerId AS id, category, statType, stat FROM {stats} "
+                     "WHERE category IN ('defensive', 'interceptions')").df()
+    st["stat"] = pd.to_numeric(st.stat, errors="coerce")
+    d = st.pivot_table(index="id", columns=["category", "statType"], values="stat", aggfunc="sum")
     d.columns = [f"{a}_{b}" for a, b in d.columns]
     d = d.fillna(0)            # a defender with stats but no interception row had none
     get = lambda col: d[col] if col in d else 0.0      # noqa: E731
     defense = (get("defensive_TOT") + 3 * get("defensive_SACKS") + 1.5 * get("defensive_TFL")
                + 2 * get("defensive_PD") + 3 * get("interceptions_INT")).rename("defense").reset_index()
-    for frame in (usage, ppa, defense):
+    for frame in (u, pp, defense):
         frame["id"] = frame["id"].astype(str)
-    p = (p.merge(usage, on="id", how="left").merge(ppa, on="id", how="left").merge(defense, on="id", how="left"))
+    p = p.merge(u, on="id", how="left").merge(pp, on="id", how="left").merge(defense, on="id", how="left")
     for col in ("usage", "ppa", "defense"):
         p[col] = pd.to_numeric(p[col], errors="coerce")
 
@@ -152,16 +154,28 @@ def features(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
             g["production"] = g.defense
         else:
             g["production"] = np.nan
-        has_prod = g.production.notna().any()
-        g["production_z"] = _z(g.production.fillna(g.production.min() if has_prod else 0))
+        g["has_production"] = bool(g.production.notna().any())
+        g["production_z"] = _z(g.production.fillna(g.production.min() if g.has_production.iloc[0] else 0))
         g["rating_z"] = _z(g.rating.fillna(g.rating.quantile(0.10) if g.rating.notna().any() else 0))
         g["experience_z"] = _z(g.experience.fillna(g.experience.median()))
-        w = WEIGHTS if has_prod else WEIGHTS_NO_PRODUCTION
-        g["score"] = sum(wt * g[f"{name}_z"] for name, wt in w.items())
         parts.append(g)
+    return pd.concat(parts, ignore_index=True)
+
+
+def apply_weights(frame: pd.DataFrame, weights: dict = WEIGHTS, weights_no_production: dict = WEIGHTS_NO_PRODUCTION) -> pd.Series:
+    """Score = weighted standardized features; groups without production use the second weights."""
+    with_prod = sum(wt * frame[f"{name}_z"] for name, wt in weights.items())
+    without = sum(wt * frame[f"{name}_z"] for name, wt in weights_no_production.items())
+    return with_prod.where(frame.has_production, without)
+
+
+def features(con: duckdb.DuckDBPyConnection) -> pd.DataFrame:
+    """A4 players with their CSC group, features and score (the prior weights), stored as player_features."""
+    p = base_frame(con, "a4")
+    p["score"] = apply_weights(p)
     cols = ["id", "firstName", "lastName", "team", "conference", "position", "group", "experience", "rating",
             "transfer", "usage", "ppa", "defense", "production", "score"]
-    out = pd.concat(parts, ignore_index=True)[cols]
+    out = p[cols]
     _store(con, "player_features", out)
     return out
 
