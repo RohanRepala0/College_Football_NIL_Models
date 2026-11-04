@@ -77,7 +77,19 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                 for r in con.execute("""SELECT report, left(payload_sha256, 12), strftime(first_seen_at, '%Y-%m-%d'),
                                                n_cohorts, archive_path FROM csc_releases
                                         ORDER BY report, first_seen_at""").fetchall()]
-    return {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases}
+    out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases}
+    surplus = sorted((config.DATA_DIR / "players").glob("surplus_*.csv"))
+    if surplus:                     # team totals from `nil surplus`, newest season
+        from .triangulate import CAP_CALENDAR_2026
+
+        t = pd.read_csv(surplus[-1])
+        out["rosters"] = [{"id": r.team, "team": r.team, "conference": r.conference, "players": int(r.players),
+                           "value": round(r.value), "low": round(r.low), "high": round(r.high),
+                           "points": round(r.points, 2), "on_field_value": round(r.on_field_value),
+                           "surplus": round(r.surplus), "points_per_million": round(r.points_per_million, 3),
+                           "sp_rating": round(r.sp_rating, 1), "cap": CAP_CALENDAR_2026}
+                          for r in t.itertuples()]
+    return out
 
 
 def export(con: duckdb.DuckDBPyConnection, out_dir: Path | None = None) -> list[Path]:
