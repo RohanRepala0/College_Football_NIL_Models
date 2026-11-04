@@ -36,12 +36,16 @@ flowchart LR
 
 The two reports are never compared or combined.
 
-**Dashboard:** [College Athlete Pay Benchmarks](https://claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) has four
+**Dashboard:** [College Athlete Pay Benchmarks](https://claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) has five
 views: an offer check that reads an amount off each report's curve, football pay by position, a
-searchable table of every cohort, and the benchmark's validation. Its page is `dashboard/index.html`, and
-its data is `data/dashboard/*.json`, which `nil refresh` rewrites with each new release (or
-`nil dashboard-data` on demand). Re-upload those files to the dashboard after a new release. They cover different athletes, windows and
-rounding.
+searchable table of every cohort, roster market value against on-field value, and the benchmark's
+validation. It wears [Board UI](https://www.boardui.com)'s look: its colors, type and corners are stored as the
+dashboard's look, and `dashboard/index.html` styles the components to match. Its data is
+`data/dashboard/*.json`, which `nil refresh` rewrites with each new release (or `nil dashboard-data` on
+demand). Re-upload those files to the dashboard after a new release.
+
+**Project map:** [NIL Project Map](https://claude.ai/artifact/5YqTJbgYPaGe4WZ8NvwBcm) walks through every step
+of the project, with its results and the decisions behind them.
 
 ## Setup
 
