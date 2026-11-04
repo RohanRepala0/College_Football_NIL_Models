@@ -298,7 +298,28 @@ const ord = (x) => {
   const s = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
   return n + s;
 };
-const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : null; };
+// Datasets can arrive with nested lists as JSON text and numbers as text: read them back as data.
+const NUMERIC = /^-?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
+const TEXT_KEYS = new Set(['id', 'key', 'release']);
+const cleaned = new WeakMap();
+const clean = (rows) => {
+  if (!Array.isArray(rows)) return rows;
+  if (cleaned.has(rows)) return cleaned.get(rows);
+  const out = rows.map((r) => {
+    const o = {};
+    for (const [k, v] of Object.entries(r)) {
+      o[k] = v;
+      if (typeof v !== 'string' || TEXT_KEYS.has(k)) continue;
+      const t = v.trim();
+      if (t[0] === '[' || t[0] === '{') { try { o[k] = JSON.parse(t); } catch (e) { /* keep the text */ } }
+      else if (NUMERIC.test(t)) o[k] = Number(t);
+    }
+    return o;
+  });
+  cleaned.set(rows, out);
+  return out;
+};
+const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? clean(d.data) : null; };
 const keyOf = (report, p, pop) => [report, p.gender, p.sport, p.position, p.cohort, pop].join('|');
 const orderBy = (list) => (a, b) => {
   const ia = list.indexOf(a), ib = list.indexOf(b);
@@ -618,8 +639,9 @@ dash.calc('paid_share', {
       for (const all of fb.filter((r) => r.cohort === cut && r.population === 'all_rostered')) {
         const paid = fb.find((r) => r.cohort === cut && r.position === all.position && r.population === 'paid');
         if (!paid) continue;
-        rostered += all.n; paidTotal += paid.n;
-        out.push({ key: `${cut}|${all.position}`, cut, position: all.position, rostered: all.n, paid: paid.n, share: paid.n / all.n });
+        const nAll = Number(all.n), nPaid = Number(paid.n);
+        rostered += nAll; paidTotal += nPaid;
+        out.push({ key: `${cut}|${all.position}`, cut, position: all.position, rostered: nAll, paid: nPaid, share: nPaid / nAll });
       }
       out.push({ key: `${cut}|All positions`, cut, position: 'All positions', rostered, paid: paidTotal, share: paidTotal / rostered });
     }
@@ -700,8 +722,9 @@ dash.draw('validation-chart', (el) => {
   el.replaceChildren();
   const d = dash.data('validation');
   if (d.status !== 'ok') return;
+  const rows = clean(d.data);
   const methods = ['linear', 'pchip', 'lognormal'];
-  const groups = [...new Map(d.data.map((r) => [`${r.report}|${r.test}`, r])).values()]
+  const groups = [...new Map(rows.map((r) => [`${r.report}|${r.test}`, r])).values()]
     .sort((a, b) => a.report_label.localeCompare(b.report_label) || a.test.localeCompare(b.test));
   const W = Math.max(260, el.clientWidth), labelH = 18, barH = 9, gap = 4, groupGap = 14, mb = 26;
   const groupH = labelH + methods.length * (barH + gap) + groupGap;
@@ -709,7 +732,7 @@ dash.draw('validation-chart', (el) => {
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
     .attr('role', 'img').attr('aria-label', 'Mean miss by method and test');
   const mr = measure(svg, ['10.4']) + 10;
-  const x = d3.scaleLinear([0, d3.max(d.data, (r) => r.mean) * 1.08], [0, W - mr]);
+  const x = d3.scaleLinear([0, d3.max(rows, (r) => r.mean) * 1.08], [0, W - mr]);
   const xt = x.ticks(W < 420 ? 3 : 5);
   svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
     .attr('x1', (v) => x(v)).attr('x2', (v) => x(v)).attr('y1', 0).attr('y2', H - mb);
@@ -720,7 +743,7 @@ dash.draw('validation-chart', (el) => {
     const y0 = gi * groupH;
     svg.append('text').attr('class', 'pb-lab-strong').attr('x', 0).attr('y', y0 + 12).text(`${g.report_label}: ${g.test_label}`);
     methods.forEach((m, mi) => {
-      const r = d.data.find((v) => v.report === g.report && v.test === g.test && v.method === m);
+      const r = rows.find((v) => v.report === g.report && v.test === g.test && v.method === m);
       if (!r) return;
       const y = y0 + labelH + mi * (barH + gap);
       svg.append('rect').attr('x', 0).attr('y', y).attr('width', Math.max(2, x(r.mean))).attr('height', barH).attr('rx', 2).attr('fill', dash.colors[mi]);
