@@ -24,6 +24,9 @@ def refresh(con: duckdb.DuckDBPyConnection, fetcher: Fetcher | None = None, arch
     nil_dir = nil_data.ARCHIVE_DIR if archive_dir == csc.ARCHIVE_DIR else archive_dir.parent / "nil_data"
     nil_data.ingest_archive(con, nil_dir)
     nil_new = [r for r in (nil_data.capture(con, fetcher, nil_dir) if fetcher and nil_data_enabled(fetcher) else []) if r["new"]]
+    files = []
+    if nil_new or export:           # before the curves: the NIL tail calibration reads this file
+        files.append(nil_data.export_periods(con, nil_dir.parent / "nil_data_periods.csv"))
     latest = dict(con.execute("SELECT DISTINCT report, left(payload_sha256, 12) FROM csc_latest").fetchall())
 
     issues, reported = [], set()
@@ -38,9 +41,6 @@ def refresh(con: duckdb.DuckDBPyConnection, fetcher: Fetcher | None = None, arch
     benchmark.store(con, curves)
 
     new = [r for r in fetched if r["new"]]
-    files = []
-    if nil_new or export:
-        files.append(nil_data.export_periods(con, nil_dir.parent / "nil_data_periods.csv"))
     if new or nil_new or export:
         files += [csc.export_latest(con),
                  benchmark.export(con, config.DATA_DIR / "benchmark" / "curves.csv"),
