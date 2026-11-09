@@ -75,6 +75,15 @@
 .pb-row-pct { grid-column: 2; grid-row: 1 / span 2; font-family: var(--font-anthropic-serif); font-weight: 500; font-size: var(--cds-font-size-title); line-height: 1.4; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; text-align: right; }
 .pb-row-est { display: block; font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); font-weight: 400; letter-spacing: 0.01em; color: var(--color-fg-muted); }
 
+.pb-finds { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+.pb-find { display: grid; gap: 6px; align-content: start; min-width: 0; background: var(--color-panel); border-radius: calc(var(--cds-radius) + 4px); padding: 16px; }
+.pb-find-k { font-size: var(--cds-font-size-body); font-weight: 500; color: var(--color-fg-muted); }
+.pb-find-v { font-family: var(--font-anthropic-serif); font-size: calc(var(--cds-font-size-title) * 1.33); font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--color-fg); }
+.pb-find p { margin: 0; max-width: none; font-size: var(--cds-font-size-body); line-height: 1.5; letter-spacing: 0; color: var(--color-fg-muted); }
+.pb .pb-find p b, .pb .pb-card p b { color: var(--color-fg); font-weight: 500; white-space: nowrap; }
+.pb-go { justify-self: start; margin-top: 4px; appearance: none; background: var(--pb-inner); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) - 4px); box-shadow: var(--pb-shadow-xs); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); font-weight: 500; padding: 4px 10px; cursor: pointer; }
+.pb-go:hover { border-color: var(--pb-line-hover); }
+.pb-go:focus-visible { outline: 2px solid var(--pb-accent); outline-offset: 2px; }
 .pb-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--cds-font-size-caption); font-weight: 500; color: var(--color-fg-muted); }
 .pb-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .pb-sw { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--cds-chart-muted); }
@@ -117,14 +126,71 @@
   </header>
 
   <nav class="pb-tabs" role="tablist" aria-label="Views">
-    <button class="pb-tab" role="tab" data-tab="offer" aria-selected="true">Offer check</button>
+    <button class="pb-tab" role="tab" data-tab="findings" aria-selected="true">Findings</button>
+    <button class="pb-tab" role="tab" data-tab="offer" aria-selected="false">Offer check</button>
     <button class="pb-tab" role="tab" data-tab="football" aria-selected="false">Football market</button>
+    <button class="pb-tab" role="tab" data-tab="basketball" aria-selected="false">Basketball</button>
     <button class="pb-tab" role="tab" data-tab="sports" aria-selected="false">All sports</button>
     <button class="pb-tab" role="tab" data-tab="rosters" aria-selected="false">Rosters</button>
     <button class="pb-tab" role="tab" data-tab="method" aria-selected="false">Method</button>
   </nav>
 
-  <section class="pb-page" id="offer">
+  <section class="pb-page" id="findings">
+    <p class="pb-foot">Six things the latest release shows. Each number is worked out from the data, so it updates with the next release.</p>
+    <div class="pb-finds">
+      <article class="pb-find" id="find-paid">
+        <span class="pb-find-k">Who gets paid</span>
+        <span class="pb-find-v" data-draw="f-paid-a4" data-source="paid_share" data-field="share" data-where="key=A4|All positions">—</span>
+        <p>of A4 football players were paid revenue share in calendar 2026, <b data-draw="f-paid-a4-paid" data-source="paid_share" data-field="paid" data-where="key=A4|All positions">—</b> of <b data-draw="f-paid-a4-rostered" data-source="paid_share" data-field="rostered" data-where="key=A4|All positions">—</b>. Outside the A4 it was <b data-draw="f-paid-non" data-source="paid_share" data-field="share" data-where="key=Non-A4|All positions">—</b>.</p>
+        <button class="pb-go" data-go="football">Football market</button>
+      </article>
+      <article class="pb-find" id="find-position">
+        <span class="pb-find-k">Most often paid</span>
+        <span class="pb-find-v" data-draw="f-top-a4" data-source="top_paid" data-field="a4_share" data-row="0">—</span>
+        <p>of A4 <b data-draw="f-top-label" data-source="top_paid" data-field="label" data-row="0">—</b> were paid, more than any other position. Outside the A4 the same position: <b data-draw="f-top-non" data-source="top_paid" data-field="non_share" data-row="0">—</b>.</p>
+        <button class="pb-go" data-go="football">Football market</button>
+      </article>
+      <article class="pb-find" id="find-floor">
+        <span class="pb-find-k">What every A4 program pays at least</span>
+        <span class="pb-find-v" data-draw="f-floor" data-source="totals" data-field="floor_per_program" data-row="0">—</span>
+        <p>is the least A4 football revenue share per program in 2026, with no model: each paid player earns at least the published percentile below him. That is <b data-draw="f-floor-share" data-source="totals" data-field="floor_cap_share" data-row="0">—</b> of a <b data-draw="f-cap" data-source="totals" data-field="cap" data-row="0">—</b> cap that has to cover every sport.</p>
+        <button class="pb-go" data-go="method">Method</button>
+      </article>
+      <article class="pb-find" id="find-tail">
+        <span class="pb-find-k">The top of the quarterback market</span>
+        <span class="pb-find-v" data-draw="f-qb-p99" data-source="totals" data-field="qb_p99_calibrated" data-row="0">—</span>
+        <p>is about where the 99th percentile of A4 quarterback revenue share sits once football is held to its share of the cap. The CSC's table stops at the 90th, <b data-draw="f-qb-p90" data-source="totals" data-field="qb_p90" data-row="0">—</b>; a lognormal tail with no constraint would have said <b data-draw="f-qb-fit" data-source="totals" data-field="qb_p99_fitted" data-row="0">—</b>.</p>
+        <button class="pb-go" data-go="offer">Offer check</button>
+      </article>
+      <article class="pb-find" id="find-tiers">
+        <span class="pb-find-k">Flat payment tiers</span>
+        <span class="pb-find-v" data-draw="f-tier-nil-n" data-source="tier_summary" data-field="count" data-where="key=nil_p10">—</span>
+        <p>of <b data-draw="f-tier-nil-of" data-source="tier_summary" data-field="of" data-where="key=nil_p10">—</b> published NIL Go 10th percentiles sit at exactly <b data-draw="f-tier-nil-v" data-source="tier_summary" data-field="value" data-where="key=nil_p10">—</b>, and <b data-draw="f-tier-rs-n" data-source="tier_summary" data-field="count" data-where="key=rs_flat">—</b> revenue-share cohorts have a run of equal percentiles at <b data-draw="f-tier-rs-v" data-source="tier_summary" data-field="value" data-where="key=rs_flat">—</b>. Many athletes getting the same amount points to standard group payments, not negotiated deals.</p>
+      </article>
+      <article class="pb-find" id="find-surplus">
+        <span class="pb-find-k">Roster surplus</span>
+        <span class="pb-find-v" data-draw="f-sur-top-v" data-source="surplus_ends" data-field="surplus" data-where="end=top">—</span>
+        <p>for <b data-draw="f-sur-top" data-source="surplus_ends" data-field="team" data-where="end=top">—</b>, the most on-field value over its roster's market price of any A4 program. <b data-draw="f-sur-bot" data-source="surplus_ends" data-field="team" data-where="end=bottom">—</b> has the least, <b data-draw="f-sur-bot-v" data-source="surplus_ends" data-field="surplus" data-where="end=bottom">—</b>. On-field value prices each roster's SP+ rating points at the A4 market rate.</p>
+        <button class="pb-go" data-go="rosters">Rosters</button>
+      </article>
+    </div>
+    <article class="pb-card" id="tiers-table">
+      <h2>Every flat payment tier</h2>
+      <p>Runs of equal published percentiles above $0, across every cohort. Wherever an amount lands on one, the offer check answers with a range.</p>
+      <div class="pb-scroll">
+        <table class="pb-table" data-source="tiers" data-row-key="key">
+          <thead><tr>
+            <th data-field="report_label">Report</th><th data-field="sport">Sport</th><th data-field="gender_label">Gender</th>
+            <th data-field="position">Position</th><th data-field="cohort">Group</th><th data-field="population_label">Among</th>
+            <th class="num" data-field="value">Amount</th><th data-field="span">Percentiles</th>
+          </tr></thead>
+          <tbody data-draw="tier-rows"></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="offer" hidden>
     <div class="pb-filters">
       <label>Sport <select id="pb-sport" data-draw="sport-select" data-source="cohorts"></select></label>
       <label>Gender <select id="pb-gender" data-draw="gender-select" data-source="cohorts"></select></label>
@@ -180,7 +246,11 @@
       </article>
       <article class="pb-card" id="paid-share">
         <h2>Share of the roster paid</h2>
-        <p>Revenue share: rostered players with any payment in calendar 2026.</p>
+        <p>Revenue share: rostered players with any payment in calendar 2026, A4 and non-A4 side by side.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>A4 conferences</span>
+          <span><i class="pb-sw" data-color="2"></i>Non-A4</span>
+        </div>
         <div class="pb-chart" data-draw="paid-share" data-source="paid_share"></div>
       </article>
     </div>
@@ -188,6 +258,32 @@
       <h2>NIL Go by position</h2>
       <p>Athletes with at least one cleared deal, Jan 1 to Sep 30, 2026, at full contract value. Same marks as above, on this report's own log scale.</p>
       <div class="pb-chart" data-draw="market-nil" data-source="cohorts"></div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="basketball" hidden>
+    <div class="pb-filters">
+      <div class="pb-seg" role="group" aria-label="Gender">
+        <button class="pb-bbg" data-bbg="men" aria-pressed="true">Men's</button>
+        <button class="pb-bbg" data-bbg="women" aria-pressed="false">Women's</button>
+      </div>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card" id="bb-rs-card">
+        <h2>Revenue share by conference</h2>
+        <p>Paid athletes. <span data-draw="bb-rs-window" data-source="cohorts" data-field="window_label">—</span> The line runs from the 10th to the 90th percentile, the bar covers the middle half, and the dot is the median. Log scale.</p>
+        <div class="pb-chart" data-draw="bb-rs" data-source="cohorts"></div>
+      </article>
+      <article class="pb-card" id="bb-paid-card">
+        <h2>Share of the roster paid</h2>
+        <p>Revenue share: rostered players with any payment, by conference.</p>
+        <div class="pb-chart" data-draw="bb-paid" data-source="bb_paid_share"></div>
+      </article>
+    </div>
+    <article class="pb-card" id="bb-nil-card">
+      <h2>NIL Go by conference</h2>
+      <p>Athletes with at least one cleared deal, at full contract value. <span data-draw="bb-nil-window" data-source="cohorts" data-field="window_label">—</span> Same marks as above, on this report's own log scale.</p>
+      <div class="pb-chart" data-draw="bb-nil" data-source="cohorts"></div>
     </article>
   </section>
 
@@ -298,6 +394,8 @@
           <li>Past the published 10th and 90th the curve continues on a lognormal slope. For A4 football revenue share and all football NIL, the slope past the 90th is calibrated so football's total fits the revenue-share cap and NIL Go's own totals, which makes the top much thinner. Answers out there are estimates.</li>
           <li>Equal neighbouring percentiles mean many athletes got the same amount, so an amount there gets a range.</li>
         </ol>
+        <h3>What NIL Go leaves out</h3>
+        <p>Athletes report third-party deals worth <b data-draw="rule-min">—</b> or more to NIL Go, so smaller deals are not in its tables. The CSC has also raised the size of deal that skips its check on whether pay is in a reasonable range, reported in the trade press at up to <b data-draw="rule-review">—</b> unless an athlete passes <b data-draw="rule-season">—</b> in deals in an academic year. Flat tiers such as <b data-draw="rule-tier" data-source="tier_summary" data-field="value" data-where="key=nil_p10">—</b> at the 10th percentile may be standard payments of that kind.</p>
         <h3>Releases on file</h3>
         <p>A release is one distinct version of a report. A daily job checks both pages and keeps every new version.</p>
         <div class="pb-scroll">
@@ -607,25 +705,21 @@ for (const [report, prefix] of [['revenue_share', 'rs'], ['nil_go', 'nil']]) {
 }
 
 // ---- football market by position
-function drawMarket(el, report) {
+function drawRanges(el, rows, labelOf, headOf, aria) {
   el.replaceChildren();
-  const coh = rowsOf('cohorts');
-  if (!coh) return;
-  const cut = dash.params().cut || 'A4';
-  const rows = POS_ORDER.map((pos) => coh.find((r) => r.report === report && r.sport === 'Football' && r.gender === 'men'
-    && r.position === pos && r.cohort === cut && r.population === BASE[report])).filter(Boolean);
-  if (!rows.length) return;
+  if (!rows || !rows.length) return;
   const color = dash.colors[0];
   const W = Math.max(260, el.clientWidth), rowH = 28, mt = 4, mb = 28;
   const H = mt + rows.length * rowH + mb;
   const vals = rows.flatMap((r) => PCTS.map((q) => r['p' + q]).filter((v) => v > 0));
+  if (!vals.length) return;
   const lo = d3.min(vals) / 1.3, hi = d3.max(vals) * 1.3;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Pay range by position');
-  const ml = measure(svg, rows.map((r) => r.position)) + 12;
+    .attr('role', 'img').attr('aria-label', aria);
+  const ml = measure(svg, rows.map(labelOf)) + 12;
   const mr = measure(svg, rows.map((r) => fmtUsd(r.p50))) + 14;
   const x = d3.scaleLog([lo, hi], [ml, W - mr]);
-  const yb = d3.scaleBand(rows.map((r) => r.position), [mt, mt + rows.length * rowH]).padding(0.2);
+  const yb = d3.scaleBand(rows.map(labelOf), [mt, mt + rows.length * rowH]).padding(0.2);
   const xt = logTicks(lo, hi, W < 420 ? 3 : 5);
   svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
     .attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', mt).attr('y2', H - mb);
@@ -633,11 +727,11 @@ function drawMarket(el, report) {
     .attr('x', (d) => x(d)).attr('y', H - 10).attr('text-anchor', 'middle').text(fmtAxis);
   const t = tip(el);
   for (const r of rows) {
-    const cy = yb(r.position) + yb.bandwidth() / 2;
+    const cy = yb(labelOf(r)) + yb.bandwidth() / 2;
     const have = PCTS.filter((q) => r['p' + q] > 0);
     const g = svg.append('g');
     g.append('text').attr('class', 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em').attr('text-anchor', 'end')
-      .text(r.position);
+      .text(labelOf(r));
     if (have.length > 1) g.append('line').attr('x1', x(r['p' + have[0]])).attr('x2', x(r['p' + have[have.length - 1]]))
       .attr('y1', cy).attr('y2', cy).attr('stroke', color).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('opacity', 0.45);
     if (r.p25 > 0 && r.p75 > 0) g.append('rect').attr('x', x(r.p25)).attr('y', cy - 5).attr('width', Math.max(2, x(r.p75) - x(r.p25)))
@@ -646,15 +740,59 @@ function drawMarket(el, report) {
       g.append('circle').attr('cx', x(r.p50)).attr('cy', cy).attr('r', 4.5).attr('fill', color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
       g.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr + 10).attr('y', cy).attr('dy', '0.32em').text(fmtUsd(r.p50));
     }
-    g.append('rect').attr('x', 0).attr('y', yb(r.position) - 2).attr('width', W).attr('height', yb.bandwidth() + 4).attr('fill', 'transparent')
+    g.append('rect').attr('x', 0).attr('y', yb(labelOf(r)) - 2).attr('width', W).attr('height', yb.bandwidth() + 4).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
         const [, my] = d3.pointer(ev);
-        tipLines(t, `${r.position} · ${cut}`, [[null, `${POP_LABEL[r.population]}: ${r.n != null ? d3.format(',')(r.n) : r.n_text}`],
+        tipLines(t, headOf(r), [[null, `${POP_LABEL[r.population]}: ${r.n != null ? d3.format(',')(r.n) : r.n_text}`],
           ...PCTS.map((q) => [null, `${q === 50 ? 'Median' : ord(q)}: ${r['p' + q] != null ? fmtUsd(r['p' + q]) : 'not published'}`])]);
         place(el, t, x(r.p50 || r['p' + have[0]] || lo), my);
       })
       .on('pointerleave', () => { t.hidden = true; });
   }
+}
+function drawMarket(el, report) {
+  const coh = rowsOf('cohorts');
+  const cut = dash.params().cut || 'A4';
+  const rows = coh ? POS_ORDER.map((pos) => coh.find((r) => r.report === report && r.sport === 'Football' && r.gender === 'men'
+    && r.position === pos && r.cohort === cut && r.population === BASE[report])).filter(Boolean) : null;
+  drawRanges(el, rows, (r) => r.position, (r) => `${r.position} · ${cut}`, 'Pay range by position');
+}
+// Bars of a share (0-1) per row, one bar per series.
+function drawShare(el, rows, labelOf, series, aria) {
+  el.replaceChildren();
+  if (!rows || !rows.length) return;
+  const bar = 9, step = 14, rowH = series.length * step + 10, mt = 2, mb = 4;
+  const W = Math.max(260, el.clientWidth), H = mt + rows.length * rowH + mb;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', aria);
+  const ml = measure(svg, rows.map(labelOf)) + 12, mr = measure(svg, ['100%']) + 12;
+  const x = d3.scaleLinear([0, 1], [ml, W - mr]);
+  const t = tip(el);
+  rows.forEach((r, i) => {
+    const y0 = mt + i * rowH + 5, mid = y0 + (series.length * step - (step - bar)) / 2;
+    const total = /^All/.test(labelOf(r));
+    svg.append('text').attr('class', total ? 'pb-lab-strong' : 'pb-lab').attr('x', ml - 12).attr('y', mid).attr('dy', '0.32em')
+      .attr('text-anchor', 'end').text(labelOf(r));
+    series.forEach((s, j) => {
+      const v = s.get(r);
+      if (v == null) return;
+      const y = y0 + j * step;
+      svg.append('rect').attr('x', ml).attr('y', y).attr('width', W - mr - ml).attr('height', bar).attr('rx', 3).attr('fill', 'var(--cds-chart-grid)');
+      svg.append('rect').attr('x', ml).attr('y', y).attr('width', Math.max(2, x(v.share) - ml)).attr('height', bar).attr('rx', 3)
+        .attr('fill', s.color);
+      svg.append('text').attr('class', j === 0 ? 'pb-lab-strong' : 'pb-lab').attr('x', W - mr + 8).attr('y', y + bar / 2).attr('dy', '0.32em')
+        .text(d3.format('.0%')(v.share));
+    });
+    svg.append('rect').attr('x', 0).attr('y', y0 - 4).attr('width', W).attr('height', rowH - 2).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        tipLines(t, labelOf(r), series.filter((s) => s.get(r)).map((s) => {
+          const v = s.get(r);
+          return [series.length > 1 ? s.color : null, `${series.length > 1 ? s.name + ': ' : ''}${d3.format(',')(v.paid)} paid of ${d3.format(',')(v.rostered)} rostered (${d3.format('.0%')(v.share)})`];
+        }));
+        place(el, t, x((series[0].get(r) || {}).share || 0), d3.pointer(ev)[1]);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
 }
 dash.draw('market-rs', (el) => drawMarket(el, 'revenue_share'));
 dash.draw('market-nil', (el) => drawMarket(el, 'nil_go'));
@@ -681,36 +819,14 @@ dash.calc('paid_share', {
   },
 });
 dash.draw('paid-share', (el) => {
-  el.replaceChildren();
-  const d = dash.data('paid_share');
-  if (d.status !== 'ok') return;
-  const cut = dash.params().cut || 'A4';
-  const rows = d.data.filter((r) => r.cut === cut).sort((a, b) => orderBy(['All positions', ...POS_ORDER])(a.position, b.position));
-  const color = dash.colors[0];
-  const W = Math.max(260, el.clientWidth), rowH = 26, mt = 2, mb = 4;
-  const H = mt + rows.length * rowH + mb;
-  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Share of the roster paid, by position');
-  const ml = measure(svg, rows.map((r) => r.position)) + 12, mr = measure(svg, ['100%']) + 12;
-  const x = d3.scaleLinear([0, 1], [ml, W - mr]);
-  const yb = d3.scaleBand(rows.map((r) => r.position), [mt, mt + rows.length * rowH]).padding(0.3);
-  const t = tip(el);
-  for (const r of rows) {
-    const cy = yb(r.position) + yb.bandwidth() / 2, total = r.position === 'All positions';
-    svg.append('text').attr('class', total ? 'pb-lab-strong' : 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em')
-      .attr('text-anchor', 'end').text(r.position);
-    svg.append('rect').attr('x', ml).attr('y', cy - 6).attr('width', W - mr - ml).attr('height', 12).attr('rx', 3)
-      .attr('fill', 'var(--cds-chart-grid)');
-    svg.append('rect').attr('x', ml).attr('y', cy - 6).attr('width', Math.max(2, x(r.share) - ml)).attr('height', 12).attr('rx', 3)
-      .attr('fill', color).attr('opacity', total ? 1 : 0.8);
-    svg.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr + 8).attr('y', cy).attr('dy', '0.32em').text(d3.format('.0%')(r.share));
-    svg.append('rect').attr('x', 0).attr('y', yb(r.position) - 3).attr('width', W).attr('height', yb.bandwidth() + 6).attr('fill', 'transparent')
-      .on('pointermove', (ev) => {
-        tipLines(t, `${r.position} · ${r.cut}`, [[null, `${d3.format(',')(r.paid)} paid of ${d3.format(',')(r.rostered)} rostered`]]);
-        place(el, t, x(r.share), d3.pointer(ev)[1]);
-      })
-      .on('pointerleave', () => { t.hidden = true; });
-  }
+  const d = rowsOf('paid_share');
+  const order = ['All positions', ...POS_ORDER];
+  const rows = d ? [...new Set(d.map((r) => r.position))].sort(orderBy(order)).map((pos) => ({
+    position: pos, a4: d.find((r) => r.cut === 'A4' && r.position === pos), non: d.find((r) => r.cut === 'Non-A4' && r.position === pos) })) : null;
+  drawShare(el, rows, (r) => r.position, [
+    { name: 'A4', color: dash.colors[0], get: (r) => r.a4 },
+    { name: 'Non-A4', color: dash.colors[2], get: (r) => r.non },
+  ], 'Share of the roster paid, by position, A4 and non-A4');
 });
 
 // ---- all sports table
@@ -941,6 +1057,147 @@ dash.draw('latest', summaryField('first_seen', (v) => d3.utcFormat('%B %-d, %Y')
 dash.draw('ncohorts', summaryField('cohorts', d3.format(',')));
 dash.draw('nsports', summaryField('sports', String));
 
+// ---- findings
+dash.calc('top_paid', {
+  inputs: ['paid_share'],
+  title: 'Football position most often paid',
+  description: 'The A4 football position with the largest share of rostered players paid revenue share, and the same position outside the A4.',
+  fn: (paid_share) => {
+    const plural = { 'Quarterback': 'quarterbacks', 'Running Back': 'running backs', 'Wide Receiver': 'wide receivers', 'Tight End': 'tight ends',
+      'Offensive Lineman': 'offensive linemen', 'Defensive Lineman': 'defensive linemen', 'Linebacker': 'linebackers',
+      'Defensive Back': 'defensive backs', 'Kicker': 'kickers', 'Punter': 'punters', 'Long Snapper': 'long snappers' };
+    const a4 = paid_share.filter((r) => r.cut === 'A4' && plural[r.position]).sort((a, b) => b.share - a.share)[0];
+    if (!a4) return [];
+    const non = paid_share.find((r) => r.cut === 'Non-A4' && r.position === a4.position);
+    return [{ position: a4.position, label: plural[a4.position], a4_share: a4.share, non_share: non ? non.share : null }];
+  },
+});
+dash.calc('tiers', {
+  inputs: ['cohorts'],
+  title: 'Flat payment tiers',
+  description: 'Runs of equal published percentiles above $0 in every cohort: many athletes paid exactly the same amount.',
+  fn: (cohorts) => {
+    const genders = { men: "Men's", women: "Women's", mixed: 'Mixed' };
+    const nth = (q) => q + 'th';
+    const out = [];
+    for (const r of cohorts) {
+      const qs = [10, 25, 50, 75, 90].filter((q) => Number(r['p' + q]) > 0);
+      for (let i = 0; i < qs.length - 1; i++) {
+        const v = Number(r['p' + qs[i]]);
+        if (Number(r['p' + qs[i + 1]]) !== v) continue;
+        let j = i + 1;
+        while (j + 1 < qs.length && Number(r['p' + qs[j + 1]]) === v) j++;
+        out.push({ key: r.id + '|' + qs[i], report: r.report, report_label: r.report_label, sport: r.sport, gender: r.gender,
+          gender_label: genders[r.gender] || r.gender, position: r.position, cohort: r.cohort, population_label: r.population_label,
+          value: v, span: nth(qs[i]) + ' to ' + nth(qs[j]) });
+        i = j;
+      }
+    }
+    return out;
+  },
+});
+dash.calc('tier_summary', {
+  inputs: ['tiers', 'cohorts'],
+  title: 'Most common flat tiers',
+  description: "The most common NIL Go 10th percentile and how many cohorts share it, and the most common flat revenue-share amount and how many cohorts have a run at it.",
+  fn: (tiers, cohorts) => {
+    const mode = (vals) => { const c = new Map(); for (const v of vals) c.set(v, (c.get(v) || 0) + 1); return [...c].sort((a, b) => b[1] - a[1])[0] || [null, 0]; };
+    const nil = cohorts.filter((r) => r.report === 'nil_go' && Number(r.p10) > 0).map((r) => Number(r.p10));
+    const [nv, nc] = mode(nil);
+    const rs = tiers.filter((t) => t.report === 'revenue_share');
+    const [rv] = mode(rs.map((t) => t.value));
+    const rc = new Set(rs.filter((t) => t.value === rv).map((t) => t.key.split('|').slice(0, 6).join('|'))).size;
+    return [{ key: 'nil_p10', value: nv, count: nc, of: nil.length }, { key: 'rs_flat', value: rv, count: rc, of: null }];
+  },
+});
+dash.calc('surplus_ends', {
+  inputs: ['rosters'],
+  title: 'Largest and smallest roster surplus',
+  description: 'The A4 programs with the largest and smallest surplus: on-field value minus market value.',
+  fn: (rosters) => {
+    const s = [...rosters].sort((a, b) => b.surplus - a.surplus);
+    return s.length ? [{ end: 'top', team: s[0].team, surplus: s[0].surplus }, { end: 'bottom', team: s[s.length - 1].team, surplus: s[s.length - 1].surplus }] : [];
+  },
+});
+const fmtSigned = (v) => (v >= 0 ? '+' : '−') + fmtM(Math.abs(v));
+const fmtM2 = (v) => '$' + (v / 1e6).toFixed(2) + 'M';
+const pct0 = d3.format('.0%');
+const pick = (id, where) => { const rows = rowsOf(id); return rows ? (where ? rows.find(where) : rows[0]) : null; };
+const fill = (name, get) => dash.draw(name, (el) => { let v = null; try { v = get(); } catch (e) { v = null; } el.textContent = v == null ? '—' : v; });
+const paidKey = (k) => () => pick('paid_share', (r) => r.key === k);
+fill('f-paid-a4', () => { const r = paidKey('A4|All positions')(); return r && pct0(r.share); });
+fill('f-paid-a4-paid', () => { const r = paidKey('A4|All positions')(); return r && d3.format(',')(r.paid); });
+fill('f-paid-a4-rostered', () => { const r = paidKey('A4|All positions')(); return r && d3.format(',')(r.rostered); });
+fill('f-paid-non', () => { const r = paidKey('Non-A4|All positions')(); return r && pct0(r.share); });
+fill('f-top-a4', () => { const r = pick('top_paid'); return r && pct0(r.a4_share); });
+fill('f-top-label', () => { const r = pick('top_paid'); return r && r.label; });
+fill('f-top-non', () => { const r = pick('top_paid'); return r && r.non_share != null ? pct0(r.non_share) : null; });
+fill('f-floor', () => { const r = pick('totals'); return r && fmtM(r.floor_per_program); });
+fill('f-floor-share', () => { const r = pick('totals'); return r && pct0(r.floor_cap_share); });
+fill('f-cap', () => { const r = pick('totals'); return r && fmtM(r.cap); });
+fill('f-qb-p99', () => { const r = pick('totals'); return r && fmtM(r.qb_p99_calibrated); });
+fill('f-qb-p90', () => { const r = pick('totals'); return r && fmtM2(r.qb_p90); });
+fill('f-qb-fit', () => { const r = pick('totals'); return r && fmtM(r.qb_p99_fitted); });
+const tierOf = (k) => () => pick('tier_summary', (r) => r.key === k);
+fill('f-tier-nil-n', () => { const r = tierOf('nil_p10')(); return r && String(r.count); });
+fill('f-tier-nil-of', () => { const r = tierOf('nil_p10')(); return r && String(r.of); });
+fill('f-tier-nil-v', () => { const r = tierOf('nil_p10')(); return r && fmtUsd(r.value); });
+fill('f-tier-rs-n', () => { const r = tierOf('rs_flat')(); return r && String(r.count); });
+fill('f-tier-rs-v', () => { const r = tierOf('rs_flat')(); return r && fmtUsd(r.value); });
+fill('rule-tier', () => { const r = tierOf('nil_p10')(); return r && fmtUsd(r.value); });
+fill('f-sur-top', () => { const r = pick('surplus_ends', (x) => x.end === 'top'); return r && r.team; });
+fill('f-sur-top-v', () => { const r = pick('surplus_ends', (x) => x.end === 'top'); return r && fmtSigned(r.surplus); });
+fill('f-sur-bot', () => { const r = pick('surplus_ends', (x) => x.end === 'bottom'); return r && r.team; });
+fill('f-sur-bot-v', () => { const r = pick('surplus_ends', (x) => x.end === 'bottom'); return r && fmtSigned(r.surplus); });
+// NIL Go's reporting rules, as the CSC set them (the review threshold as reported in the trade press).
+const NILGO_RULES = { report_min: 600, review_max: 15000, season_total: 50000 };
+fill('rule-min', () => fmtUsd(NILGO_RULES.report_min));
+fill('rule-review', () => fmtUsd(NILGO_RULES.review_max));
+fill('rule-season', () => fmtUsd(NILGO_RULES.season_total));
+dash.draw('tier-rows', (tb) => {
+  tb.replaceChildren();
+  const rows = rowsOf('tiers');
+  if (!rows) return;
+  for (const r of [...rows].sort((a, b) => a.report.localeCompare(b.report) || a.sport.localeCompare(b.sport) || a.value - b.value)) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.key;
+    [r.report_label, r.sport, r.gender_label, r.position === 'All Positions' ? 'All positions' : r.position, r.cohort, r.population_label, fmtUsd(r.value), r.span]
+      .forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 6) td.className = 'num'; tr.append(td); });
+    tb.append(tr);
+  }
+});
+
+// ---- basketball
+const CONF_ORDER = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Non-A4'];
+dash.calc('bb_paid_share', {
+  inputs: ['cohorts'],
+  title: 'Share of the basketball roster paid',
+  description: 'Revenue share: paid athletes divided by everyone rostered, per basketball conference and gender.',
+  fn: (cohorts) => cohorts.filter((r) => r.report === 'revenue_share' && r.sport === 'Basketball' && r.population === 'all_rostered').map((all) => {
+    const paid = cohorts.find((r) => r.report === 'revenue_share' && r.sport === 'Basketball' && r.gender === all.gender
+      && r.cohort === all.cohort && r.population === 'paid');
+    return paid ? { key: all.gender + '|' + all.cohort, gender: all.gender, cohort: all.cohort, rostered: Number(all.n), paid: Number(paid.n),
+      share: Number(paid.n) / Number(all.n) } : null;
+  }).filter(Boolean),
+});
+const bbGender = () => dash.params().bbg || 'men';
+const bbRows = (report) => {
+  const coh = rowsOf('cohorts');
+  return coh ? CONF_ORDER.map((c) => coh.find((r) => r.report === report && r.sport === 'Basketball' && r.gender === bbGender()
+    && r.cohort === c && r.population === BASE[report])).filter(Boolean) : null;
+};
+const bbHead = (r) => `${r.cohort} · ${GENDER_LABEL[r.gender] || r.gender} basketball`;
+dash.draw('bb-rs', (el) => drawRanges(el, bbRows('revenue_share'), (r) => r.cohort, bbHead, 'Revenue share by conference'));
+dash.draw('bb-nil', (el) => drawRanges(el, bbRows('nil_go'), (r) => r.cohort, bbHead, 'NIL Go by conference'));
+dash.draw('bb-paid', (el) => {
+  const d = rowsOf('bb_paid_share');
+  const rows = d ? CONF_ORDER.map((c) => d.find((r) => r.gender === bbGender() && r.cohort === c)).filter(Boolean) : null;
+  drawShare(el, rows, (r) => r.cohort, [{ name: 'Paid', color: dash.colors[0], get: (r) => r }], 'Share of the basketball roster paid, by conference');
+});
+const bbWindow = (report) => (el) => { const r = (bbRows(report) || [])[0]; el.textContent = r && r.window_label ? r.window_label + '.' : '—'; };
+dash.draw('bb-rs-window', bbWindow('revenue_share'));
+dash.draw('bb-nil-window', bbWindow('nil_go'));
+
 // ---- controls, tabs, legend swatches
 document.querySelectorAll('.pb-amt').forEach((inp) => {
   let timer;
@@ -954,13 +1211,15 @@ document.querySelectorAll('.pb-amt').forEach((inp) => {
 });
 document.querySelectorAll('.pb-cut').forEach((b) => b.addEventListener('click', () => dash.setParams({ cut: b.dataset.cut })));
 document.querySelectorAll('.pb-rep').forEach((b) => b.addEventListener('click', () => dash.setParams({ report: b.dataset.report })));
+document.querySelectorAll('.pb-bbg').forEach((b) => b.addEventListener('click', () => dash.setParams({ bbg: b.dataset.bbg })));
 const showTab = (id) => {
   document.querySelectorAll('.pb-page').forEach((s) => { s.hidden = s.id !== id; });
   document.querySelectorAll('.pb-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
 };
 document.querySelectorAll('.pb-tab').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.tab); dash.setLink(b.dataset.tab); }));
+document.querySelectorAll('.pb-go').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.go); dash.setLink(b.dataset.go); }));
 const named = location.hash.slice(1);
-if (['offer', 'football', 'sports', 'rosters', 'method'].includes(named)) showTab(named);
+if (['findings', 'offer', 'football', 'basketball', 'sports', 'rosters', 'method'].includes(named)) showTab(named);
 dash.onData(() => {
   const p = dash.params();
   document.querySelectorAll('.pb-amt').forEach((inp) => {
@@ -969,6 +1228,7 @@ dash.onData(() => {
   document.querySelectorAll('.pb-cut').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cut === (p.cut || 'A4'))));
   document.querySelectorAll('.pb-rep').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.report === (p.report || 'revenue_share'))));
   document.querySelectorAll('.pb-conf').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.conf === (p.conf || 'All'))));
+  document.querySelectorAll('.pb-bbg').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.bbg === (p.bbg || 'men'))));
   document.querySelectorAll('.pb-sw[data-color]').forEach((s) => { s.style.background = dash.colors[Number(s.dataset.color)]; });
 });
 </script>

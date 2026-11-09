@@ -9,7 +9,11 @@ REAL = sorted(csc.ARCHIVE_DIR.glob("*_2026-10-30_*.json.gz"))
 def test_dashboard_files_from_the_first_release(con):
     csc.ingest_archive(con, csc.ARCHIVE_DIR)
     data = dashboard.build(con)
-    assert {k: len(v) for k, v in data.items()} == {"cohorts": 246, "curves": 195, "validation": 15, "releases": 2}
+    counts = {k: len(v) for k, v in data.items() if k != "rosters"}      # rosters only where `nil surplus` has run
+    assert counts == {"cohorts": 246, "curves": 195, "validation": 15, "releases": 2, "totals": 1}
+    t = data["totals"][0]
+    assert t["floor_per_program"] == pytest.approx(11.7e6, rel=0.01) and t["floor_cap_share"] == pytest.approx(0.557, abs=0.005)
+    assert t["qb_p90"] == 1611000 and t["qb_p99_fitted"] > t["qb_p99_calibrated"] > t["qb_p90"]
     ids = [r["id"] for r in data["cohorts"]]
     assert len(set(ids)) == len(ids)                                    # the dashboard's row key
     qb = next(r for r in data["cohorts"] if r["id"] == "revenue_share|men|Football|Quarterback|A4|paid")

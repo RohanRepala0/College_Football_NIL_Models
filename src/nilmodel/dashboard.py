@@ -1,6 +1,6 @@
 """Data files for the College Athlete Pay Benchmarks dashboard.
 
-`nil dashboard-data` writes four JSON files to data/dashboard/, one per dashboard source: the
+`nil dashboard-data` writes the JSON files to data/dashboard/, one per dashboard source: the
 published percentiles of the latest releases (cohorts), the benchmark at every percentile (curves),
 the benchmark's validation, and the releases on file. Upload them to the dashboard after a new release.
 """
@@ -77,7 +77,8 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                 for r in con.execute("""SELECT report, left(payload_sha256, 12), strftime(first_seen_at, '%Y-%m-%d'),
                                                n_cohorts, archive_path FROM csc_releases
                                         ORDER BY report, first_seen_at""").fetchall()]
-    out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases}
+    out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases,
+           "totals": totals(df)}
     surplus = sorted((config.DATA_DIR / "players").glob("surplus_*.csv"))
     if surplus:                     # team totals from `nil surplus`, newest season
         from .triangulate import CAP_CALENDAR_2026
@@ -90,6 +91,23 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                            "sp_rating": round(r.sp_rating, 1), "cap": CAP_CALENDAR_2026}
                           for r in t.itertuples()]
     return out
+
+
+def totals(df: pd.DataFrame) -> list[dict]:
+    """A4 football revenue share per program from the triangulation: the floor the percentiles imply with no
+    model, its share of the calendar-2026 cap, and the A4 quarterback 99th percentile under the fitted tail
+    and under the tail calibrated to the cap."""
+    from . import triangulate as tri
+
+    pp = tri.per_program(tri.roll_up(tri.cohort_totals(df)))
+    cal = tri.calibrate(df)
+    mult = float(cal[(cal.report == "revenue_share") & (cal.case == "central")].tail_mult.iloc[0])
+    qb = bm.find(bm.curves(df)[0], "revenue_share", "Football", "Quarterback", "A4")
+    return [{"id": "revenue_share|A4", "report": "revenue_share", "cohort": "A4", "programs": pp["programs"],
+             "rostered_per_program": round(pp["rostered_per_program"], 1), "floor_per_program": round(pp["floor"]),
+             "floor_cap_share": round(pp["floor_cap_share"], 4), "cap": tri.CAP_CALENDAR_2026,
+             "tail_mult": round(mult, 4), "qb_p90": dict(qb.published[qb.population]).get(90),
+             "qb_p99_fitted": round(tri.tail_value(qb, 99, 1.0)), "qb_p99_calibrated": round(tri.tail_value(qb, 99, mult))}]
 
 
 def export(con: duckdb.DuckDBPyConnection, out_dir: Path | None = None) -> list[Path]:

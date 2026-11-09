@@ -12,7 +12,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "dashboard"
-DATASETS = ["cohorts", "curves", "releases", "validation", "rosters"]
+DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals"]
 DEFAULT_PARAMS = {"cohort": "A4", "cut": "A4", "gender": "men", "nil": 40000, "position": "Linebacker",
                   "report": "revenue_share", "rs": 150000, "sport": "Football"}
 
