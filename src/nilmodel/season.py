@@ -1,11 +1,10 @@
-"""The season so far, from the CollegeFootballRatings2026 weekly files: every game its model priced, with
-the market's line, the model's margin and the final score, and every signal it posted with its result.
+"""The season so far: every game the CollegeFootballRatings2026 weekly files cover, with the pre-game
+projections of SP+ and BCF Toys FEI (the rating systems that model is built on) and the final score.
 
-The model leans mostly on the betting market, so its ratings are the market's expectations. Final scores come
-from CollegeFootballData (`cfbd_games_<season>`, pulled by `nil ratings`). Signals the weekly files have not
-graded yet are graded here from those scores with the same rules as that repository's `cfb` code: a total
-wins when the final total is on the bet's side of the line, a spread when the side's margin plus its line is
-positive, a push pays nothing, and a win pays at the listed price.
+`games` is what the football page shows: the projected home margin (the average of the two systems' projections)
+and the final home margin, nothing derived from betting lines. Final scores come from CollegeFootballData
+(`cfbd_games_<season>`, pulled by `nil ratings`). `signals` reads that repository's own records for its research
+reports; the football page doesn't use it.
 """
 
 from __future__ import annotations
@@ -32,19 +31,19 @@ def _finals(con: duckdb.DuckDBPyConnection, season: int) -> pd.DataFrame:
 
 
 def games(con: duckdb.DuckDBPyConnection, weeks_dir: Path = RATINGS_SEASON_DIR, season: int = 2026) -> list[dict]:
-    """One row per game the model priced: the home team's line, the model's expected home margin, and the
-    final home margin once played."""
+    """One row per game: the projected home margin (SP+ and BCF Toys FEI, averaged) and the final home margin
+    once played."""
     files = sorted(weeks_dir.glob("week-*/ratings.csv"))
     if not files:
         return []
-    d = pd.concat([pd.read_csv(f).assign(week=_week(f)) for f in files], ignore_index=True).dropna(subset=["model_margin"])
+    d = pd.concat([pd.read_csv(f).assign(week=_week(f)) for f in files], ignore_index=True)
     fin = _finals(con, season)
+    d["projected"] = d[["sp_plus_margin", "bcftoys_margin"]].mean(axis=1)
     rows = []
-    for r in d.itertuples(index=False):
+    for r in d.dropna(subset=["projected"]).itertuples(index=False):
         f = fin.loc[int(r.game_id)] if int(r.game_id) in fin.index else None
         rows.append({"id": str(int(r.game_id)), "week": int(r.week), "kickoff": str(r.kickoff)[:10], "home": r.home_team,
-                     "away": r.away_team, "neutral": str(r.neutral_site) == "True",
-                     "line": None if pd.isna(r.home_spread) else float(r.home_spread), "model": round(float(r.model_margin), 2),
+                     "away": r.away_team, "neutral": str(r.neutral_site) == "True", "projected": round(float(r.projected), 2),
                      "final": None if f is None else int(f.home_points - f.away_points)})
     return rows
 

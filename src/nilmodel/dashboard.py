@@ -97,15 +97,15 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                            "surplus_low": round(r.low), "surplus_high": round(r.high), "call": calls[r.agree],
                            **{k: round(r[k]) for k in PUBLIC},
                            "perf_rating": None if pd.isna(r.perf_rating) else round(r.perf_rating, 2),
-                           "market_rating": None if pd.isna(r.get("market_rating")) else round(r.market_rating, 2),
-                           "market_surplus": rnd(r.get("yours")), "cap": CAP_CALENDAR_2026}
+                           "expected_rating": None if pd.isna(r.get("expected_rating")) else round(r.expected_rating, 2),
+                           "expected_surplus": rnd(r.get("projected")), "cap": CAP_CALENDAR_2026}
                           for team, r in t.iterrows()]
     if con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name = 'cfbd_games_2026'").fetchone()[0]:
         from . import season
 
-        g, sig = season.games(con), season.signals(con)
+        g = season.games(con)
         if g:
-            out["season_games"], out["season_signals"] = g, sig
+            out["season_games"] = g
         done = con.execute("""SELECT max(CAST(week AS INT)), max(left(startDate, 10)) FROM cfbd_games_2026
                               WHERE lower(CAST(completed AS VARCHAR)) = 'true'""").fetchone()
         out["totals"][0].update(through_week=done[0], last_game=done[1])

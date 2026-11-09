@@ -10,8 +10,9 @@ and returning production, which the player scores also use. So the same fit is r
 - `elo`: CollegeFootballData's Elo, which starts each season from the last.
 - `results`: this repository's fit to every completed 2026 FBS game: home margin = home edge + home rating
   - away rating, margins capped at 28 so blowouts don't dominate. No prior of any kind.
-- `yours`: the team ratings implied by the CollegeFootballRatings2026 weekly model margins (its blend of
-  public ratings and the market), fit the same way from its posted games.
+- `projected`: the team ratings implied by SP+'s and BCF Toys FEI's pre-game projections in the
+  CollegeFootballRatings2026 weekly files, fit the same way from every game they projected.
+- `yours`: the same from that repository's model margins (its blend of the projections and the betting market).
 
 Each rating is put on SP+'s spread (points per game) and fit as a team total on every position group, with
 the player-score weights chosen by cross-validation for that rating. Surplus is then priced per rating. The
@@ -38,9 +39,9 @@ SLOTS = {g: k for unit in su.UNITS.values() for g, k in unit.items()}   # every 
 PUBLIC = ["sp", "fpi", "srs", "elo"]          # the published ratings the roster numbers use
 MARGIN_CAP = 28.0
 LABELS = {"sp": "SP+", "fpi": "ESPN FPI", "srs": "SRS", "elo": "Elo", "results": "2026 results only",
-          "yours": "Your model (weeks 1-8)"}
+          "projected": "SP+ and FEI projections (weeks 1-8)", "yours": "Your model (weeks 1-8)"}
 PRIOR = {"sp": "yes, fading", "fpi": "yes", "srs": "no", "elo": "carries over last season", "results": "no",
-         "yours": "market and SP+/FEI, which have priors"}
+         "projected": "yes: pre-game projections", "yours": "market and SP+/FEI, which have priors"}
 
 
 def pull(con: duckdb.DuckDBPyConnection, fetcher: Fetcher, season: int = 2026, fresh: bool = False) -> dict:
@@ -79,14 +80,16 @@ def results_rating(con: duckdb.DuckDBPyConnection, season: int = 2026) -> tuple[
                     "last_game": str(g.startDate.max())[:10]}
 
 
-def model_rating(weeks_dir: Path) -> tuple[pd.Series, dict]:
-    """Team ratings implied by the weekly model margins in CollegeFootballRatings2026/2026/week-NN/ratings.csv
-    (model_margin is the home team's expected margin)."""
+def model_rating(weeks_dir: Path, column: str = "model_margin") -> tuple[pd.Series, dict]:
+    """Team ratings implied by the home margins in CollegeFootballRatings2026/2026/week-NN/ratings.csv: the
+    model's (`model_margin`, mostly the betting market) or the pre-game projections of SP+ and BCF Toys FEI
+    averaged (`projected`)."""
     files = sorted(weeks_dir.glob("week-*/ratings.csv"))
     d = pd.concat([pd.read_csv(f).assign(week=f.parent.name) for f in files], ignore_index=True)
-    d = d.dropna(subset=["model_margin"])
+    d["projected"] = d[["sp_plus_margin", "bcftoys_margin"]].mean(axis=1)
+    d = d.dropna(subset=[column])
     games = pd.DataFrame({"home": d.home_team, "away": d.away_team, "neutral": d.neutral_site.astype(str) == "True",
-                          "margin": d.model_margin})
+                          "margin": d[column]})
     rating, hfa = fit_margins(games, cap=np.inf)
     return rating, {"games": len(games), "home_edge": hfa, "weeks": f"{files[0].parent.name} to {files[-1].parent.name}"}
 
@@ -106,9 +109,8 @@ def targets(con: duckdb.DuckDBPyConnection, weeks_dir: Path | None, season: int 
     t["results"] = res
     notes = {"results": info}
     if weeks_dir is not None and weeks_dir.exists():
-        yours, yinfo = model_rating(weeks_dir)
-        t["yours"] = yours
-        notes["yours"] = yinfo
+        t["projected"], notes["projected"] = model_rating(weeks_dir, "projected")
+        t["yours"], notes["yours"] = model_rating(weeks_dir)
     t = t.dropna(subset=["sp"])
     sd = t.sp.std()
     for c in t.columns:
@@ -179,8 +181,8 @@ def run(con: duckdb.DuckDBPyConnection, weeks_dir: Path | None = None, season: i
     surplus["agree"] = np.where((surplus[cols] > 0).all(axis=1), "surplus everywhere",
                                 np.where((surplus[cols] < 0).all(axis=1), "deficit everywhere", "depends on rating"))
     surplus["perf_rating"] = tg[cols].median(axis=1).reindex(surplus.index)
-    if "yours" in tg:
-        surplus["market_rating"] = tg["yours"].reindex(surplus.index)
+    if "projected" in tg:
+        surplus["expected_rating"] = tg["projected"].reindex(surplus.index)
     return {"targets": tg, "notes": notes, "grid": grid, "summary": pd.DataFrame(summary),
             "surplus": surplus.sort_values("median", ascending=False), "rating_corr": tg.corr(),
             "surplus_rank_corr": surplus[cols].corr(method="spearman")}

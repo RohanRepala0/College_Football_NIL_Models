@@ -23,7 +23,7 @@
     <button class="pb-tab" role="tab" data-tab="offer" aria-selected="false">Offer check</button>
     <button class="pb-tab" role="tab" data-tab="market" aria-selected="false">Position market</button>
     <button class="pb-tab" role="tab" data-tab="rosters" aria-selected="false">Rosters</button>
-    <button class="pb-tab" role="tab" data-tab="expectations" aria-selected="false">Market view</button>
+    <button class="pb-tab" role="tab" data-tab="expectations" aria-selected="false">Expectations</button>
     <button class="pb-tab" role="tab" data-tab="method" aria-selected="false">Method</button>
   </nav>
 
@@ -39,7 +39,7 @@
       <article class="pb-find">
         <span class="pb-find-k">What every A4 program pays at least</span>
         <span class="pb-find-v" data-draw="f-floor" data-source="totals" data-field="floor_per_program" data-row="0">—</span>
-        <p>is the least A4 football revenue share per program in 2026, with no model: each paid player earns at least the published percentile below him. That is <b data-draw="f-floor-share" data-source="totals" data-field="floor_cap_share" data-row="0">—</b> of a <b data-draw="f-cap" data-source="totals" data-field="cap" data-row="0">—</b> cap that has to cover every sport.</p>
+        <p>is the least A4 football revenue share per program in 2026, with no model: each paid player earns at least the published percentile below him. That is <b data-draw="f-floor-share" data-source="totals" data-field="floor_cap_share" data-row="0">—</b> of a <b data-draw="f-cap" data-source="totals" data-field="cap" data-row="0">—</b> cap shared by every sport.</p>
         <button class="pb-go" data-go="method">Method</button>
       </article>
       <article class="pb-find">
@@ -61,10 +61,10 @@
         <button class="pb-go" data-go="rosters">Rosters</button>
       </article>
       <article class="pb-find">
-        <span class="pb-find-k">Where the market sees it differently</span>
-        <span class="pb-find-v" data-draw="f-gap-pts" data-source="market_gap" data-field="gap" data-where="end=over">—</span>
-        <p>rating points: how far the betting market's view of <b data-draw="f-gap-team" data-source="market_gap" data-field="team" data-where="end=over">—</b> runs ahead of how it has played. The market is coolest on <b data-draw="f-gap-low-team" data-source="market_gap" data-field="team" data-where="end=under">—</b>, <b data-draw="f-gap-low-pts" data-source="market_gap" data-field="gap" data-where="end=under">—</b>.</p>
-        <button class="pb-go" data-go="expectations">Market view</button>
+        <span class="pb-find-k">Where projections and results part ways</span>
+        <span class="pb-find-v" data-draw="f-gap-pts" data-source="expect_gap" data-field="gap" data-where="end=over">—</span>
+        <p>rating points: how far pre-game projections for <b data-draw="f-gap-team" data-source="expect_gap" data-field="team" data-where="end=over">—</b> ran ahead of how it has played. <b data-draw="f-gap-low-team" data-source="expect_gap" data-field="team" data-where="end=under">—</b> has outplayed its projections the most, <b data-draw="f-gap-low-pts" data-source="expect_gap" data-field="gap" data-where="end=under">—</b>.</p>
+        <button class="pb-go" data-go="expectations">Expectations</button>
       </article>
     </div>
   </section>
@@ -118,7 +118,7 @@
     <div class="pb-grid">
       <article class="pb-card">
         <h2>Revenue share by position</h2>
-        <p>Paid athletes, calendar 2026. The line runs from the 10th to the 90th percentile, the bar covers the middle half, and the dot is the median. Log scale.</p>
+        <p>Paid athletes, calendar 2026. The line runs from the 10th to the 90th percentile, the bar spans the middle half, and the dot is the median. Log scale.</p>
         <div class="pb-chart" data-draw="market-rs" data-source="cohorts"></div>
       </article>
       <article class="pb-card">
@@ -188,24 +188,24 @@
     </article>
     <article class="pb-card">
       <h2>Market value by program</h2>
-      <p>The dot is the estimate, the line its 80% range from uncertainty in how players rank. The dashed line is the calendar-2026 revenue-share cap, which covers every sport.</p>
+      <p>The dot is the estimate, the line its 80% range from uncertainty in how players rank. The dashed line is the calendar-2026 revenue-share cap, shared by every sport.</p>
       <div class="pb-chart" data-draw="rosters-range" data-source="rosters"></div>
     </article>
   </section>
 
   <section class="pb-page" id="expectations" hidden>
-    <p class="pb-foot">This tab is the market's view, from the CollegeFootballRatings2026 model. That model blends SP+ and BCF Toys FEI projections with the betting market and leans mostly on the market, so its team ratings say what bettors expect a team to be. Here they are fit from every game it priced in weeks 1 to 8 and set beside the four published ratings, which say how teams have played.</p>
+    <p class="pb-foot">How teams were expected to play against how they have played. Expectations are the pre-game projections of SP+ and BCF Toys FEI, the two rating systems the CollegeFootballRatings2026 model is built on, averaged for every game they projected in weeks 1 to 8. A team's expected rating is fit from those projections and set beside the four published ratings, which say how teams have actually played.</p>
     <div class="pb-grid">
       <article class="pb-card">
-        <h2>Expectation against performance</h2>
-        <p>Each dot is an A4 program, both ratings in points per game on SP+'s scale. Above the diagonal, the market rates the team higher than its play so far.</p>
+        <h2>Expected against actual</h2>
+        <p>Each dot is an A4 program, both ratings in points per game on SP+'s scale. Above the diagonal, the team was projected to be better than it has played.</p>
         <div class="pb-chart" data-draw="mv-scatter" data-source="rosters"></div>
       </article>
       <article class="pb-card">
-        <h2>Roster value, market view against results</h2>
-        <p>Surplus priced from the market's ratings beside the median of the four published ratings, for the programs where they differ most.</p>
+        <h2>Roster value, projected against results</h2>
+        <p>Surplus priced from the projected ratings beside the median of the four published ratings, for the programs where they differ most.</p>
         <div class="pb-legend">
-          <span><i class="pb-sw" data-color="3"></i>Market view</span>
+          <span><i class="pb-sw" data-color="3"></i>Projected</span>
           <span><i class="pb-sw" data-color="0"></i>Published ratings</span>
         </div>
         <div class="pb-chart" data-draw="mv-gaps" data-source="rosters"></div>
@@ -216,37 +216,34 @@
     <div class="pb-grid">
       <article class="pb-card">
         <h2>Week by week</h2>
-        <p>How far the model's margins and the market's lines missed final scores, how often the model picked the winner, and the signals it posted. Weeks 1 to 6 are a backtest with a model fit only on earlier seasons; weeks 7 and 8 were posted live.</p>
-        <div class="pb-chart" data-draw="mv-units" data-source="season_weeks"></div>
+        <p>How often the team projected to win did win, and by how many points the projections missed the final margin on average.</p>
+        <div class="pb-chart" data-draw="mv-weeks-chart" data-source="season_weeks"></div>
         <div class="pb-scroll">
           <table class="pb-table" data-source="season_weeks" data-row-key="week">
             <thead><tr>
               <th data-field="week">Week</th><th class="num" data-field="games">Games</th>
-              <th class="num" data-field="model_miss">Model miss</th><th class="num" data-field="market_miss">Market miss</th>
-              <th class="num" data-field="winners">Winner picked</th><th data-field="record">Signals</th><th class="num" data-field="units">Units</th>
+              <th class="num" data-field="winners">Projected winner won</th><th class="num" data-field="miss">Average miss</th>
             </tr></thead>
             <tbody data-draw="mv-week-rows"></tbody>
           </table>
         </div>
-        <p data-draw="mv-graded-note" data-source="season_signals">—</p>
       </article>
       <article class="pb-card">
         <h2>One team's season</h2>
-        <p>Every game the model priced for one program: what the market expected, what the model expected, and what happened, all from that team's side.</p>
+        <p>Every game projected for one program: the pre-game projection and the final margin, from that team's side.</p>
         <div class="pb-select-row">
           <label>Team <select id="pb-team" data-draw="mv-team-select" data-source="season_games"></select></label>
         </div>
         <div class="pb-legend">
           <span><i class="pb-sw" data-color="0"></i>Final margin</span>
-          <span><i class="pb-sw" data-color="3"></i>Model</span>
-          <span><i class="pb-sw pb-sw-dash"></i>Market line</span>
+          <span><i class="pb-sw" data-color="3"></i>Projected margin</span>
         </div>
         <div class="pb-chart" data-draw="mv-team-chart" data-source="season_games"></div>
         <div class="pb-scroll">
           <table class="pb-table" data-source="season_games" data-row-key="id">
             <thead><tr>
-              <th data-field="week">Week</th><th data-field="home">Opponent</th><th class="num" data-field="line">Line</th>
-              <th class="num" data-field="model">Model</th><th class="num" data-field="final">Final</th><th class="num" data-field="final">Against the line</th>
+              <th data-field="week">Week</th><th data-field="home">Opponent</th>
+              <th class="num" data-field="projected">Projected</th><th class="num" data-field="final">Final</th><th class="num" data-field="final">Beat projection by</th>
             </tr></thead>
             <tbody data-draw="mv-team-rows"></tbody>
           </table>
@@ -286,8 +283,8 @@
         <li>Individual contracts are private. Player values are ranks placed on the CSC's published distributions, so only program totals are shown.</li>
         <li>Public data ranks players only moderately well; that uncertainty is the market-value range.</li>
         <li>Defense is explained less well than offense, and kickers and punters barely move any rating.</li>
-        <li>Coaching, scheme and luck that the ratings pick up but player scores can't explain are not credited to anyone.</li>
-        <li>The market view stops at week 8, where the CollegeFootballRatings2026 weekly files stop; the published ratings run through the latest week.</li>
+        <li>Coaching, scheme and luck that the ratings capture but player scores can't explain are not credited to anyone.</li>
+        <li>The projections stop at week 8, where the CollegeFootballRatings2026 weekly files stop; the published ratings run through the latest week.</li>
       </ol>
       <h3>Releases on file</h3>
       <div class="pb-scroll">
@@ -322,32 +319,32 @@ fill('f-calls-all', () => { const r = pick('call_counts'); return r && String(r.
 fill('f-calls-up', () => { const r = pick('call_counts'); return r && String(r.surplus); });
 fill('f-calls-down', () => { const r = pick('call_counts'); return r && String(r.deficit); });
 
-dash.calc('market_gap', {
+dash.calc('expect_gap', {
   inputs: ['rosters'],
-  title: 'Market expectation against performance',
-  description: "The A4 programs whose market rating (CollegeFootballRatings2026) is furthest above and below the median of the four published ratings.",
+  title: 'Projections against results',
+  description: "The A4 programs whose projected rating (SP+ and FEI pre-game projections) is furthest above and below the median of the four published ratings.",
   fn: (rosters) => {
-    const r = rosters.filter((x) => x.market_rating != null && x.perf_rating != null)
-      .map((x) => ({ team: x.team, gap: x.market_rating - x.perf_rating })).sort((a, b) => b.gap - a.gap);
+    const r = rosters.filter((x) => x.expected_rating != null && x.perf_rating != null)
+      .map((x) => ({ team: x.team, gap: x.expected_rating - x.perf_rating })).sort((a, b) => b.gap - a.gap);
     return r.length ? [{ end: 'over', ...r[0] }, { end: 'under', ...r[r.length - 1] }] : [];
   },
 });
 const fmtPts = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1);
-fill('f-gap-pts', () => { const r = pick('market_gap', (x) => x.end === 'over'); return r && fmtPts(r.gap); });
-fill('f-gap-team', () => { const r = pick('market_gap', (x) => x.end === 'over'); return r && r.team; });
-fill('f-gap-low-team', () => { const r = pick('market_gap', (x) => x.end === 'under'); return r && r.team; });
-fill('f-gap-low-pts', () => { const r = pick('market_gap', (x) => x.end === 'under'); return r && fmtPts(r.gap) + ' points'; });
+fill('f-gap-pts', () => { const r = pick('expect_gap', (x) => x.end === 'over'); return r && fmtPts(r.gap); });
+fill('f-gap-team', () => { const r = pick('expect_gap', (x) => x.end === 'over'); return r && r.team; });
+fill('f-gap-low-team', () => { const r = pick('expect_gap', (x) => x.end === 'under'); return r && r.team; });
+fill('f-gap-low-pts', () => { const r = pick('expect_gap', (x) => x.end === 'under'); return r && fmtPts(r.gap) + ' points'; });
 
-// ---- market view: expectation against performance
+// ---- expectations: projected against actual
 dash.draw('mv-scatter', (el) => {
   el.replaceChildren();
-  const rows = (rowsOf('rosters') || []).filter((r) => r.market_rating != null && r.perf_rating != null);
+  const rows = (rowsOf('rosters') || []).filter((r) => r.expected_rating != null && r.perf_rating != null);
   if (!rows.length) return;
   const W = Math.max(260, el.clientWidth), H = Math.min(360, Math.max(260, W * 0.75)), m = 14, mb = 34;
-  const all = rows.flatMap((r) => [r.market_rating, r.perf_rating]);
+  const all = rows.flatMap((r) => [r.expected_rating, r.perf_rating]);
   const lo = Math.floor(d3.min(all) / 5) * 5 - 2, hi = Math.ceil(d3.max(all) / 5) * 5 + 2;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Market rating against the median published rating by program');
+    .attr('role', 'img').attr('aria-label', 'Projected rating against the median published rating by program');
   const ticks = d3.ticks(lo, hi, W < 420 ? 4 : 6);
   const ml = measure(svg, ticks.map(String)) + 10;
   const x = d3.scaleLinear([lo, hi], [ml, W - m]), y = d3.scaleLinear([lo, hi], [H - mb, m]);
@@ -358,23 +355,23 @@ dash.draw('mv-scatter', (el) => {
   svg.append('g').attr('class', 'pb-axis').selectAll('text').data(ticks).join('text')
     .attr('x', (d) => x(d)).attr('y', H - 16).attr('text-anchor', 'middle').text(String);
   svg.append('text').attr('class', 'pb-lab').attr('x', W - m).attr('y', H - 2).attr('text-anchor', 'end').text('how it has played');
-  svg.append('text').attr('class', 'pb-lab').attr('x', ml + 4).attr('y', m + 10).text('what the market expects');
+  svg.append('text').attr('class', 'pb-lab').attr('x', ml + 4).attr('y', m + 10).text('how it was projected');
   svg.append('line').attr('class', 'pb-ref').attr('x1', x(lo)).attr('y1', y(lo)).attr('x2', x(hi)).attr('y2', y(hi));
-  const gap = (r) => r.market_rating - r.perf_rating;
+  const gap = (r) => r.expected_rating - r.perf_rating;
   const color = (r) => (gap(r) >= 0 ? dash.colors[3] : dash.colors[0]);
   const sorted = [...rows].sort((a, b) => gap(b) - gap(a));
-  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.perf_rating)).attr('cy', (r) => y(r.market_rating))
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.perf_rating)).attr('cy', (r) => y(r.expected_rating))
     .attr('r', 5).attr('fill', color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
-  scatterLabels(svg, [...sorted.slice(0, 3), ...sorted.slice(-2).reverse()], (r) => x(r.perf_rating), (r) => y(r.market_rating), (r) => r.team, W);
+  scatterLabels(svg, [...sorted.slice(0, 3), ...sorted.slice(-2).reverse()], (r) => x(r.perf_rating), (r) => y(r.expected_rating), (r) => r.team, W);
   const t = tip(el);
-  const pts = rows.map((r) => [x(r.perf_rating), y(r.market_rating), r]);
+  const pts = rows.map((r) => [x(r.perf_rating), y(r.expected_rating), r]);
   const finder = d3.Delaunay.from(pts, (d) => d[0], (d) => d[1]);
   svg.append('rect').attr('x', ml).attr('y', m).attr('width', W - m - ml).attr('height', H - mb - m).attr('fill', 'transparent')
     .on('pointermove', (ev) => {
       const [mx, my] = d3.pointer(ev);
       const [px, py, r] = pts[finder.find(mx, my)];
       if (Math.hypot(px - mx, py - my) > 28) { t.hidden = true; return; }
-      tipLines(t, `${r.team} · ${r.conference}`, [[color(r), `Market ${r.market_rating.toFixed(1)}, played ${r.perf_rating.toFixed(1)} (${fmtPts(gap(r))})`]]);
+      tipLines(t, `${r.team} · ${r.conference}`, [[color(r), `Projected ${r.expected_rating.toFixed(1)}, played ${r.perf_rating.toFixed(1)} (${fmtPts(gap(r))})`]]);
       place(el, t, px, py);
     })
     .on('pointerleave', () => { t.hidden = true; });
@@ -382,17 +379,17 @@ dash.draw('mv-scatter', (el) => {
 
 dash.draw('mv-gaps', (el) => {
   el.replaceChildren();
-  const rows = (rowsOf('rosters') || []).filter((r) => r.market_surplus != null);
+  const rows = (rowsOf('rosters') || []).filter((r) => r.expected_surplus != null);
   if (!rows.length) return;
-  const d = (r) => r.market_surplus - r.surplus;
+  const d = (r) => r.expected_surplus - r.surplus;
   const sorted = [...rows].sort((a, b) => d(b) - d(a));
   const pick2 = [...sorted.slice(0, 6), ...sorted.slice(-6)];
   const W = Math.max(260, el.clientWidth), rowH = 22, mt = 6, mb = 26;
   const H = mt + pick2.length * rowH + mb + 10;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Surplus from the market view against the published ratings');
+    .attr('role', 'img').attr('aria-label', 'Surplus from projected ratings against the published ratings');
   const ml = measure(svg, pick2.map((r) => r.team)) + 12, mr = 12;
-  const vals = pick2.flatMap((r) => [r.market_surplus, r.surplus]);
+  const vals = pick2.flatMap((r) => [r.expected_surplus, r.surplus]);
   const ext = d3.max(vals, Math.abs) * 1.08;
   const x = d3.scaleLinear([-ext, ext], [ml, W - mr]);
   const yOf = (i) => mt + i * rowH + (i >= 6 ? 10 : 0) + rowH / 2;
@@ -406,15 +403,15 @@ dash.draw('mv-gaps', (el) => {
   pick2.forEach((r, i) => {
     const cy = yOf(i);
     svg.append('text').attr('class', 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em').attr('text-anchor', 'end').text(r.team);
-    svg.append('line').attr('x1', x(r.surplus)).attr('x2', x(r.market_surplus)).attr('y1', cy).attr('y2', cy)
+    svg.append('line').attr('x1', x(r.surplus)).attr('x2', x(r.expected_surplus)).attr('y1', cy).attr('y2', cy)
       .attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2);
     svg.append('circle').attr('cx', x(r.surplus)).attr('cy', cy).attr('r', 4.5).attr('fill', dash.colors[0]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
-    svg.append('circle').attr('cx', x(r.market_surplus)).attr('cy', cy).attr('r', 4.5).attr('fill', dash.colors[3]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    svg.append('circle').attr('cx', x(r.expected_surplus)).attr('cy', cy).attr('r', 4.5).attr('fill', dash.colors[3]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
     svg.append('rect').attr('x', 0).attr('y', cy - rowH / 2).attr('width', W).attr('height', rowH).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
-        tipLines(t, `${r.team} · ${r.conference}`, [[dash.colors[3], `Market view ${fmtSigned(r.market_surplus)}`],
+        tipLines(t, `${r.team} · ${r.conference}`, [[dash.colors[3], `Projected ${fmtSigned(r.expected_surplus)}`],
           [dash.colors[0], `Published ratings ${fmtSigned(r.surplus)}`]]);
-        place(el, t, x(r.market_surplus), d3.pointer(ev)[1]);
+        place(el, t, x(r.expected_surplus), d3.pointer(ev)[1]);
       })
       .on('pointerleave', () => { t.hidden = true; });
   });
@@ -422,63 +419,42 @@ dash.draw('mv-gaps', (el) => {
 
 // ---- the season so far
 dash.calc('season_weeks', {
-  inputs: ['season_games', 'season_signals'],
-  title: 'The model week by week',
-  description: "Per week: games priced, the average miss of the model's margin and of the market's line against final scores, how often the model picked the winner, and the signals' record and units.",
-  fn: (season_games, season_signals) => {
-    const weeks = [...new Set(season_games.map((g) => g.week))].sort((a, b) => a - b);
-    let cum = 0;
-    return weeks.map((w) => {
-      const g = season_games.filter((x) => x.week === w && x.final != null);
-      const withLine = g.filter((x) => x.line != null);
-      const decided = g.filter((x) => x.final !== 0 && x.model !== 0);
-      const s = season_signals.filter((x) => x.week === w && x.result);
-      const wins = s.filter((x) => x.result === 'win').length, losses = s.filter((x) => x.result === 'loss').length;
-      const pushes = s.filter((x) => x.result === 'push').length;
-      const units = s.reduce((a, x) => a + (x.units || 0), 0);
-      cum += units;
-      return { week: w, games: g.length,
-        model_miss: g.length ? g.reduce((a, x) => a + Math.abs(x.final - x.model), 0) / g.length : null,
-        market_miss: withLine.length ? withLine.reduce((a, x) => a + Math.abs(x.final + x.line), 0) / withLine.length : null,
-        winners: decided.length ? decided.filter((x) => Math.sign(x.final) === Math.sign(x.model)).length / decided.length : null,
-        record: s.length ? `${wins}–${losses}${pushes ? '–' + pushes : ''}` : 'none', units, cumulative: cum, live: w >= 7 };
-    });
-  },
+  inputs: ['season_games'],
+  title: 'Projections week by week',
+  description: 'Per week: games played, how often the team projected to win did win, and the average miss on the final margin.',
+  fn: (season_games) => [...new Set(season_games.map((g) => g.week))].sort((a, b) => a - b).map((w) => {
+    const g = season_games.filter((x) => x.week === w && x.final != null);
+    const decided = g.filter((x) => x.final !== 0 && x.projected !== 0);
+    return { week: w, games: g.length,
+      winners: decided.length ? decided.filter((x) => Math.sign(x.final) === Math.sign(x.projected)).length / decided.length : null,
+      miss: g.length ? g.reduce((a, x) => a + Math.abs(x.final - x.projected), 0) / g.length : null };
+  }),
 });
-dash.draw('mv-units', (el) => {
+dash.draw('mv-weeks-chart', (el) => {
   el.replaceChildren();
-  const rows = rowsOf('season_weeks');
-  if (!rows || !rows.length) return;
-  const W = Math.max(260, el.clientWidth), H = 190, mt = 18, mb = 26;
+  const rows = (rowsOf('season_weeks') || []).filter((r) => r.winners != null);
+  if (!rows.length) return;
+  const W = Math.max(260, el.clientWidth), H = 180, mt = 18, mb = 26;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Signal units by week and cumulative');
-  const ext = d3.extent([0, ...rows.map((r) => r.units), ...rows.map((r) => r.cumulative)]);
-  const y = d3.scaleLinear([Math.floor(ext[0]) - 1, Math.ceil(ext[1]) + 1], [H - mb, mt]);
-  const yt = y.ticks(4);
-  const ml = measure(svg, yt.map((v) => (v > 0 ? '+' : '') + v)) + 10;
+    .attr('role', 'img').attr('aria-label', 'Share of games the projected winner won, by week');
+  const y = d3.scaleLinear([0, 1], [H - mb, mt]);
+  const yt = [0, 0.25, 0.5, 0.75, 1];
+  const ml = measure(svg, ['100%']) + 10;
   const x = d3.scaleBand(rows.map((r) => r.week), [ml, W - 8]).padding(0.35);
   svg.append('g').selectAll('line').data(yt).join('line').attr('class', 'pb-gridline').attr('x1', ml).attr('x2', W - 8).attr('y1', (v) => y(v)).attr('y2', (v) => y(v));
   svg.append('g').attr('class', 'pb-axis').selectAll('text').data(yt).join('text').attr('x', ml - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
-    .attr('text-anchor', 'end').text((v) => (v > 0 ? '+' : '') + v);
-  svg.append('line').attr('class', 'pb-axisline').attr('x1', ml).attr('x2', W - 8).attr('y1', y(0)).attr('y2', y(0));
+    .attr('text-anchor', 'end').text(d3.format('.0%'));
   svg.append('g').attr('class', 'pb-axis').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.week) + x.bandwidth() / 2).attr('y', H - 8)
     .attr('text-anchor', 'middle').text((r) => 'Wk ' + r.week);
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.week)).attr('width', x.bandwidth())
-    .attr('y', (r) => Math.min(y(0), y(r.units))).attr('height', (r) => Math.max(1, Math.abs(y(r.units) - y(0)))).attr('rx', 3)
-    .attr('fill', (r) => (r.units >= 0 ? dash.colors[0] : dash.colors[1])).attr('opacity', (r) => (r.live ? 1 : 0.55));
-  const line = d3.line().x((r) => x(r.week) + x.bandwidth() / 2).y((r) => y(r.cumulative));
-  svg.append('path').attr('d', line(rows)).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5);
-  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.week) + x.bandwidth() / 2).attr('cy', (r) => y(r.cumulative))
-    .attr('r', 3).attr('fill', 'var(--color-fg)');
-  const last = rows[rows.length - 1];
-  svg.append('text').attr('class', 'pb-lab-strong').attr('x', x(last.week) + x.bandwidth() / 2).attr('y', y(last.cumulative) - 8)
-    .attr('text-anchor', 'end').text(`${last.cumulative >= 0 ? '+' : ''}${last.cumulative.toFixed(1)} units`);
+    .attr('y', (r) => y(r.winners)).attr('height', (r) => y(0) - y(r.winners)).attr('rx', 3).attr('fill', dash.colors[0]);
+  svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'pb-lab-strong').attr('x', (r) => x(r.week) + x.bandwidth() / 2)
+    .attr('y', (r) => y(r.winners) - 5).attr('text-anchor', 'middle').text((r) => d3.format('.0%')(r.winners));
   const t = tip(el);
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.week) - 4).attr('width', x.bandwidth() + 8).attr('y', mt)
     .attr('height', H - mb - mt).attr('fill', 'transparent')
     .on('pointermove', (ev, r) => {
-      tipLines(t, `Week ${r.week} · ${r.live ? 'live' : 'backtest'}`, [[null, `Signals ${r.record}, ${r.units >= 0 ? '+' : ''}${r.units.toFixed(2)} units`],
-        [null, `Season ${r.cumulative >= 0 ? '+' : ''}${r.cumulative.toFixed(2)} units`]]);
+      tipLines(t, `Week ${r.week}`, [[null, `${r.games} games, projected winner won ${d3.format('.0%')(r.winners)}`], [null, `Average miss ${r.miss.toFixed(1)} points`]]);
       place(el, t, x(r.week) + x.bandwidth() / 2, d3.pointer(ev)[1]);
     })
     .on('pointerleave', () => { t.hidden = true; });
@@ -490,22 +466,10 @@ dash.draw('mv-week-rows', (tb) => {
   for (const r of rows) {
     const tr = document.createElement('tr');
     tr.dataset.key = String(r.week);
-    [`${r.week}${r.live ? ' · live' : ''}`, String(r.games), r.model_miss == null ? '' : r.model_miss.toFixed(1) + ' pts',
-      r.market_miss == null ? '' : r.market_miss.toFixed(1) + ' pts', r.winners == null ? '' : d3.format('.0%')(r.winners), r.record,
-      (r.units >= 0 ? '+' : '') + r.units.toFixed(2)].forEach((c, i) => {
-      const td = document.createElement('td'); if (i >= 1 && i !== 5) td.className = 'num'; td.textContent = c; tr.append(td);
-    });
+    [String(r.week), String(r.games), r.winners == null ? '' : d3.format('.0%')(r.winners), r.miss == null ? '' : r.miss.toFixed(1) + ' pts']
+      .forEach((c, i) => { const td = document.createElement('td'); if (i >= 1) td.className = 'num'; td.textContent = c; tr.append(td); });
     tb.append(tr);
   }
-});
-dash.draw('mv-graded-note', (el) => {
-  const s = rowsOf('season_signals');
-  if (!s) { el.textContent = '—'; return; }
-  const here = s.filter((x) => x.graded && x.graded.startsWith('here'));
-  const weeks = [...new Set(here.map((x) => x.week))].join(', ');
-  el.textContent = here.length
-    ? `${here.length} signals from week ${weeks} had no result in the weekly files yet; they are graded here from final scores with the same rules.`
-    : 'Every signal is graded in the weekly files.';
 });
 
 // ---- one team's season
@@ -513,7 +477,7 @@ const teamGames = (team) => (rowsOf('season_games') || []).filter((g) => g.home 
   .map((g) => {
     const home = g.home === team, s = home ? 1 : -1;
     return { id: g.id, week: g.week, opp: home ? g.away : g.home, site: g.neutral ? 'neutral' : home ? 'home' : 'away',
-      line: g.line == null ? null : g.line * s, model: g.model * s, final: g.final == null ? null : g.final * s };
+      projected: g.projected * s, final: g.final == null ? null : g.final * s };
   }).sort((a, b) => a.week - b.week);
 const teamOf = () => dash.params().team || 'LSU';
 dash.draw('mv-team-select', (sel) => {
@@ -531,8 +495,8 @@ dash.draw('mv-team-chart', (el) => {
   if (!rows.length) return;
   const W = Math.max(260, el.clientWidth), H = 200, mt = 10, mb = 26;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
-    .attr('role', 'img').attr('aria-label', 'Final margin against the model and the market line, by game');
-  const vals = rows.flatMap((r) => [r.final, r.model, r.line == null ? 0 : -r.line]);
+    .attr('role', 'img').attr('aria-label', 'Final margin against the projected margin, by game');
+  const vals = rows.flatMap((r) => [r.final, r.projected]);
   const ext = Math.max(10, d3.max(vals, Math.abs)) * 1.1;
   const y = d3.scaleLinear([-ext, ext], [H - mb, mt]);
   const yt = y.ticks(5);
@@ -546,18 +510,17 @@ dash.draw('mv-team-chart', (el) => {
     .attr('text-anchor', 'middle').text((r) => 'Wk ' + r.week);
   const cx = (r) => x(r.id) + x.bandwidth() / 2;
   for (const r of rows) {
-    if (r.line != null) svg.append('line').attr('class', 'pb-ref').attr('x1', x(r.id)).attr('x2', x(r.id) + x.bandwidth()).attr('y1', y(-r.line)).attr('y2', y(-r.line));
-    svg.append('line').attr('x1', cx(r)).attr('x2', cx(r)).attr('y1', y(r.model)).attr('y2', y(r.final)).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 1.5);
-    svg.append('circle').attr('cx', cx(r)).attr('cy', y(r.model)).attr('r', 4).attr('fill', dash.colors[3]);
+    svg.append('line').attr('x1', cx(r)).attr('x2', cx(r)).attr('y1', y(r.projected)).attr('y2', y(r.final)).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 1.5);
+    svg.append('circle').attr('cx', cx(r)).attr('cy', y(r.projected)).attr('r', 4).attr('fill', dash.colors[3]);
     svg.append('circle').attr('cx', cx(r)).attr('cy', y(r.final)).attr('r', 5).attr('fill', dash.colors[0]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
   }
   const t = tip(el);
   svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.id) - 4).attr('width', x.bandwidth() + 8).attr('y', mt)
     .attr('height', H - mb - mt).attr('fill', 'transparent')
     .on('pointermove', (ev, r) => {
-      tipLines(t, `Week ${r.week} · ${r.site === 'away' ? 'at ' : r.site === 'neutral' ? 'vs ' : 'vs '}${r.opp}`, [
-        [dash.colors[0], `Final ${fmtPts(r.final)}`], [dash.colors[3], `Model ${fmtPts(r.model)}`],
-        [null, r.line == null ? 'No line' : `Line ${fmtPts(r.line)} (expects ${fmtPts(-r.line)})`]]);
+      tipLines(t, `Week ${r.week} · ${r.site === 'away' ? 'at ' : 'vs '}${r.opp}`, [
+        [dash.colors[0], `Final ${fmtPts(r.final)}`], [dash.colors[3], `Projected ${fmtPts(r.projected)}`],
+        [null, `Beat projection by ${fmtPts(r.final - r.projected)}`]]);
       place(el, t, cx(r), d3.pointer(ev)[1]);
     })
     .on('pointerleave', () => { t.hidden = true; });
@@ -567,9 +530,8 @@ dash.draw('mv-team-rows', (tb) => {
   for (const r of teamGames(teamOf())) {
     const tr = document.createElement('tr');
     tr.dataset.key = r.id;
-    const vs = r.final == null || r.line == null ? '' : fmtPts(r.final + r.line);
     [String(r.week), (r.site === 'away' ? 'at ' : 'vs ') + r.opp + (r.site === 'neutral' ? ' (neutral)' : ''),
-      r.line == null ? '' : (r.line > 0 ? '+' : r.line < 0 ? '−' : '') + Math.abs(r.line), fmtPts(r.model), r.final == null ? '' : fmtPts(r.final), vs]
+      fmtPts(r.projected), r.final == null ? '' : fmtPts(r.final), r.final == null ? '' : fmtPts(r.final - r.projected)]
       .forEach((c, i) => { const td = document.createElement('td'); if (i >= 2) td.className = 'num'; td.textContent = c; tr.append(td); });
     tb.append(tr);
   }

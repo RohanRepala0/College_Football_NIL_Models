@@ -41,8 +41,10 @@ The two reports are never compared or combined.
 
 - [Football Roster Market](https://claude.ai/artifact/9v4QgdKc6xqCNpqV6FuWuB), for NIL analysts and roster managers: an
   overview of the A4 football market, an offer check, pay by position, each A4 roster's market value against its
-  on-field value under SP+, ESPN FPI, SRS and Elo (median and range; `nil ratings`), and the betting market's view from
-  CollegeFootballRatings2026 with a week-by-week walk through the season.
+  on-field value under SP+, ESPN FPI, SRS and Elo (median and range; `nil ratings`), and expectations: SP+ and
+  BCF Toys FEI pre-game projections (from CollegeFootballRatings2026's weekly files) against results, with a
+  week-by-week walk through the season. The page has no betting content (no lines, picks or units), so it suits
+  athletic department staff.
   `python dashboard/build_html.py OUT.html football.html`
 - [College Athlete Pay Benchmarks](https://claude.ai/artifact/HddyzuWahnocHREU1FsbXD), every sport: findings, an offer
   check, football and basketball markets, every published cohort, and the method. `python dashboard/build_html.py OUT.html`

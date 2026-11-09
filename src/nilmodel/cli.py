@@ -186,8 +186,8 @@ def ratings_cmd(season: int = typer.Option(2026), fresh: bool = typer.Option(Fal
     result = rt.run(con, weeks_dir if weeks_dir.exists() else None, season)
     out = config.DATA_DIR / "players" / f"surplus_by_rating_{season}.csv"
     s = result["surplus"]
-    money = [c for c in s.columns if c not in ("conference", "agree", "perf_rating", "market_rating")]
-    s.assign(team=s.index).round({**{c: 0 for c in money}, "perf_rating": 2, "market_rating": 2}).to_csv(out, index=False)
+    money = [c for c in s.columns if c not in ("conference", "agree", "perf_rating", "expected_rating")]
+    s.assign(team=s.index).round({**{c: 0 for c in money}, "perf_rating": 2, "expected_rating": 2}).to_csv(out, index=False)
     typer.echo(f"wrote {out}\nwrote {ratings_report(season, result)}")
 
 
