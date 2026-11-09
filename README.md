@@ -20,7 +20,7 @@ nil_go         men's Football Linebacker · A4  athletes with a deal  391  $40,0
 
 ```mermaid
 flowchart LR
-    CSC["CSC report pages<br/>NIL Go · revenue share"] -->|daily, GitHub Actions| CAP["capture<br/>decode · hash · archive"]
+    CSC["CSC report pages<br/>NIL Go · revenue share · NIL Data Reports"] -->|daily, GitHub Actions| CAP["capture<br/>decode · hash · archive"]
     CAP --> REL[("data/csc/releases/<br/>every version, committed")]
     REL --> DB[("DuckDB<br/>csc_percentiles · benchmark_curves")]
     DB --> OUT["percentiles.csv · curves.csv<br/>release report · nil CLI"]

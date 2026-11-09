@@ -79,6 +79,16 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                                         ORDER BY report, first_seen_at""").fetchall()]
     out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases,
            "totals": totals(df)}
+    from .nil_data import PERIODS_CSV
+
+    if PERIODS_CSV.exists():        # NIL Go deal flow, all sports, from the newest NIL Data Report
+        p = pd.read_csv(PERIODS_CSV, parse_dates=["period_start", "period_end"])
+        out["nil_flow"] = [{"id": r.period_start.strftime("%Y-%m-%d"), "period": r.period, "start": r.period_start.strftime("%Y-%m-%d"),
+                            "end": r.period_end.strftime("%Y-%m-%d"), "months": round(((r.period_end - r.period_start).days + 1) / 30.44, 2),
+                            **{k: _clean(getattr(r, k)) for k in ("cleared_deals", "cleared_value", "not_cleared_deals", "not_cleared_value",
+                                                                  "associated_deals", "associated_value", "non_associated_deals",
+                                                                  "non_associated_value")},
+                            "as_of": r.as_of, "source_url": r.source_url} for r in p.itertuples(index=False)]
     players_dir = config.DATA_DIR / "players"
     unit = sorted(players_dir.glob("surplus_[0-9][0-9][0-9][0-9].csv"))
     by_rating = sorted(players_dir.glob("surplus_by_rating_[0-9][0-9][0-9][0-9].csv"))

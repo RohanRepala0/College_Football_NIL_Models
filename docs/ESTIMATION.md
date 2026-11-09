@@ -68,8 +68,11 @@ flowchart LR
   every sport**, with no model.
 - The fitted lognormal tail would put football at 97% of the cap, and NIL Go football above every sport's
   cleared value through August. Calibrated to the cap (football at 75% of it) and to NIL Go's totals
-  (football at 55%), the upper tails are **x0.20 and x0.48** of the fitted slope. The A4 QB 99th percentile
-  moves from $9.4M to $2.3M in revenue share, and from $13.6M to $3.5M in NIL. The benchmark, the offer check
+  (football at 55%), the upper tails are **x0.20 and x0.44** of the fitted slope. The A4 QB 99th percentile
+  moves from $9.4M to $2.3M in revenue share, and from $13.6M to $3.2M in NIL. NIL Go's all-sports total for
+  Jan 1 to Sep 30 comes from the captured NIL Data Reports ($550.01M; September is its share of the September-October
+  report's days); before that report it was an assumed September, which gave x0.48 and $3.5M
+  ([`reports/triangulation_2026-11-09.md`](../reports/triangulation_2026-11-09.md)). The benchmark, the offer check
   and the dashboard now answer with these tails for A4 football revenue share and all football NIL.
 
 **Simulation** ([`reports/simulation_2026-10-30.md`](../reports/simulation_2026-10-30.md)), 3 markets per

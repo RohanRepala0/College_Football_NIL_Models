@@ -175,6 +175,16 @@
         <button class="pb-go" data-go="basketball">Basketball</button>
       </article>
     </div>
+    <article class="pb-card" id="nil-flow">
+      <h2>NIL Go deals cleared, all sports</h2>
+      <p>Value cleared through NIL Go per month in each reporting period, split into deals with Associated entities (collectives and other school-connected payors) and Non-Associated ones. From the CSC's NIL Data Reports, current as of <b data-draw="flow-asof" data-source="nil_flow" data-field="as_of" data-row="0">—</b>.</p>
+      <div class="pb-legend">
+        <span><i class="pb-sw" data-color="0"></i>Associated</span>
+        <span><i class="pb-sw" data-color="2"></i>Non-Associated</span>
+      </div>
+      <div class="pb-chart" data-draw="flow-chart" data-source="nil_flow"></div>
+      <p>Since launch, <b data-draw="flow-value" data-source="flow_totals" data-field="cleared_value" data-row="0">—</b> cleared across <b data-draw="flow-deals" data-source="flow_totals" data-field="cleared_deals" data-row="0">—</b> deals, <b data-draw="flow-assoc" data-source="flow_totals" data-field="associated_share" data-row="0">—</b> of the value with Associated entities. Another <b data-draw="flow-not" data-source="flow_totals" data-field="not_cleared_value" data-row="0">—</b> in <b data-draw="flow-not-n" data-source="flow_totals" data-field="not_cleared_deals" data-row="0">—</b> deals was not cleared. The CSC notes that some Non-Associated deals likely belong in the Associated column.</p>
+    </article>
     <article class="pb-card" id="tiers-table">
       <h2>Every flat payment tier</h2>
       <p>Runs of equal published percentiles above $0, across every cohort. Wherever an amount lands on one, the offer check answers with a range.</p>
@@ -353,6 +363,8 @@
         </ol>
         <h3>What NIL Go leaves out</h3>
         <p>Athletes report third-party deals worth <b data-draw="rule-min">—</b> or more to NIL Go, so smaller deals are not in its tables. The CSC has also raised the size of deal that skips its check on whether pay is in a reasonable range, reported in the trade press at up to <b data-draw="rule-review">—</b> unless an athlete passes <b data-draw="rule-season">—</b> in deals in an academic year. Flat tiers such as <b data-draw="rule-tier" data-source="tier_summary" data-field="value" data-where="key=nil_p10">—</b> at the 10th percentile may be standard payments of that kind.</p>
+        <h3>NIL Go totals in the tail calibration</h3>
+        <p>The A4 football NIL tail past the 90th is held to a share of all sports' cleared value from January 1 to September 30, 2026: <b data-draw="flow-window" data-source="nil_flow">—</b> from the NIL Data Reports, counting September as its share of the September–October period's days.</p>
         <h3>Releases on file</h3>
         <p>A release is one distinct version of a report. A daily job checks both pages and keeps every new version.</p>
         <div class="pb-scroll">
@@ -1168,6 +1180,77 @@ dash.draw('tier-rows', (tb) => {
       .forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 6) td.className = 'num'; tr.append(td); });
     tb.append(tr);
   }
+});
+
+// ---- NIL Go deal flow (NIL Data Reports)
+dash.calc('flow_totals', {
+  inputs: ['nil_flow'],
+  title: 'NIL Go totals since launch',
+  description: 'Deals and value cleared and not cleared since NIL Go launched, and the Associated share of cleared value.',
+  fn: (nil_flow) => {
+    const sum = (k) => nil_flow.reduce((a, r) => a + Number(r[k] || 0), 0);
+    const v = sum('cleared_value');
+    return [{ cleared_value: v, cleared_deals: sum('cleared_deals'), not_cleared_value: sum('not_cleared_value'),
+      not_cleared_deals: sum('not_cleared_deals'), associated_share: v ? sum('associated_value') / v : null }];
+  },
+});
+fill('flow-asof', () => { const r = (rowsOf('nil_flow') || [])[0]; return r && r.as_of ? d3.utcFormat('%B %-d, %Y')(new Date(r.as_of + 'T00:00:00Z')) : null; });
+fill('flow-value', () => { const r = pick('flow_totals'); return r && fmtM(r.cleared_value); });
+fill('flow-deals', () => { const r = pick('flow_totals'); return r && d3.format(',')(r.cleared_deals); });
+fill('flow-assoc', () => { const r = pick('flow_totals'); return r && r.associated_share != null ? pct0(r.associated_share) : null; });
+fill('flow-not', () => { const r = pick('flow_totals'); return r && fmtM(r.not_cleared_value); });
+fill('flow-not-n', () => { const r = pick('flow_totals'); return r && d3.format(',')(r.not_cleared_deals); });
+fill('flow-window', () => {
+  const rows = rowsOf('nil_flow');
+  if (!rows) return null;
+  const a = new Date('2026-01-01T00:00:00Z'), b = new Date('2026-09-30T00:00:00Z'), day = 864e5;
+  const v = rows.reduce((t, r) => {
+    const s = new Date(r.start + 'T00:00:00Z'), e = new Date(r.end + 'T00:00:00Z');
+    const lo = Math.max(s, a), hi = Math.min(e, b);
+    return hi < lo ? t : t + r.cleared_value * ((hi - lo) / day + 1) / ((e - s) / day + 1);
+  }, 0);
+  return fmtM(v);
+});
+dash.draw('flow-chart', (el) => {
+  el.replaceChildren();
+  const rows = rowsOf('nil_flow');
+  if (!rows || !rows.length) return;
+  const W = Math.max(260, el.clientWidth), H = 220, mt = 18, mb = 40;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'NIL Go value cleared per month by reporting period, Associated and Non-Associated');
+  const per = (r, k) => (r[k] || 0) / r.months;
+  const max = d3.max(rows, (r) => per(r, 'associated_value') + per(r, 'non_associated_value'));
+  const y = d3.scaleLinear([0, max * 1.12], [H - mb, mt]);
+  const yt = y.ticks(4);
+  const ml = measure(svg, yt.map(fmtM)) + 10;
+  const x = d3.scaleBand(rows.map((r) => r.id), [ml, W - 8]).padding(0.3);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('class', 'pb-gridline').attr('x1', ml).attr('x2', W - 8).attr('y1', (v) => y(v)).attr('y2', (v) => y(v));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(yt).join('text').attr('x', ml - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
+    .attr('text-anchor', 'end').text(fmtM);
+  const short = (r) => { const s = new Date(r.start + 'T00:00:00Z'), e = new Date(r.end + 'T00:00:00Z'), f = d3.utcFormat('%b');
+    return r.start <= '2025-06-30' ? 'Launch–' + f(e) : f(s) + '–' + f(e); };
+  const yr = (r) => d3.utcFormat('%Y')(new Date(r.end + 'T00:00:00Z'));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.id) + x.bandwidth() / 2).attr('y', H - 22)
+    .attr('text-anchor', 'middle').text(short);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.id) + x.bandwidth() / 2).attr('y', H - 8)
+    .attr('text-anchor', 'middle').text(yr);
+  for (const r of rows) {
+    const a = per(r, 'associated_value'), n = per(r, 'non_associated_value');
+    svg.append('rect').attr('x', x(r.id)).attr('width', x.bandwidth()).attr('y', y(a)).attr('height', y(0) - y(a)).attr('fill', dash.colors[0]);
+    svg.append('rect').attr('x', x(r.id)).attr('width', x.bandwidth()).attr('y', y(a + n)).attr('height', y(a) - y(a + n)).attr('rx', 3).attr('fill', dash.colors[2]);
+    svg.append('text').attr('class', 'pb-lab-strong').attr('x', x(r.id) + x.bandwidth() / 2).attr('y', y(a + n) - 5).attr('text-anchor', 'middle').text(fmtM(a + n));
+  }
+  const t = tip(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.id) - 4).attr('width', x.bandwidth() + 8).attr('y', mt)
+    .attr('height', H - mb - mt).attr('fill', 'transparent')
+    .on('pointermove', (ev, r) => {
+      tipLines(t, r.period, [[null, `Cleared ${fmtM(r.cleared_value)} in ${d3.format(',')(r.cleared_deals)} deals (${fmtM(r.cleared_value / r.months)} a month)`],
+        [dash.colors[0], `Associated ${fmtM(r.associated_value)} (${d3.format(',')(r.associated_deals)} deals)`],
+        [dash.colors[2], `Non-Associated ${fmtM(r.non_associated_value)} (${d3.format(',')(r.non_associated_deals)} deals)`],
+        [null, `Not cleared ${fmtM(r.not_cleared_value)} (${d3.format(',')(r.not_cleared_deals)} deals)`]]);
+      place(el, t, x(r.id) + x.bandwidth() / 2, d3.pointer(ev)[1]);
+    })
+    .on('pointerleave', () => { t.hidden = true; });
 });
 
 // ---- basketball

@@ -12,6 +12,8 @@ Each report is totalled on its own; revenue share and NIL Go are never added tog
 from __future__ import annotations
 
 import math
+from datetime import date
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -30,26 +32,57 @@ CAP_CALENDAR_2026 = (CAP_2025_26 + CAP_2026_27) / 2
 TAIL_SCENARIOS = {"light": 0.5, "fitted": 1.0, "heavy": 1.5}   # multipliers on the upper tail's slope
 
 # Outside totals that each report's football total must respect. Each is (central, low, high), and every
-# assumption is named in `CONSTRAINT_NOTES`, which the report prints beside the results.
+# assumption is named in `constraint_notes()`, which the report prints beside the results.
 #
 # Revenue share: all 68 A4 programs pay football out of one cap that covers every sport. Football's share
 # of it is an assumption (reported expectations cluster near 75%).
 FOOTBALL_CAP_SHARE = (0.75, 0.60, 0.90)
-# NIL Go: football deal holders can't have more cleared value than all sports together. Cleared value,
-# all sports, from the CSC's NIL Data Reports: Jan-Feb $39.29M, Mar-Apr $75.85M, May-Jun $112.89M,
-# Jul-Aug $227.25M. September 2026 is not published yet; it is assumed to match July and August's pace.
-NIL_ALL_SPORTS_JAN_AUG_2026 = 39.29e6 + 75.85e6 + 112.89e6 + 227.25e6
-NIL_ALL_SPORTS_SEP_2026 = 227.25e6 / 2
+# NIL Go: football deal holders can't have more cleared value than all sports together, over football's NIL Go
+# window (Jan 1 to Sep 30, 2026). All-sports cleared value comes from the CSC's NIL Data Reports as captured in
+# data/csc/nil_data_periods.csv (`nil_data`); a period that straddles the window counts in proportion to its days.
+# Without the capture, the totals published through August plus an assumed September are used.
+NIL_GO_WINDOW = (date(2026, 1, 1), date(2026, 9, 30))
+NIL_ALL_SPORTS_JAN_AUG_2026 = 39.29e6 + 75.85e6 + 112.89e6 + 227.25e6     # fallback only
+NIL_ALL_SPORTS_SEP_2026 = 227.25e6 / 2                                   # fallback only
 NIL_FOOTBALL_SHARE = (0.55, 0.40, 0.75)
-CONSTRAINT_NOTES = [
-    "Revenue share: A4 football spending per program = football's share of the calendar-2026 cap "
-    f"(${CAP_CALENDAR_2026 / 1e6:.2f}M, the average of the 2025-26 and 2026-27 caps). Football's share is assumed "
-    f"to be {FOOTBALL_CAP_SHARE[0]:.0%}, tested from {FOOTBALL_CAP_SHARE[1]:.0%} to {FOOTBALL_CAP_SHARE[2]:.0%}.",
-    "NIL Go: football's cleared value, Jan 1 to Sep 30, 2026, is a share of all sports' cleared value. January to "
-    f"August is published (${NIL_ALL_SPORTS_JAN_AUG_2026 / 1e6:.2f}M); September is assumed to match the July-August "
-    f"pace (${NIL_ALL_SPORTS_SEP_2026 / 1e6:.1f}M). Football's share is assumed to be {NIL_FOOTBALL_SHARE[0]:.0%}, "
-    f"tested from {NIL_FOOTBALL_SHARE[1]:.0%} to {NIL_FOOTBALL_SHARE[2]:.0%}.",
-]
+
+
+def nil_go_cleared(start: date = NIL_GO_WINDOW[0], end: date = NIL_GO_WINDOW[1],
+                   path: Path | None = None) -> tuple[float, str]:
+    """(all-sports NIL Go value cleared from `start` to `end`, how it was worked out)."""
+    from .nil_data import PERIODS_CSV
+
+    path = path or PERIODS_CSV
+    if not path.exists():
+        return NIL_ALL_SPORTS_JAN_AUG_2026 + NIL_ALL_SPORTS_SEP_2026, (
+            f"January to August as published (${NIL_ALL_SPORTS_JAN_AUG_2026 / 1e6:.2f}M), September assumed at the "
+            f"July-August pace (${NIL_ALL_SPORTS_SEP_2026 / 1e6:.1f}M)")
+    p = pd.read_csv(path, parse_dates=["period_start", "period_end"])
+    total, partial = 0.0, []
+    for r in p.itertuples(index=False):
+        a, b = max(r.period_start.date(), start), min(r.period_end.date(), end)
+        if a > b:
+            continue
+        days, used = (r.period_end - r.period_start).days + 1, (b - a).days + 1
+        total += r.cleared_value * used / days
+        if used < days:
+            partial.append(f"{used} of the {days} days of {r.period} (${r.cleared_value * used / days / 1e6:.1f}M)")
+    as_of = p.as_of.iloc[0] if "as_of" in p and len(p) else "?"
+    note = f"from the CSC's NIL Data Reports (current as of {as_of}), ${total / 1e6:.2f}M"
+    return total, note + (f", counting {'; '.join(partial)}" if partial else "")
+
+
+def constraint_notes() -> list[str]:
+    nil_total, how = nil_go_cleared()
+    return [
+        "Revenue share: A4 football spending per program = football's share of the calendar-2026 cap "
+        f"(${CAP_CALENDAR_2026 / 1e6:.2f}M, the average of the 2025-26 and 2026-27 caps). Football's share is assumed "
+        f"to be {FOOTBALL_CAP_SHARE[0]:.0%}, tested from {FOOTBALL_CAP_SHARE[1]:.0%} to {FOOTBALL_CAP_SHARE[2]:.0%}.",
+        f"NIL Go: football's cleared value, Jan 1 to Sep 30, 2026, is a share of all sports' cleared value: {how}. "
+        f"Football's share is assumed to be {NIL_FOOTBALL_SHARE[0]:.0%}, tested from {NIL_FOOTBALL_SHARE[1]:.0%} to "
+        f"{NIL_FOOTBALL_SHARE[2]:.0%}.",
+    ]
+
 
 _trapezoid = getattr(np, "trapezoid", None) or np.trapz
 
@@ -162,7 +195,7 @@ def calibrate(df: pd.DataFrame) -> pd.DataFrame:
     """Tail multipliers that make each report's football total match its outside constraint, at the
     central assumption and at each end of its range."""
     specs = [("revenue_share", ("A4",), A4_FOOTBALL_PROGRAMS * CAP_CALENDAR_2026, FOOTBALL_CAP_SHARE),
-             ("nil_go", ("A4", "Non-A4"), NIL_ALL_SPORTS_JAN_AUG_2026 + NIL_ALL_SPORTS_SEP_2026, NIL_FOOTBALL_SHARE)]
+             ("nil_go", ("A4", "Non-A4"), nil_go_cleared()[0], NIL_FOOTBALL_SHARE)]
     rows = []
     for report, cohorts, base, (mid, low, high) in specs:
         parts = football_parts(df, report, cohorts)

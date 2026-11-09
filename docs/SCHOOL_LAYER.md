@@ -21,7 +21,7 @@ Third-party estimates are useful only as a validation target. Researched 2026-10
 |---|---|---|
 | [Participating schools](https://www.collegesportscommission.org/about/participating-schools/) | 340 entries, each with its conference. 11 are sport-specific affiliates (for example "Colorado College (Men's Hockey)") of 7 institutions, so **336 distinct institutions**. Clean JSON at `/wp-json/wp/v2/participating-school` (taxonomy `participating-schools-conference`). | **The school dimension.** Maps every participant to its conference and so to A4 / Non-A4, which is the cohort key of every CSC table. |
 | [First-year revenue-share release](https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-to-student-athletes-during-first-year-of-revenue-sharing/) (Oct 1, 2026) | 2025-26: $1,770,453,776 revenue share (plus $42.0M Alston, $163.5M new scholarships) to 34,915 athletes; **319 schools opted in, 307 paid, 68 at the $20.5M cap or within 5% of it**. 2026-27 cap: **$21.58M**. The CSC "will publish aggregate year-end revenue-sharing data from CAPS after each year." | **Constraints** any school-level estimate has to add up to. |
-| [NIL Data Reports](https://www.collegesportscommission.org/news/nil-data-reports/) (8 so far, roughly every two months) | Deal counts and dollars cleared through NIL Go. Through Aug 31, 2026: 46,478 deals, $582.49M. | Aggregate NIL constraints, and a time series. Not school-level. |
+| [NIL Data Reports](https://www.collegesportscommission.org/news/nil-data-reports/) (9 so far, roughly every two months; captured daily by `nil refresh`, `src/nilmodel/nil_data.py`) | Deal counts and dollars cleared and not cleared through NIL Go, with the Associated split. Through Oct 31, 2026: 56,570 deals, $775.11M cleared; $177.14M not cleared. | Aggregate NIL constraints (the NIL tail calibration reads them), and a time series. Not school-level. |
 
 The participant list (336 institutions) is larger than the 319 opted-in schools of 2025-26. It was
 refreshed in September 2026, so it most likely lists 2026-27 participants; that is not confirmed.
@@ -84,7 +84,7 @@ NIL side of a school estimate stays wide until a school-level NIL source exists.
 | Step | Needs | Notes |
 |---|---|---|
 | Capture the participant list in the daily pipeline (`csc_schools`), versioned like the reports | nothing | REST JSON, 4 pages of 100 |
-| Capture the CSC year-end CAPS release and the NIL Data Reports as constraint tables | nothing | WordPress posts, `nil-data-report` type |
+| Capture the CSC year-end CAPS release as a constraint table (the NIL Data Reports are captured: `nil_data.py`) | nothing | WordPress posts |
 | Map participants to CFBD teams | CFBD key (or the team list in CollegeFootballRatings2026) | 336 names; disambiguators such as "(Ohio)" |
 | Curate public disclosures into `data/reference/school_disclosures.csv`, one row per figure with its source URL | manual | ground truth, small and growing |
 | Pull Knight-Newhouse FY2025 now and FY2026 when out; check EADA 2025-26 football lines in spring 2027 | check each site's terms | the school totals to validate against |

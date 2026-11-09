@@ -13,7 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "dashboard"
-DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals", "season_games"]
+DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals", "season_games", "nil_flow"]
 DEFAULT_PARAMS = {"cohort": "A4", "cut": "A4", "gender": "men", "nil": 40000, "position": "Linebacker",
                   "report": "revenue_share", "rs": 150000, "sport": "Football"}
 
@@ -89,6 +89,10 @@ SHIM = """
   const calcs = [], draws = new Map(), watchers = [];
   const runCalcs = () => {
     for (const c of calcs) {
+      if (c.inputs.some((i) => !sets[i] || sets[i].status !== 'ok')) {      // an input this page doesn't carry
+        sets[c.id] = { status: 'missing', data: [], columns: [], refreshing: false, message: '', meta: [] };
+        continue;
+      }
       try { sets[c.id] = { status: 'ok', data: c.fn(...c.inputs.map((i) => sets[i].data)), columns: [], refreshing: false, message: '', meta: [] }; }
       catch (e) { console.error('calc ' + c.id, e); sets[c.id] = { status: 'error', data: [], columns: [], refreshing: false, message: String(e), meta: [] }; }
     }
@@ -156,7 +160,7 @@ def build(out: Path, page: str = "index.html") -> None:
     else:
         own_css, markup, own_script = _parts((HERE / page).read_text())
         css, scripts = base_css + own_css, [base_script, own_script]
-    skip = {"season_games"} if page == "index.html" else set()     # football-only data
+    skip = {"season_games"} if page == "index.html" else {"nil_flow"}     # data only one page uses
     data = {k: json.loads(p.read_text()) for k in DATASETS if k not in skip and (p := DATA / f"{k}.json").exists()}
     data = {k: (v if isinstance(v, list) else v.get("rows", v)) for k, v in data.items()}
     as_json = lambda o: json.dumps(o, separators=(",", ":")).replace("</", "<\\/")

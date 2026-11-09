@@ -180,7 +180,7 @@ def triangulation_report(con, path: Path | None = None) -> Path:
         f"Under the fitted tail, A4 football alone would take {pp['fitted_cap_share']:.0%} of the cap, and under "
         f"the heavy tail {pp['heavy_cap_share']:.0%}, which is impossible.\n",
         "## Tails calibrated to outside totals\n",
-        *[f"- {note}" for note in tri.CONSTRAINT_NOTES],
+        *[f"- {note}" for note in tri.constraint_notes()],
         "\nThe multiplier is solved so the football total matches the target. \"Below a flat tail\" means even "
         "paying everyone in the top 10% exactly the published 90th overshoots, so that assumption is ruled out.\n",
         _md(cal_table),
