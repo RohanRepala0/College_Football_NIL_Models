@@ -171,6 +171,25 @@ def surplus(season: int = typer.Option(2026), fresh: bool = typer.Option(False, 
     typer.echo(f"wrote {out}\nwrote {surplus_report(con, season, result)}")
 
 
+@app.command("ratings")
+def ratings_cmd(season: int = typer.Option(2026), fresh: bool = typer.Option(False, help="Call CFBD again."),
+                weeks_dir: Path = typer.Option(Path("../CollegeFootballRatings2026/2026"),
+                                               help="CollegeFootballRatings2026's season folder of week-NN/ratings.csv")):
+    """Surplus against SP+, FPI, SRS, Elo, a 2026 results-only rating and your model's ratings (4 calls with --fresh)."""
+    from . import ratings as rt
+    from .fetch import Fetcher
+    from .reports import ratings_report
+
+    con = _con()
+    if fresh or not con.execute(f"SELECT count(*) FROM information_schema.tables WHERE table_name = 'cfbd_games_{season}'").fetchone()[0]:
+        typer.echo(rt.pull(con, Fetcher(con, min_interval=0.5), season, fresh))
+    result = rt.run(con, weeks_dir if weeks_dir.exists() else None, season)
+    out = config.DATA_DIR / "players" / f"surplus_by_rating_{season}.csv"
+    s = result["surplus"]
+    s.assign(team=s.index).round(0).to_csv(out, index=False)
+    typer.echo(f"wrote {out}\nwrote {ratings_report(season, result)}")
+
+
 @app.command("dashboard-data")
 def dashboard_data():
     """Write the dashboard's data files to data/dashboard/ from the latest releases."""

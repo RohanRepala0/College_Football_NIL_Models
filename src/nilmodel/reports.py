@@ -456,3 +456,59 @@ def surplus_report(con, season: int, result: dict, path: Path | None = None) -> 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(parts))
     return path
+
+
+def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
+    """Surplus fit against several team ratings: how well each is explained, what the weights learn, and how
+    much each program's surplus moves with the rating."""
+    from . import ratings as rt
+
+    def m(v):
+        return "" if pd.isna(v) else f"{'+' if v >= 0 else '−'}${abs(v) / 1e6:.1f}M"
+
+    s, notes, sur = result["summary"], result["notes"], result["surplus"]
+    cols = list(result["targets"].columns)
+    fit = pd.DataFrame({"rating": s.label, "preseason prior": s.prior,
+                        "weights (production / recruiting / class year)": [f"{r.production:.1f} / {r.rating:.1f} / {r.experience:.1f}" for r in s.itertuples()],
+                        "R² learned": s.cv_r2.map("{:.2f}".format), "R² prior weights": s.cv_r2_prior_weights.map("{:.2f}".format),
+                        "R² production only": s.cv_r2_production_only.map("{:.2f}".format),
+                        "R² recruiting + class only": s.cv_r2_rating_class_only.map("{:.2f}".format),
+                        "QB points": s.pts_Quarterback.map("{:.1f}".format), "DL points": s["pts_Defensive Lineman"].map("{:.1f}".format),
+                        "$ per point": s.price_per_point.map(lambda v: f"${v:,.0f}")})
+    rc = result["surplus_rank_corr"].rename(index=rt.LABELS, columns=rt.LABELS).round(2).reset_index(names="")
+    counts = sur.agree.value_counts()
+    pub = [c for c in cols if c != "yours"]
+    agree_pub = int(((sur[pub] > 0).all(axis=1) | (sur[pub] < 0).all(axis=1)).sum())
+    table = pd.DataFrame({"program": sur.index, "conference": sur.conference, "market value": (sur.value / 1e6).map("${:.1f}M".format),
+                          **{rt.LABELS[c]: sur[c].map(m) for c in cols},
+                          "range": [f"{m(a)} to {m(b)}" for a, b in zip(sur.low, sur.high)], "median": sur["median"].map(m),
+                          "call": sur.agree})
+    r, y = notes["results"], notes.get("yours")
+    parts = [
+        f"# Surplus value against several ratings, {season}\n",
+        "The surplus model asks how much of each team's rating its players explain. This runs the same fit against six "
+        "ratings instead of SP+ alone, each as a team total on every position group, with the player-score weights "
+        "chosen by cross-validation for that rating, and prices surplus under each. Method: "
+        "[`src/nilmodel/ratings.py`](../src/nilmodel/ratings.py).\n",
+        f"- **2026 results only** is fit here from {r['games']} completed FBS-vs-FBS games through week {r['through_week']} "
+        f"(last game {r['last_game']}), margins capped at {rt.MARGIN_CAP:.0f}; home edge {r['home_edge']:.1f} points. No prior.",
+        (f"- **Your model** is the team rating implied by CollegeFootballRatings2026's posted model margins, {y['games']} "
+         f"games, {y['weeks'].replace('-', ' ')}; home edge {y['home_edge']:.1f}. Those files stop at week 8.\n" if y else ""),
+        "- SP+, ESPN FPI, SRS and Elo are CollegeFootballData's current 2026 ratings. Player production is this season's.\n",
+        "## How well each rating is explained\n",
+        "Out-of-sample R² (5 folds over 138 FBS teams). \"Recruiting + class only\" leaves production out: a rating that "
+        "leans on a preseason prior built from recruiting should be explained better by it.\n",
+        _md(fit, ".2f"),
+        "## Do the ratings agree on surplus?\n",
+        "Rank correlation of program surplus between ratings:\n",
+        _md(rc, ".2f"),
+        f"- **{counts.get('surplus everywhere', 0)}** programs show a surplus under every rating and "
+        f"**{counts.get('deficit everywhere', 0)}** a deficit under every rating; **{counts.get('depends on rating', 0)}** "
+        f"depend on the rating. Under the five public ratings alone, {agree_pub} of {len(sur)} keep one sign.\n",
+        "## Every A4 program\n",
+        "Sorted by median surplus across ratings.\n",
+        _md(table),
+    ]
+    path = path or config.ROOT / "reports" / f"ratings_{season}.md"
+    path.write_text("\n".join(parts))
+    return path

@@ -79,7 +79,7 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                                         ORDER BY report, first_seen_at""").fetchall()]
     out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases,
            "totals": totals(df)}
-    surplus = sorted((config.DATA_DIR / "players").glob("surplus_*.csv"))
+    surplus = sorted((config.DATA_DIR / "players").glob("surplus_[0-9][0-9][0-9][0-9].csv"))
     if surplus:                     # team totals from `nil surplus`, newest season
         from .triangulate import CAP_CALENDAR_2026
 
