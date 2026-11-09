@@ -14,8 +14,10 @@ and returning production, which the player scores also use. So the same fit is r
   public ratings and the market), fit the same way from its posted games.
 
 Each rating is put on SP+'s spread (points per game) and fit as a team total on every position group, with
-the player-score weights chosen by cross-validation for that rating. Surplus is then priced per rating, so
-each program gets a range across ratings. Comparing what the weights learn under ratings with and without a
+the player-score weights chosen by cross-validation for that rating. Surplus is then priced per rating. The
+roster numbers use the four published ratings (`PUBLIC`): each program's surplus is their median, with their
+range, and a call only where all four agree on the sign. The results-only rating is a check, and `yours` is
+kept apart as the market's view. Comparing what the weights learn under ratings with and without a
 prior is the check on whether SP+'s prior was doing some of the work.
 """
 
@@ -33,6 +35,7 @@ from . import surplus as su
 from .fetch import Fetcher
 
 SLOTS = {g: k for unit in su.UNITS.values() for g, k in unit.items()}   # every group, one team total
+PUBLIC = ["sp", "fpi", "srs", "elo"]          # the published ratings the roster numbers use
 MARGIN_CAP = 28.0
 LABELS = {"sp": "SP+", "fpi": "ESPN FPI", "srs": "SRS", "elo": "Elo", "results": "2026 results only",
           "yours": "Your model (weeks 1-8)"}
@@ -170,11 +173,14 @@ def run(con: duckdb.DuckDBPyConnection, weeks_dir: Path | None = None, season: i
     surplus = pd.DataFrame(teams)
     surplus["conference"] = market.conference.reindex(surplus.index)
     surplus["value"] = market.value
-    cols = list(tg.columns)
+    cols = [c for c in PUBLIC if c in surplus]
     surplus["low"], surplus["high"] = surplus[cols].min(axis=1), surplus[cols].max(axis=1)
     surplus["median"] = surplus[cols].median(axis=1)
     surplus["agree"] = np.where((surplus[cols] > 0).all(axis=1), "surplus everywhere",
                                 np.where((surplus[cols] < 0).all(axis=1), "deficit everywhere", "depends on rating"))
+    surplus["perf_rating"] = tg[cols].median(axis=1).reindex(surplus.index)
+    if "yours" in tg:
+        surplus["market_rating"] = tg["yours"].reindex(surplus.index)
     return {"targets": tg, "notes": notes, "grid": grid, "summary": pd.DataFrame(summary),
             "surplus": surplus.sort_values("median", ascending=False), "rating_corr": tg.corr(),
             "surplus_rank_corr": surplus[cols].corr(method="spearman")}

@@ -79,17 +79,36 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                                         ORDER BY report, first_seen_at""").fetchall()]
     out = {"cohorts": cohorts, "curves": curves, "validation": validation, "releases": releases,
            "totals": totals(df)}
-    surplus = sorted((config.DATA_DIR / "players").glob("surplus_[0-9][0-9][0-9][0-9].csv"))
-    if surplus:                     # team totals from `nil surplus`, newest season
+    players_dir = config.DATA_DIR / "players"
+    unit = sorted(players_dir.glob("surplus_[0-9][0-9][0-9][0-9].csv"))
+    by_rating = sorted(players_dir.glob("surplus_by_rating_[0-9][0-9][0-9][0-9].csv"))
+    if unit and by_rating:          # from `nil surplus` (market values) and `nil ratings` (surplus per rating)
+        from .ratings import PUBLIC
         from .triangulate import CAP_CALENDAR_2026
 
-        t = pd.read_csv(surplus[-1])
-        out["rosters"] = [{"id": r.team, "team": r.team, "conference": r.conference, "players": int(r.players),
-                           "value": round(r.value), "low": round(r.low), "high": round(r.high),
-                           "points": round(r.points, 2), "on_field_value": round(r.on_field_value),
-                           "surplus": round(r.surplus), "points_per_million": round(r.points_per_million, 3),
-                           "sp_rating": round(r.sp_rating, 1), "cap": CAP_CALENDAR_2026}
-                          for r in t.itertuples()]
+        u = pd.read_csv(unit[-1]).set_index("team")
+        t = pd.read_csv(by_rating[-1]).set_index("team")
+        calls = {"surplus everywhere": "Surplus under all four", "deficit everywhere": "Deficit under all four",
+                 "depends on rating": "Depends on the rating"}
+        rnd = lambda v: None if pd.isna(v) else round(float(v))
+        out["rosters"] = [{"id": team, "team": team, "conference": r.conference, "players": int(u.players.get(team, 0)),
+                           "value": round(r.value), "low": rnd(u.low.get(team)), "high": rnd(u.high.get(team)),
+                           "on_field_value": round(r.value + r["median"]), "surplus": round(r["median"]),
+                           "surplus_low": round(r.low), "surplus_high": round(r.high), "call": calls[r.agree],
+                           **{k: round(r[k]) for k in PUBLIC},
+                           "perf_rating": None if pd.isna(r.perf_rating) else round(r.perf_rating, 2),
+                           "market_rating": None if pd.isna(r.get("market_rating")) else round(r.market_rating, 2),
+                           "market_surplus": rnd(r.get("yours")), "cap": CAP_CALENDAR_2026}
+                          for team, r in t.iterrows()]
+    if con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name = 'cfbd_games_2026'").fetchone()[0]:
+        from . import season
+
+        g, sig = season.games(con), season.signals(con)
+        if g:
+            out["season_games"], out["season_signals"] = g, sig
+        done = con.execute("""SELECT max(CAST(week AS INT)), max(left(startDate, 10)) FROM cfbd_games_2026
+                              WHERE lower(CAST(completed AS VARCHAR)) = 'true'""").fetchone()
+        out["totals"][0].update(through_week=done[0], last_game=done[1])
     return out
 
 

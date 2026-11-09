@@ -1,0 +1,80 @@
+"""The season so far, from the CollegeFootballRatings2026 weekly files: every game its model priced, with
+the market's line, the model's margin and the final score, and every signal it posted with its result.
+
+The model leans mostly on the betting market, so its ratings are the market's expectations. Final scores come
+from CollegeFootballData (`cfbd_games_<season>`, pulled by `nil ratings`). Signals the weekly files have not
+graded yet are graded here from those scores with the same rules as that repository's `cfb` code: a total
+wins when the final total is on the bet's side of the line, a spread when the side's margin plus its line is
+positive, a push pays nothing, and a win pays at the listed price.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import duckdb
+import pandas as pd
+
+from . import config
+
+RATINGS_SEASON_DIR = config.ROOT.parent / "CollegeFootballRatings2026" / "2026"
+
+
+def _week(path: Path) -> int:
+    return int(path.parent.name.split("-")[1])
+
+
+def _finals(con: duckdb.DuckDBPyConnection, season: int) -> pd.DataFrame:
+    g = con.execute(f"SELECT id, homePoints, awayPoints, completed FROM cfbd_games_{season}").df()
+    g = g[g.completed.astype(str) == "True"]
+    return pd.DataFrame({"game_id": pd.to_numeric(g.id).astype("int64"), "home_points": pd.to_numeric(g.homePoints),
+                         "away_points": pd.to_numeric(g.awayPoints)}).dropna().set_index("game_id")
+
+
+def games(con: duckdb.DuckDBPyConnection, weeks_dir: Path = RATINGS_SEASON_DIR, season: int = 2026) -> list[dict]:
+    """One row per game the model priced: the home team's line, the model's expected home margin, and the
+    final home margin once played."""
+    files = sorted(weeks_dir.glob("week-*/ratings.csv"))
+    if not files:
+        return []
+    d = pd.concat([pd.read_csv(f).assign(week=_week(f)) for f in files], ignore_index=True).dropna(subset=["model_margin"])
+    fin = _finals(con, season)
+    rows = []
+    for r in d.itertuples(index=False):
+        f = fin.loc[int(r.game_id)] if int(r.game_id) in fin.index else None
+        rows.append({"id": str(int(r.game_id)), "week": int(r.week), "kickoff": str(r.kickoff)[:10], "home": r.home_team,
+                     "away": r.away_team, "neutral": str(r.neutral_site) == "True",
+                     "line": None if pd.isna(r.home_spread) else float(r.home_spread), "model": round(float(r.model_margin), 2),
+                     "final": None if f is None else int(f.home_points - f.away_points)})
+    return rows
+
+
+def _grade(market: str, side: str, line: float, home_points: float, away_points: float) -> str:
+    if market == "total":
+        edge = (home_points + away_points - line) * (1 if side == "over" else -1)
+    else:
+        margin = home_points - away_points
+        edge = (margin if side == "home" else -margin) + line
+    return "win" if edge > 0 else "loss" if edge < 0 else "push"
+
+
+def signals(con: duckdb.DuckDBPyConnection, weeks_dir: Path = RATINGS_SEASON_DIR, season: int = 2026) -> list[dict]:
+    """Every posted signal with its result: as recorded in the weekly file, or graded here from the final."""
+    files = sorted(weeks_dir.glob("week-*/bets.csv"))
+    if not files:
+        return []
+    b = pd.concat([pd.read_csv(f).assign(wk=_week(f)) for f in files], ignore_index=True)
+    fin = _finals(con, season)
+    rows = []
+    for r in b.itertuples(index=False):
+        result, units, graded = (r.result, r.units, "weekly file") if isinstance(r.result, str) and r.result else (None, None, None)
+        if result is None and int(r.game_id) in fin.index:
+            f = fin.loc[int(r.game_id)]
+            result = _grade(r.market, r.side, float(r.line), f.home_points, f.away_points)
+            win = (100 / abs(r.price) if r.price < 0 else r.price / 100)
+            units, graded = {"win": win, "push": 0.0, "loss": -1.0}[result], "here, from the final score"
+        rows.append({"id": f"{int(r.wk)}|{int(r.game_id)}|{r.market}|{r.side}", "week": int(r.wk), "game": r.game,
+                     "rule": r.rule, "pick": r.pick, "price": float(r.price), "live": r.status == "posted" and int(r.wk) >= 7,
+                     "result": result, "units": None if units is None or pd.isna(units) else round(float(units), 3),
+                     "graded": graded})
+    return rows

@@ -26,3 +26,14 @@ def test_margin_cap_limits_blowouts():
     capped, _ = rt.fit_margins(games, cap=28)
     raw, _ = rt.fit_margins(games, cap=np.inf)
     assert capped["A"] - capped["B"] < raw["A"] - raw["B"]
+
+
+def test_signals_graded_like_the_ratings_repo():
+    from nilmodel import season
+
+    assert season._grade("total", "over", 47.5, 28, 21) == "win"          # 49 > 47.5
+    assert season._grade("total", "under", 47.5, 28, 21) == "loss"
+    assert season._grade("total", "over", 49.0, 28, 21) == "push"
+    assert season._grade("spread", "home", -6.5, 28, 21) == "win"         # home by 7 covers -6.5
+    assert season._grade("spread", "away", 6.5, 28, 21) == "loss"
+    assert season._grade("spread", "away", 7.0, 28, 21) == "push"

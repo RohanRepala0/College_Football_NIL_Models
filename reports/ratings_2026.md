@@ -24,88 +24,86 @@ Out-of-sample R² (5 folds over 138 FBS teams). "Recruiting + class only" leaves
 
 Rank correlation of program surplus between ratings:
 
-|                        |   SP+ |   ESPN FPI |   SRS |   Elo |   2026 results only |   Your model (weeks 1-8) |
-|:-----------------------|------:|-----------:|------:|------:|--------------------:|-------------------------:|
-| SP+                    |  1.00 |       0.97 |  0.99 |  0.96 |                0.97 |                     0.74 |
-| ESPN FPI               |  0.97 |       1.00 |  0.98 |  0.96 |                0.97 |                     0.84 |
-| SRS                    |  0.99 |       0.98 |  1.00 |  0.96 |                0.99 |                     0.76 |
-| Elo                    |  0.96 |       0.96 |  0.96 |  1.00 |                0.97 |                     0.73 |
-| 2026 results only      |  0.97 |       0.97 |  0.99 |  0.97 |                1.00 |                     0.72 |
-| Your model (weeks 1-8) |  0.74 |       0.84 |  0.76 |  0.73 |                0.72 |                     1.00 |
+|          |   SP+ |   ESPN FPI |   SRS |   Elo |
+|:---------|------:|-----------:|------:|------:|
+| SP+      |  1.00 |       0.97 |  0.99 |  0.96 |
+| ESPN FPI |  0.97 |       1.00 |  0.98 |  0.96 |
+| SRS      |  0.99 |       0.98 |  1.00 |  0.96 |
+| Elo      |  0.96 |       0.96 |  0.96 |  1.00 |
 
-- **25** programs show a surplus under every rating and **27** a deficit under every rating; **16** depend on the rating. Under the five public ratings alone, 62 of 68 keep one sign.
+- Under the four published ratings (SP+, FPI, SRS, Elo), which the roster numbers use, **29** programs show a surplus under all four and **33** a deficit; **6** depend on the rating. The results-only rating is a check on SP+'s prior, and your model is kept apart as the market's view.
 
 ## Every A4 program
 
-Sorted by median surplus across ratings.
+Sorted by median surplus across the four published ratings; range and call are theirs too.
 
 | program           | conference       | market value   | SP+    | ESPN FPI   | SRS    | Elo    | 2026 results only   | Your model (weeks 1-8)   | range            | median   | call               |
 |:------------------|:-----------------|:---------------|:-------|:-----------|:-------|:-------|:--------------------|:-------------------------|:-----------------|:---------|:-------------------|
-| LSU               | SEC              | $22.1M         | +$6.6M | +$7.0M     | +$6.2M | +$7.5M | +$6.0M              | +$9.6M                   | +$6.0M to +$9.6M | +$6.8M   | surplus everywhere |
-| Alabama           | SEC              | $21.1M         | +$6.3M | +$6.8M     | +$6.8M | +$6.4M | +$6.8M              | +$8.8M                   | +$6.3M to +$8.8M | +$6.8M   | surplus everywhere |
-| Kentucky          | SEC              | $14.6M         | +$5.9M | +$6.2M     | +$6.5M | +$5.4M | +$6.2M              | +$6.6M                   | +$5.4M to +$6.6M | +$6.2M   | surplus everywhere |
-| Missouri          | SEC              | $15.8M         | +$4.4M | +$4.9M     | +$4.9M | +$4.9M | +$5.0M              | +$5.2M                   | +$4.4M to +$5.2M | +$4.9M   | surplus everywhere |
-| Louisville        | ACC              | $14.2M         | +$6.8M | +$4.9M     | +$5.8M | +$4.5M | +$4.9M              | +$4.1M                   | +$4.1M to +$6.8M | +$4.9M   | surplus everywhere |
-| Notre Dame        | FBS Independents | $21.7M         | +$4.9M | +$4.9M     | +$4.7M | +$5.8M | +$4.5M              | +$7.2M                   | +$4.5M to +$7.2M | +$4.9M   | surplus everywhere |
-| Utah              | Big 12           | $14.3M         | +$4.2M | +$3.6M     | +$4.4M | +$4.6M | +$4.5M              | +$0.9M                   | +$0.9M to +$4.6M | +$4.3M   | surplus everywhere |
-| SMU               | ACC              | $15.4M         | +$4.5M | +$4.2M     | +$4.3M | +$6.3M | +$4.1M              | +$3.3M                   | +$3.3M to +$6.3M | +$4.2M   | surplus everywhere |
-| North Carolina    | ACC              | $14.0M         | +$4.2M | +$4.3M     | +$4.3M | +$3.9M | +$4.6M              | +$3.1M                   | +$3.1M to +$4.6M | +$4.2M   | surplus everywhere |
-| Duke              | ACC              | $13.1M         | +$4.9M | +$3.5M     | +$4.9M | +$4.1M | +$4.3M              | +$0.7M                   | +$0.7M to +$4.9M | +$4.2M   | surplus everywhere |
-| Miami             | ACC              | $19.7M         | +$3.4M | +$4.8M     | +$3.7M | +$4.3M | +$4.0M              | +$6.2M                   | +$3.4M to +$6.2M | +$4.1M   | surplus everywhere |
-| Northwestern      | Big Ten          | $14.8M         | +$4.4M | +$2.9M     | +$4.0M | +$3.5M | +$4.2M              | +$0.4M                   | +$0.4M to +$4.4M | +$3.7M   | surplus everywhere |
-| Virginia Tech     | ACC              | $16.0M         | +$4.0M | +$3.2M     | +$3.6M | +$2.6M | +$3.5M              | +$2.7M                   | +$2.6M to +$4.0M | +$3.3M   | surplus everywhere |
-| Oklahoma State    | Big 12           | $15.3M         | +$4.7M | +$2.8M     | +$4.5M | +$2.9M | +$3.6M              | +$0.6M                   | +$0.6M to +$4.7M | +$3.3M   | surplus everywhere |
-| Texas Tech        | Big 12           | $16.8M         | +$2.7M | +$2.0M     | +$2.7M | +$3.5M | +$2.8M              | +$1.1M                   | +$1.1M to +$3.5M | +$2.7M   | surplus everywhere |
-| Cincinnati        | Big 12           | $13.0M         | +$3.1M | +$1.3M     | +$2.7M | +$2.9M | +$2.7M              | −$2.5M                   | −$2.5M to +$3.1M | +$2.7M   | depends on rating  |
-| South Carolina    | SEC              | $17.5M         | +$2.0M | +$2.3M     | +$2.1M | +$2.7M | +$2.4M              | +$3.1M                   | +$2.0M to +$3.1M | +$2.3M   | surplus everywhere |
-| Tennessee         | SEC              | $18.8M         | +$2.1M | +$2.0M     | +$2.2M | +$2.3M | +$1.6M              | +$4.4M                   | +$1.6M to +$4.4M | +$2.1M   | surplus everywhere |
-| Georgia           | SEC              | $24.3M         | +$0.9M | +$1.9M     | +$2.0M | +$1.4M | +$2.2M              | +$4.8M                   | +$0.9M to +$4.8M | +$2.0M   | surplus everywhere |
-| Houston           | Big 12           | $14.4M         | +$2.9M | +$1.9M     | +$2.5M | +$1.0M | +$2.0M              | +$0.9M                   | +$0.9M to +$2.9M | +$2.0M   | surplus everywhere |
-| Ohio State        | Big Ten          | $21.9M         | +$1.5M | +$2.3M     | +$1.9M | +$0.5M | +$0.9M              | +$6.6M                   | +$0.5M to +$6.6M | +$1.7M   | surplus everywhere |
-| Arizona           | Big 12           | $12.7M         | +$1.7M | +$1.3M     | +$1.7M | +$1.0M | +$1.7M              | +$0.3M                   | +$0.3M to +$1.7M | +$1.5M   | surplus everywhere |
-| Wake Forest       | ACC              | $13.0M         | +$2.6M | +$1.1M     | +$1.3M | +$2.8M | +$1.5M              | −$1.6M                   | −$1.6M to +$2.8M | +$1.4M   | depends on rating  |
-| Georgia Tech      | ACC              | $14.2M         | +$0.8M | +$1.5M     | +$0.6M | +$1.3M | +$0.9M              | +$1.9M                   | +$0.6M to +$1.9M | +$1.1M   | surplus everywhere |
-| Syracuse          | ACC              | $15.5M         | +$0.6M | +$1.3M     | +$0.6M | +$0.9M | +$1.0M              | +$1.9M                   | +$0.6M to +$1.9M | +$0.9M   | surplus everywhere |
-| West Virginia     | Big 12           | $15.1M         | +$0.8M | +$0.4M     | +$0.9M | +$1.1M | +$1.4M              | −$1.9M                   | −$1.9M to +$1.4M | +$0.9M   | depends on rating  |
-| Illinois          | Big Ten          | $13.5M         | +$0.6M | +$1.1M     | +$1.0M | +$0.2M | +$1.3M              | −$0.3M                   | −$0.3M to +$1.3M | +$0.8M   | depends on rating  |
+| LSU               | SEC              | $22.1M         | +$6.6M | +$7.0M     | +$6.2M | +$7.5M | +$6.0M              | +$9.6M                   | +$6.2M to +$7.5M | +$6.8M   | surplus everywhere |
+| Alabama           | SEC              | $21.1M         | +$6.3M | +$6.8M     | +$6.8M | +$6.4M | +$6.8M              | +$8.8M                   | +$6.3M to +$6.8M | +$6.6M   | surplus everywhere |
+| Kentucky          | SEC              | $14.6M         | +$5.9M | +$6.2M     | +$6.5M | +$5.4M | +$6.2M              | +$6.6M                   | +$5.4M to +$6.5M | +$6.0M   | surplus everywhere |
+| Louisville        | ACC              | $14.2M         | +$6.8M | +$4.9M     | +$5.8M | +$4.5M | +$4.9M              | +$4.1M                   | +$4.5M to +$6.8M | +$5.3M   | surplus everywhere |
+| Missouri          | SEC              | $15.8M         | +$4.4M | +$4.9M     | +$4.9M | +$4.9M | +$5.0M              | +$5.2M                   | +$4.4M to +$4.9M | +$4.9M   | surplus everywhere |
+| Notre Dame        | FBS Independents | $21.7M         | +$4.9M | +$4.9M     | +$4.7M | +$5.8M | +$4.5M              | +$7.2M                   | +$4.7M to +$5.8M | +$4.9M   | surplus everywhere |
+| Duke              | ACC              | $13.1M         | +$4.9M | +$3.5M     | +$4.9M | +$4.1M | +$4.3M              | +$0.7M                   | +$3.5M to +$4.9M | +$4.5M   | surplus everywhere |
+| SMU               | ACC              | $15.4M         | +$4.5M | +$4.2M     | +$4.3M | +$6.3M | +$4.1M              | +$3.3M                   | +$4.2M to +$6.3M | +$4.4M   | surplus everywhere |
+| Utah              | Big 12           | $14.3M         | +$4.2M | +$3.6M     | +$4.4M | +$4.6M | +$4.5M              | +$0.9M                   | +$3.6M to +$4.6M | +$4.3M   | surplus everywhere |
+| North Carolina    | ACC              | $14.0M         | +$4.2M | +$4.3M     | +$4.3M | +$3.9M | +$4.6M              | +$3.1M                   | +$3.9M to +$4.3M | +$4.2M   | surplus everywhere |
+| Miami             | ACC              | $19.7M         | +$3.4M | +$4.8M     | +$3.7M | +$4.3M | +$4.0M              | +$6.2M                   | +$3.4M to +$4.8M | +$4.0M   | surplus everywhere |
+| Northwestern      | Big Ten          | $14.8M         | +$4.4M | +$2.9M     | +$4.0M | +$3.5M | +$4.2M              | +$0.4M                   | +$2.9M to +$4.4M | +$3.7M   | surplus everywhere |
+| Oklahoma State    | Big 12           | $15.3M         | +$4.7M | +$2.8M     | +$4.5M | +$2.9M | +$3.6M              | +$0.6M                   | +$2.8M to +$4.7M | +$3.7M   | surplus everywhere |
+| Virginia Tech     | ACC              | $16.0M         | +$4.0M | +$3.2M     | +$3.6M | +$2.6M | +$3.5M              | +$2.7M                   | +$2.6M to +$4.0M | +$3.4M   | surplus everywhere |
+| Cincinnati        | Big 12           | $13.0M         | +$3.1M | +$1.3M     | +$2.7M | +$2.9M | +$2.7M              | −$2.5M                   | +$1.3M to +$3.1M | +$2.8M   | surplus everywhere |
+| Texas Tech        | Big 12           | $16.8M         | +$2.7M | +$2.0M     | +$2.7M | +$3.5M | +$2.8M              | +$1.1M                   | +$2.0M to +$3.5M | +$2.7M   | surplus everywhere |
+| Houston           | Big 12           | $14.4M         | +$2.9M | +$1.9M     | +$2.5M | +$1.0M | +$2.0M              | +$0.9M                   | +$1.0M to +$2.9M | +$2.2M   | surplus everywhere |
+| South Carolina    | SEC              | $17.5M         | +$2.0M | +$2.3M     | +$2.1M | +$2.7M | +$2.4M              | +$3.1M                   | +$2.0M to +$2.7M | +$2.2M   | surplus everywhere |
+| Tennessee         | SEC              | $18.8M         | +$2.1M | +$2.0M     | +$2.2M | +$2.3M | +$1.6M              | +$4.4M                   | +$2.0M to +$2.3M | +$2.1M   | surplus everywhere |
+| Wake Forest       | ACC              | $13.0M         | +$2.6M | +$1.1M     | +$1.3M | +$2.8M | +$1.5M              | −$1.6M                   | +$1.1M to +$2.8M | +$1.9M   | surplus everywhere |
+| Ohio State        | Big Ten          | $21.9M         | +$1.5M | +$2.3M     | +$1.9M | +$0.5M | +$0.9M              | +$6.6M                   | +$0.5M to +$2.3M | +$1.7M   | surplus everywhere |
+| Georgia           | SEC              | $24.3M         | +$0.9M | +$1.9M     | +$2.0M | +$1.4M | +$2.2M              | +$4.8M                   | +$0.9M to +$2.0M | +$1.6M   | surplus everywhere |
+| Arizona           | Big 12           | $12.7M         | +$1.7M | +$1.3M     | +$1.7M | +$1.0M | +$1.7M              | +$0.3M                   | +$1.0M to +$1.7M | +$1.5M   | surplus everywhere |
+| Georgia Tech      | ACC              | $14.2M         | +$0.8M | +$1.5M     | +$0.6M | +$1.3M | +$0.9M              | +$1.9M                   | +$0.6M to +$1.5M | +$1.0M   | surplus everywhere |
+| West Virginia     | Big 12           | $15.1M         | +$0.8M | +$0.4M     | +$0.9M | +$1.1M | +$1.4M              | −$1.9M                   | +$0.4M to +$1.1M | +$0.9M   | surplus everywhere |
+| Illinois          | Big Ten          | $13.5M         | +$0.6M | +$1.1M     | +$1.0M | +$0.2M | +$1.3M              | −$0.3M                   | +$0.2M to +$1.1M | +$0.8M   | surplus everywhere |
 | Penn State        | Big Ten          | $16.7M         | +$0.5M | +$0.8M     | +$0.8M | +$1.8M | +$0.9M              | +$0.7M                   | +$0.5M to +$1.8M | +$0.8M   | surplus everywhere |
-| Indiana           | Big Ten          | $14.5M         | +$0.6M | +$1.0M     | +$0.5M | +$0.6M | +$0.9M              | +$0.1M                   | +$0.1M to +$1.0M | +$0.6M   | surplus everywhere |
-| Stanford          | ACC              | $12.4M         | −$0.1M | −$0.0M     | +$0.4M | +$0.4M | +$0.6M              | −$1.6M                   | −$1.6M to +$0.6M | +$0.2M   | depends on rating  |
+| Syracuse          | ACC              | $15.5M         | +$0.6M | +$1.3M     | +$0.6M | +$0.9M | +$1.0M              | +$1.9M                   | +$0.6M to +$1.3M | +$0.7M   | surplus everywhere |
+| Indiana           | Big Ten          | $14.5M         | +$0.6M | +$1.0M     | +$0.5M | +$0.6M | +$0.9M              | +$0.1M                   | +$0.5M to +$1.0M | +$0.6M   | surplus everywhere |
+| Stanford          | ACC              | $12.4M         | −$0.1M | −$0.0M     | +$0.4M | +$0.4M | +$0.6M              | −$1.6M                   | −$0.1M to +$0.4M | +$0.2M   | depends on rating  |
 | Nebraska          | Big Ten          | $16.6M         | −$0.1M | +$0.2M     | −$0.0M | +$1.5M | −$0.1M              | +$0.5M                   | −$0.1M to +$1.5M | +$0.1M   | depends on rating  |
-| UCLA              | Big Ten          | $16.8M         | +$0.1M | −$0.5M     | +$0.2M | −$0.2M | −$0.0M              | −$0.3M                   | −$0.5M to +$0.2M | −$0.1M   | depends on rating  |
+| UCLA              | Big Ten          | $16.8M         | +$0.1M | −$0.5M     | +$0.2M | −$0.2M | −$0.0M              | −$0.3M                   | −$0.5M to +$0.2M | −$0.0M   | depends on rating  |
+| TCU               | Big 12           | $13.5M         | −$0.4M | +$0.0M     | −$0.0M | −$1.0M | −$0.2M              | −$0.7M                   | −$1.0M to +$0.0M | −$0.2M   | depends on rating  |
 | Mississippi State | SEC              | $16.2M         | −$0.3M | −$0.2M     | −$0.6M | −$0.3M | −$0.6M              | −$0.3M                   | −$0.6M to −$0.2M | −$0.3M   | deficit everywhere |
-| TCU               | Big 12           | $13.5M         | −$0.4M | +$0.0M     | −$0.0M | −$1.0M | −$0.2M              | −$0.7M                   | −$1.0M to +$0.0M | −$0.3M   | depends on rating  |
-| BYU               | Big 12           | $12.4M         | +$0.2M | −$0.6M     | −$0.4M | −$0.4M | −$0.8M              | −$1.4M                   | −$1.4M to +$0.2M | −$0.5M   | depends on rating  |
-| Oregon            | Big Ten          | $19.5M         | −$0.9M | −$0.2M     | −$0.2M | −$2.6M | −$1.2M              | +$3.5M                   | −$2.6M to +$3.5M | −$0.5M   | depends on rating  |
-| Texas             | SEC              | $22.7M         | −$0.8M | −$0.1M     | −$1.2M | −$0.3M | −$0.9M              | +$3.5M                   | −$1.2M to +$3.5M | −$0.6M   | depends on rating  |
-| Florida           | SEC              | $18.3M         | −$0.7M | −$0.4M     | −$0.3M | −$0.8M | −$0.9M              | +$1.1M                   | −$0.9M to +$1.1M | −$0.6M   | depends on rating  |
-| Wisconsin         | Big Ten          | $14.7M         | −$1.1M | −$0.8M     | −$0.6M | +$0.5M | +$0.1M              | −$1.9M                   | −$1.9M to +$0.5M | −$0.7M   | depends on rating  |
-| Pittsburgh        | ACC              | $12.9M         | −$0.6M | −$0.9M     | −$0.7M | −$1.4M | −$0.5M              | −$2.4M                   | −$2.4M to −$0.5M | −$0.8M   | deficit everywhere |
-| USC               | Big Ten          | $19.7M         | −$1.0M | −$0.7M     | −$1.4M | −$0.1M | −$1.7M              | +$1.3M                   | −$1.7M to +$1.3M | −$0.9M   | depends on rating  |
-| Washington        | Big Ten          | $14.2M         | −$1.8M | −$0.6M     | −$1.2M | −$1.6M | −$0.9M              | −$0.2M                   | −$1.8M to −$0.2M | −$1.1M   | deficit everywhere |
-| Iowa State        | Big 12           | $13.6M         | −$1.4M | −$1.5M     | −$0.9M | −$0.5M | −$0.3M              | −$3.9M                   | −$3.9M to −$0.3M | −$1.1M   | deficit everywhere |
-| Auburn            | SEC              | $17.0M         | −$1.2M | −$1.0M     | −$1.2M | −$1.5M | −$0.6M              | −$1.2M                   | −$1.5M to −$0.6M | −$1.2M   | deficit everywhere |
-| Iowa              | Big Ten          | $13.0M         | −$1.3M | −$1.2M     | −$1.2M | −$0.0M | −$0.7M              | −$2.9M                   | −$2.9M to −$0.0M | −$1.2M   | deficit everywhere |
-| Purdue            | Big Ten          | $13.2M         | −$1.2M | −$1.4M     | −$1.1M | −$1.3M | −$1.0M              | −$3.1M                   | −$3.1M to −$1.0M | −$1.2M   | deficit everywhere |
-| Oklahoma          | SEC              | $17.7M         | −$2.0M | −$1.1M     | −$2.0M | −$0.6M | −$1.4M              | −$0.6M                   | −$2.0M to −$0.6M | −$1.3M   | deficit everywhere |
-| Florida State     | ACC              | $15.1M         | −$1.5M | −$1.4M     | −$1.2M | −$2.4M | −$1.2M              | −$1.1M                   | −$2.4M to −$1.1M | −$1.3M   | deficit everywhere |
-| Kansas            | Big 12           | $14.2M         | −$1.0M | −$1.6M     | −$1.9M | −$0.4M | −$1.4M              | −$3.0M                   | −$3.0M to −$0.4M | −$1.5M   | deficit everywhere |
+| BYU               | Big 12           | $12.4M         | +$0.2M | −$0.6M     | −$0.4M | −$0.4M | −$0.8M              | −$1.4M                   | −$0.6M to +$0.2M | −$0.4M   | depends on rating  |
+| Oregon            | Big Ten          | $19.5M         | −$0.9M | −$0.2M     | −$0.2M | −$2.6M | −$1.2M              | +$3.5M                   | −$2.6M to −$0.2M | −$0.5M   | deficit everywhere |
+| Texas             | SEC              | $22.7M         | −$0.8M | −$0.1M     | −$1.2M | −$0.3M | −$0.9M              | +$3.5M                   | −$1.2M to −$0.1M | −$0.6M   | deficit everywhere |
+| Florida           | SEC              | $18.3M         | −$0.7M | −$0.4M     | −$0.3M | −$0.8M | −$0.9M              | +$1.1M                   | −$0.8M to −$0.3M | −$0.6M   | deficit everywhere |
+| Wisconsin         | Big Ten          | $14.7M         | −$1.1M | −$0.8M     | −$0.6M | +$0.5M | +$0.1M              | −$1.9M                   | −$1.1M to +$0.5M | −$0.7M   | depends on rating  |
+| Pittsburgh        | ACC              | $12.9M         | −$0.6M | −$0.9M     | −$0.7M | −$1.4M | −$0.5M              | −$2.4M                   | −$1.4M to −$0.6M | −$0.8M   | deficit everywhere |
+| USC               | Big Ten          | $19.7M         | −$1.0M | −$0.7M     | −$1.4M | −$0.1M | −$1.7M              | +$1.3M                   | −$1.4M to −$0.1M | −$0.9M   | deficit everywhere |
+| Iowa State        | Big 12           | $13.6M         | −$1.4M | −$1.5M     | −$0.9M | −$0.5M | −$0.3M              | −$3.9M                   | −$1.5M to −$0.5M | −$1.1M   | deficit everywhere |
+| Auburn            | SEC              | $17.0M         | −$1.2M | −$1.0M     | −$1.2M | −$1.5M | −$0.6M              | −$1.2M                   | −$1.5M to −$1.0M | −$1.2M   | deficit everywhere |
+| Iowa              | Big Ten          | $13.0M         | −$1.3M | −$1.2M     | −$1.2M | −$0.0M | −$0.7M              | −$2.9M                   | −$1.3M to −$0.0M | −$1.2M   | deficit everywhere |
+| Purdue            | Big Ten          | $13.2M         | −$1.2M | −$1.4M     | −$1.1M | −$1.3M | −$1.0M              | −$3.1M                   | −$1.4M to −$1.1M | −$1.2M   | deficit everywhere |
+| Kansas            | Big 12           | $14.2M         | −$1.0M | −$1.6M     | −$1.9M | −$0.4M | −$1.4M              | −$3.0M                   | −$1.9M to −$0.4M | −$1.3M   | deficit everywhere |
+| Washington        | Big Ten          | $14.2M         | −$1.8M | −$0.6M     | −$1.2M | −$1.6M | −$0.9M              | −$0.2M                   | −$1.8M to −$0.6M | −$1.4M   | deficit everywhere |
+| Florida State     | ACC              | $15.1M         | −$1.5M | −$1.4M     | −$1.2M | −$2.4M | −$1.2M              | −$1.1M                   | −$2.4M to −$1.2M | −$1.5M   | deficit everywhere |
+| Oklahoma          | SEC              | $17.7M         | −$2.0M | −$1.1M     | −$2.0M | −$0.6M | −$1.4M              | −$0.6M                   | −$2.0M to −$0.6M | −$1.5M   | deficit everywhere |
 | Baylor            | Big 12           | $14.3M         | −$0.8M | −$1.7M     | −$1.5M | −$2.1M | −$1.6M              | −$2.1M                   | −$2.1M to −$0.8M | −$1.6M   | deficit everywhere |
-| Kansas State      | Big 12           | $14.6M         | −$1.1M | −$1.9M     | −$1.8M | −$1.4M | −$2.2M              | −$1.9M                   | −$2.2M to −$1.1M | −$1.8M   | deficit everywhere |
-| Arizona State     | Big 12           | $14.4M         | −$1.9M | −$2.1M     | −$1.8M | −$2.5M | −$2.1M              | −$2.3M                   | −$2.5M to −$1.8M | −$2.1M   | deficit everywhere |
-| Vanderbilt        | SEC              | $14.7M         | −$1.9M | −$2.7M     | −$2.4M | −$2.4M | −$2.7M              | −$2.9M                   | −$2.9M to −$1.9M | −$2.6M   | deficit everywhere |
-| NC State          | ACC              | $15.5M         | −$2.7M | −$3.2M     | −$2.9M | −$2.6M | −$3.0M              | −$3.5M                   | −$3.5M to −$2.6M | −$2.9M   | deficit everywhere |
-| Clemson           | ACC              | $18.6M         | −$3.7M | −$2.1M     | −$3.3M | −$3.5M | −$3.2M              | +$1.0M                   | −$3.7M to +$1.0M | −$3.2M   | depends on rating  |
-| Maryland          | Big Ten          | $13.6M         | −$3.1M | −$3.3M     | −$3.0M | −$3.6M | −$3.2M              | −$3.9M                   | −$3.9M to −$3.0M | −$3.3M   | deficit everywhere |
-| Ole Miss          | SEC              | $20.3M         | −$2.8M | −$3.5M     | −$3.4M | −$3.4M | −$3.9M              | −$2.4M                   | −$3.9M to −$2.4M | −$3.4M   | deficit everywhere |
-| Michigan          | Big Ten          | $19.2M         | −$3.6M | −$2.4M     | −$3.2M | −$3.8M | −$3.6M              | +$1.2M                   | −$3.8M to +$1.2M | −$3.4M   | depends on rating  |
-| Colorado          | Big 12           | $14.9M         | −$3.5M | −$3.2M     | −$3.6M | −$3.8M | −$3.7M              | −$1.8M                   | −$3.8M to −$1.8M | −$3.5M   | deficit everywhere |
-| Boston College    | ACC              | $13.4M         | −$3.8M | −$3.9M     | −$4.2M | −$3.1M | −$3.1M              | −$5.8M                   | −$5.8M to −$3.1M | −$3.9M   | deficit everywhere |
-| Michigan State    | Big Ten          | $12.2M         | −$4.5M | −$3.9M     | −$4.3M | −$3.9M | −$3.8M              | −$4.7M                   | −$4.7M to −$3.8M | −$4.1M   | deficit everywhere |
-| California        | ACC              | $13.6M         | −$5.9M | −$4.5M     | −$4.6M | −$6.6M | −$4.7M              | −$3.7M                   | −$6.6M to −$3.7M | −$4.7M   | deficit everywhere |
-| Texas A&M         | SEC              | $21.7M         | −$6.5M | −$4.6M     | −$6.0M | −$4.8M | −$5.6M              | −$0.6M                   | −$6.5M to −$0.6M | −$5.2M   | deficit everywhere |
-| UCF               | Big 12           | $13.3M         | −$5.4M | −$5.5M     | −$5.9M | −$5.5M | −$5.7M              | −$5.8M                   | −$5.9M to −$5.4M | −$5.6M   | deficit everywhere |
+| Kansas State      | Big 12           | $14.6M         | −$1.1M | −$1.9M     | −$1.8M | −$1.4M | −$2.2M              | −$1.9M                   | −$1.9M to −$1.1M | −$1.6M   | deficit everywhere |
+| Arizona State     | Big 12           | $14.4M         | −$1.9M | −$2.1M     | −$1.8M | −$2.5M | −$2.1M              | −$2.3M                   | −$2.5M to −$1.8M | −$2.0M   | deficit everywhere |
+| Vanderbilt        | SEC              | $14.7M         | −$1.9M | −$2.7M     | −$2.4M | −$2.4M | −$2.7M              | −$2.9M                   | −$2.7M to −$1.9M | −$2.4M   | deficit everywhere |
+| NC State          | ACC              | $15.5M         | −$2.7M | −$3.2M     | −$2.9M | −$2.6M | −$3.0M              | −$3.5M                   | −$3.2M to −$2.6M | −$2.8M   | deficit everywhere |
+| Maryland          | Big Ten          | $13.6M         | −$3.1M | −$3.3M     | −$3.0M | −$3.6M | −$3.2M              | −$3.9M                   | −$3.6M to −$3.0M | −$3.2M   | deficit everywhere |
+| Ole Miss          | SEC              | $20.3M         | −$2.8M | −$3.5M     | −$3.4M | −$3.4M | −$3.9M              | −$2.4M                   | −$3.5M to −$2.8M | −$3.4M   | deficit everywhere |
+| Clemson           | ACC              | $18.6M         | −$3.7M | −$2.1M     | −$3.3M | −$3.5M | −$3.2M              | +$1.0M                   | −$3.7M to −$2.1M | −$3.4M   | deficit everywhere |
+| Michigan          | Big Ten          | $19.2M         | −$3.6M | −$2.4M     | −$3.2M | −$3.8M | −$3.6M              | +$1.2M                   | −$3.8M to −$2.4M | −$3.4M   | deficit everywhere |
+| Colorado          | Big 12           | $14.9M         | −$3.5M | −$3.2M     | −$3.6M | −$3.8M | −$3.7M              | −$1.8M                   | −$3.8M to −$3.2M | −$3.5M   | deficit everywhere |
+| Boston College    | ACC              | $13.4M         | −$3.8M | −$3.9M     | −$4.2M | −$3.1M | −$3.1M              | −$5.8M                   | −$4.2M to −$3.1M | −$3.9M   | deficit everywhere |
+| Michigan State    | Big Ten          | $12.2M         | −$4.5M | −$3.9M     | −$4.3M | −$3.9M | −$3.8M              | −$4.7M                   | −$4.5M to −$3.9M | −$4.1M   | deficit everywhere |
+| California        | ACC              | $13.6M         | −$5.9M | −$4.5M     | −$4.6M | −$6.6M | −$4.7M              | −$3.7M                   | −$6.6M to −$4.5M | −$5.3M   | deficit everywhere |
+| Texas A&M         | SEC              | $21.7M         | −$6.5M | −$4.6M     | −$6.0M | −$4.8M | −$5.6M              | −$0.6M                   | −$6.5M to −$4.6M | −$5.4M   | deficit everywhere |
+| UCF               | Big 12           | $13.3M         | −$5.4M | −$5.5M     | −$5.9M | −$5.5M | −$5.7M              | −$5.8M                   | −$5.9M to −$5.4M | −$5.5M   | deficit everywhere |
 | Rutgers           | Big Ten          | $15.3M         | −$5.6M | −$5.8M     | −$5.6M | −$6.6M | −$6.4M              | −$5.6M                   | −$6.6M to −$5.6M | −$5.7M   | deficit everywhere |
-| Virginia          | ACC              | $15.1M         | −$5.8M | −$5.7M     | −$5.8M | −$5.4M | −$5.3M              | −$7.1M                   | −$7.1M to −$5.3M | −$5.7M   | deficit everywhere |
-| Minnesota         | Big Ten          | $15.3M         | −$6.0M | −$5.5M     | −$6.0M | −$5.2M | −$5.8M              | −$5.7M                   | −$6.0M to −$5.2M | −$5.7M   | deficit everywhere |
+| Virginia          | ACC              | $15.1M         | −$5.8M | −$5.7M     | −$5.8M | −$5.4M | −$5.3M              | −$7.1M                   | −$5.8M to −$5.4M | −$5.7M   | deficit everywhere |
+| Minnesota         | Big Ten          | $15.3M         | −$6.0M | −$5.5M     | −$6.0M | −$5.2M | −$5.8M              | −$5.7M                   | −$6.0M to −$5.2M | −$5.8M   | deficit everywhere |
 | Arkansas          | SEC              | $15.0M         | −$6.6M | −$7.0M     | −$6.9M | −$7.4M | −$7.0M              | −$6.7M                   | −$7.4M to −$6.6M | −$6.9M   | deficit everywhere |

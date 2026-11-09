@@ -1,0 +1,577 @@
+<meta name="dash-one-writer">
+<style>
+.pb-steps-plain { margin: 0; padding-left: 1.25rem; display: grid; gap: 6px; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); line-height: 1.5; max-width: 72ch; }
+.pb .pb-steps-plain b { color: var(--color-fg); font-weight: 500; }
+.pb-kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: var(--cds-font-size-body); }
+.pb-kv dt { color: var(--color-fg-muted); }
+.pb-kv dd { margin: 0; color: var(--color-fg); }
+.pb-h2 { margin: 8px 0 0; font-size: var(--cds-font-size-heading); font-weight: 500; }
+.pb-select-row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
+.pb-select-row label { display: grid; gap: 6px; font-size: var(--cds-font-size-body); font-weight: 500; }
+.pb-select-row select { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--pb-inner); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) - 2px); box-shadow: var(--pb-shadow-xs); height: 36px; padding: 0 10px; max-width: 100%; }
+.pb-select-row select:focus-visible { outline: 2px solid var(--pb-accent); outline-offset: 1px; }
+</style>
+
+<div class="pb">
+  <header class="pb-head">
+    <h1 class="pb-title">Football roster market</h1>
+    <p class="pb-take">What A4 football players are paid, what each roster would cost at those rates, and what it delivers on the field. Pay comes from the College Sports Commission's release first seen <b data-draw="latest" data-source="summary" data-field="first_seen">—</b>. Rosters, production and final scores come from CollegeFootballData through week <b data-draw="fb-week" data-source="totals" data-field="through_week" data-row="0">—</b> (last game <b data-draw="fb-last" data-source="totals" data-field="last_game" data-row="0">—</b>), and on-field value from four published ratings: SP+, ESPN FPI, SRS and Elo.</p>
+  </header>
+
+  <nav class="pb-tabs" role="tablist" aria-label="Views">
+    <button class="pb-tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button class="pb-tab" role="tab" data-tab="offer" aria-selected="false">Offer check</button>
+    <button class="pb-tab" role="tab" data-tab="market" aria-selected="false">Position market</button>
+    <button class="pb-tab" role="tab" data-tab="rosters" aria-selected="false">Rosters</button>
+    <button class="pb-tab" role="tab" data-tab="expectations" aria-selected="false">Market view</button>
+    <button class="pb-tab" role="tab" data-tab="method" aria-selected="false">Method</button>
+  </nav>
+
+  <section class="pb-page" id="overview">
+    <p class="pb-foot">Six things to know about the A4 football market this season. Every number is worked out from the data, so it updates with each CSC release and each week of games.</p>
+    <div class="pb-finds">
+      <article class="pb-find">
+        <span class="pb-find-k">Who gets paid</span>
+        <span class="pb-find-v" data-draw="f-paid-a4" data-source="paid_share" data-field="share" data-where="key=A4|All positions">—</span>
+        <p>of A4 football players were paid revenue share in calendar 2026, <b data-draw="f-paid-a4-paid" data-source="paid_share" data-field="paid" data-where="key=A4|All positions">—</b> of <b data-draw="f-paid-a4-rostered" data-source="paid_share" data-field="rostered" data-where="key=A4|All positions">—</b>. Outside the A4 it was <b data-draw="f-paid-non" data-source="paid_share" data-field="share" data-where="key=Non-A4|All positions">—</b>. The position paid most often is <b data-draw="f-top-label" data-source="top_paid" data-field="label" data-row="0">—</b>: <b data-draw="f-top-a4" data-source="top_paid" data-field="a4_share" data-row="0">—</b> of them.</p>
+        <button class="pb-go" data-go="market">Position market</button>
+      </article>
+      <article class="pb-find">
+        <span class="pb-find-k">What every A4 program pays at least</span>
+        <span class="pb-find-v" data-draw="f-floor" data-source="totals" data-field="floor_per_program" data-row="0">—</span>
+        <p>is the least A4 football revenue share per program in 2026, with no model: each paid player earns at least the published percentile below him. That is <b data-draw="f-floor-share" data-source="totals" data-field="floor_cap_share" data-row="0">—</b> of a <b data-draw="f-cap" data-source="totals" data-field="cap" data-row="0">—</b> cap that has to cover every sport.</p>
+        <button class="pb-go" data-go="method">Method</button>
+      </article>
+      <article class="pb-find">
+        <span class="pb-find-k">The top of the quarterback market</span>
+        <span class="pb-find-v" data-draw="f-qb-p99" data-source="totals" data-field="qb_p99_calibrated" data-row="0">—</span>
+        <p>is about where the 99th percentile of A4 quarterback revenue share sits once football is held to its share of the cap. The CSC's table stops at the 90th, <b data-draw="f-qb-p90" data-source="totals" data-field="qb_p90" data-row="0">—</b>; a lognormal tail with no constraint would have said <b data-draw="f-qb-fit" data-source="totals" data-field="qb_p99_fitted" data-row="0">—</b>.</p>
+        <button class="pb-go" data-go="offer">Offer check</button>
+      </article>
+      <article class="pb-find">
+        <span class="pb-find-k">Best value roster</span>
+        <span class="pb-find-v" data-draw="f-sur-top-v" data-source="surplus_ends" data-field="surplus" data-where="end=top">—</span>
+        <p>of on-field value over its market price for <b data-draw="f-sur-top" data-source="surplus_ends" data-field="team" data-where="end=top">—</b>, the median across SP+, ESPN FPI, SRS and Elo. <b data-draw="f-sur-bot" data-source="surplus_ends" data-field="team" data-where="end=bottom">—</b> has the least, <b data-draw="f-sur-bot-v" data-source="surplus_ends" data-field="surplus" data-where="end=bottom">—</b>.</p>
+        <button class="pb-go" data-go="rosters">Rosters</button>
+      </article>
+      <article class="pb-find">
+        <span class="pb-find-k">Calls that hold under every rating</span>
+        <span class="pb-find-v" data-draw="f-calls-agree" data-source="call_counts" data-field="agree" data-row="0">—</span>
+        <p>of <b data-draw="f-calls-all" data-source="call_counts" data-field="programs" data-row="0">—</b> A4 programs keep the same sign under all four ratings: <b data-draw="f-calls-up" data-source="call_counts" data-field="surplus" data-row="0">—</b> in surplus and <b data-draw="f-calls-down" data-source="call_counts" data-field="deficit" data-row="0">—</b> in deficit. The rest depend on which rating you trust.</p>
+        <button class="pb-go" data-go="rosters">Rosters</button>
+      </article>
+      <article class="pb-find">
+        <span class="pb-find-k">Where the market sees it differently</span>
+        <span class="pb-find-v" data-draw="f-gap-pts" data-source="market_gap" data-field="gap" data-where="end=over">—</span>
+        <p>rating points: how far the betting market's view of <b data-draw="f-gap-team" data-source="market_gap" data-field="team" data-where="end=over">—</b> runs ahead of how it has played. The market is coolest on <b data-draw="f-gap-low-team" data-source="market_gap" data-field="team" data-where="end=under">—</b>, <b data-draw="f-gap-low-pts" data-source="market_gap" data-field="gap" data-where="end=under">—</b>.</p>
+        <button class="pb-go" data-go="expectations">Market view</button>
+      </article>
+    </div>
+  </section>
+
+  <section class="pb-page" id="offer" hidden>
+    <div class="pb-filters">
+      <label>Position <select id="pb-position" data-draw="position-select" data-source="cohorts"></select></label>
+      <label>Group <select id="pb-cohort" data-draw="cohort-select" data-source="cohorts"></select></label>
+      <label>Revenue share, dollars <input id="pb-rs" class="pb-amt" data-param="rs" type="number" min="0" step="500" inputmode="numeric"></label>
+      <label>NIL deals, dollars <input id="pb-nil" class="pb-amt" data-param="nil" type="number" min="0" step="500" inputmode="numeric"></label>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card" id="offer-rs">
+        <h2>Revenue share</h2>
+        <p>Payments from the school, reported to CAPS. <span data-draw="rs-window" data-source="cohorts" data-field="window_label">—</span></p>
+        <p data-when="rs-none" hidden>The revenue-share report publishes no table for this group.</p>
+        <p data-when="rs-bracket" hidden>Too few published percentiles for a curve, so only the published bracket is shown.</p>
+        <span data-draw="rs-state"></span>
+        <div class="pb-result" data-draw="rs-result" data-source="curves cohorts"></div>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Paid athletes</span>
+          <span><i class="pb-sw" data-color="1"></i>Everyone rostered</span>
+          <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
+        </div>
+        <div class="pb-chart" data-draw="rs-chart" data-source="curves cohorts"></div>
+      </article>
+      <article class="pb-card" id="offer-nil">
+        <h2>NIL Go</h2>
+        <p>Third-party deals cleared through NIL Go, at full contract value, not per year. <span data-draw="nil-window" data-source="cohorts" data-field="window_label">—</span></p>
+        <p data-when="nil-none" hidden>The NIL Go report publishes no table for this group.</p>
+        <p data-when="nil-bracket" hidden>Too few published percentiles for a curve, so only the published bracket is shown.</p>
+        <span data-draw="nil-state"></span>
+        <div class="pb-result" data-draw="nil-result" data-source="curves cohorts"></div>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Athletes with a deal</span>
+          <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
+        </div>
+        <div class="pb-chart" data-draw="nil-chart" data-source="curves cohorts"></div>
+      </article>
+    </div>
+    <p class="pb-foot">The large number is the curve's estimate. Under it, "published" names the percentiles the CSC printed on either side of the amount, which hold with no model at all. A range such as "10th to 50th" means many athletes got exactly that amount. Past the 90th, the A4 tail is held to football's share of the revenue-share cap. Revenue share and NIL Go are separate reports and are never combined.</p>
+  </section>
+
+  <section class="pb-page" id="market" hidden>
+    <div class="pb-filters">
+      <div class="pb-seg" role="group" aria-label="Group">
+        <button class="pb-cut" data-cut="A4" aria-pressed="true">A4 conferences</button>
+        <button class="pb-cut" data-cut="Non-A4" aria-pressed="false">Non-A4</button>
+      </div>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card">
+        <h2>Revenue share by position</h2>
+        <p>Paid athletes, calendar 2026. The line runs from the 10th to the 90th percentile, the bar covers the middle half, and the dot is the median. Log scale.</p>
+        <div class="pb-chart" data-draw="market-rs" data-source="cohorts"></div>
+      </article>
+      <article class="pb-card">
+        <h2>Share of the roster paid</h2>
+        <p>Revenue share: rostered players with any payment in calendar 2026, A4 and non-A4 side by side.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>A4 conferences</span>
+          <span><i class="pb-sw" data-color="2"></i>Non-A4</span>
+        </div>
+        <div class="pb-chart" data-draw="paid-share" data-source="paid_share"></div>
+      </article>
+    </div>
+    <article class="pb-card">
+      <h2>NIL Go by position</h2>
+      <p>Athletes with at least one cleared deal, Jan 1 to Sep 30, 2026, at full contract value. Same marks as above, on this report's own log scale.</p>
+      <div class="pb-chart" data-draw="market-nil" data-source="cohorts"></div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="rosters" hidden>
+    <p class="pb-foot">Market value is what a roster would cost in revenue share at the CSC's A4 rates, with players ranked on public data from before the season. On-field value is how much of the team's rating its players explain, priced at the same market rate per rating point. It is worked out four times, against SP+, ESPN FPI, SRS and Elo; surplus is the median of the four, and the range shows how far the ratings disagree. These are market prices, not what schools actually pay.</p>
+    <div class="pb-filters">
+      <div class="pb-seg" role="group" aria-label="Conference">
+        <button class="pb-conf" data-conf="All" aria-pressed="true">All A4</button>
+        <button class="pb-conf" data-conf="SEC" aria-pressed="false">SEC</button>
+        <button class="pb-conf" data-conf="Big Ten" aria-pressed="false">Big Ten</button>
+        <button class="pb-conf" data-conf="Big 12" aria-pressed="false">Big 12</button>
+        <button class="pb-conf" data-conf="ACC" aria-pressed="false">ACC</button>
+      </div>
+    </div>
+    <div class="pb-grid">
+      <article class="pb-card">
+        <h2>What rosters deliver against what they cost</h2>
+        <p>Each dot is a program, at its median on-field value. Above the diagonal, the roster delivers more than it would cost at market rates.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Surplus</span>
+          <span><i class="pb-sw" data-color="1"></i>Deficit</span>
+        </div>
+        <div class="pb-chart" data-draw="rosters-scatter" data-source="rosters"></div>
+      </article>
+      <article class="pb-card">
+        <h2>Surplus by program</h2>
+        <p>The dot is the median across the four ratings and the bar their range. Grey means the ratings disagree on the sign.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Surplus under all four</span>
+          <span><i class="pb-sw" data-color="1"></i>Deficit under all four</span>
+          <span><i class="pb-sw"></i>Depends on the rating</span>
+        </div>
+        <div class="pb-chart" data-draw="rosters-surplus" data-source="rosters"></div>
+      </article>
+    </div>
+    <article class="pb-card">
+      <h2>Every A4 program</h2>
+      <p>Sorted by surplus. Each rating's column is the surplus that rating gives.</p>
+      <div class="pb-scroll">
+        <table class="pb-table" data-source="rosters" data-row-key="id">
+          <thead><tr>
+            <th data-field="team">Program</th><th data-field="conference">Conference</th>
+            <th class="num" data-field="value">Market value</th><th class="num" data-field="on_field_value">On-field value</th>
+            <th class="num" data-field="surplus">Surplus</th><th class="num" data-field="surplus_low">Range</th>
+            <th class="num" data-field="sp">SP+</th><th class="num" data-field="fpi">ESPN FPI</th>
+            <th class="num" data-field="srs">SRS</th><th class="num" data-field="elo">Elo</th><th data-field="call">Call</th>
+          </tr></thead>
+          <tbody data-draw="rosters-rows"></tbody>
+        </table>
+      </div>
+    </article>
+    <article class="pb-card">
+      <h2>Market value by program</h2>
+      <p>The dot is the estimate, the line its 80% range from uncertainty in how players rank. The dashed line is the calendar-2026 revenue-share cap, which covers every sport.</p>
+      <div class="pb-chart" data-draw="rosters-range" data-source="rosters"></div>
+    </article>
+  </section>
+
+  <section class="pb-page" id="expectations" hidden>
+    <p class="pb-foot">This tab is the market's view, from the CollegeFootballRatings2026 model. That model blends SP+ and BCF Toys FEI projections with the betting market and leans mostly on the market, so its team ratings say what bettors expect a team to be. Here they are fit from every game it priced in weeks 1 to 8 and set beside the four published ratings, which say how teams have played.</p>
+    <div class="pb-grid">
+      <article class="pb-card">
+        <h2>Expectation against performance</h2>
+        <p>Each dot is an A4 program, both ratings in points per game on SP+'s scale. Above the diagonal, the market rates the team higher than its play so far.</p>
+        <div class="pb-chart" data-draw="mv-scatter" data-source="rosters"></div>
+      </article>
+      <article class="pb-card">
+        <h2>Roster value, market view against results</h2>
+        <p>Surplus priced from the market's ratings beside the median of the four published ratings, for the programs where they differ most.</p>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="3"></i>Market view</span>
+          <span><i class="pb-sw" data-color="0"></i>Published ratings</span>
+        </div>
+        <div class="pb-chart" data-draw="mv-gaps" data-source="rosters"></div>
+      </article>
+    </div>
+
+    <h2 class="pb-h2">The season so far</h2>
+    <div class="pb-grid">
+      <article class="pb-card">
+        <h2>Week by week</h2>
+        <p>How far the model's margins and the market's lines missed final scores, how often the model picked the winner, and the signals it posted. Weeks 1 to 6 are a backtest with a model fit only on earlier seasons; weeks 7 and 8 were posted live.</p>
+        <div class="pb-chart" data-draw="mv-units" data-source="season_weeks"></div>
+        <div class="pb-scroll">
+          <table class="pb-table" data-source="season_weeks" data-row-key="week">
+            <thead><tr>
+              <th data-field="week">Week</th><th class="num" data-field="games">Games</th>
+              <th class="num" data-field="model_miss">Model miss</th><th class="num" data-field="market_miss">Market miss</th>
+              <th class="num" data-field="winners">Winner picked</th><th data-field="record">Signals</th><th class="num" data-field="units">Units</th>
+            </tr></thead>
+            <tbody data-draw="mv-week-rows"></tbody>
+          </table>
+        </div>
+        <p data-draw="mv-graded-note" data-source="season_signals">—</p>
+      </article>
+      <article class="pb-card">
+        <h2>One team's season</h2>
+        <p>Every game the model priced for one program: what the market expected, what the model expected, and what happened, all from that team's side.</p>
+        <div class="pb-select-row">
+          <label>Team <select id="pb-team" data-draw="mv-team-select" data-source="season_games"></select></label>
+        </div>
+        <div class="pb-legend">
+          <span><i class="pb-sw" data-color="0"></i>Final margin</span>
+          <span><i class="pb-sw" data-color="3"></i>Model</span>
+          <span><i class="pb-sw pb-sw-dash"></i>Market line</span>
+        </div>
+        <div class="pb-chart" data-draw="mv-team-chart" data-source="season_games"></div>
+        <div class="pb-scroll">
+          <table class="pb-table" data-source="season_games" data-row-key="id">
+            <thead><tr>
+              <th data-field="week">Week</th><th data-field="home">Opponent</th><th class="num" data-field="line">Line</th>
+              <th class="num" data-field="model">Model</th><th class="num" data-field="final">Final</th><th class="num" data-field="final">Against the line</th>
+            </tr></thead>
+            <tbody data-draw="mv-team-rows"></tbody>
+          </table>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="pb-page" id="method" hidden>
+    <div class="pb-grid">
+      <article class="pb-card">
+        <h2>How on-field value works</h2>
+        <ol class="pb-steps-plain">
+          <li><b>Score every player</b> on this season's production (usage, expected points added, tackles, sacks and the like), recruiting or transfer-portal rating, and class year.</li>
+          <li><b>Turn players into position-group strength.</b> Each group has starter slots (1 QB, 1 RB, 3 WR, 1 TE, 5 OL, 4 DL, 3 LB, 4 DB, 1 K, 1 P); the next players count 30%, and only the part of a score above a national replacement level counts.</li>
+          <li><b>Regress each team rating on those strengths</b> across all 138 FBS teams, with weights that can't go negative. That says how many rating points each group is worth. The player-score weights are chosen per rating by cross-validation.</li>
+          <li><b>Price the points</b> at the A4 market: total A4 market value divided by total A4 points, so a rating point costs about half a million dollars. One point is about 0.3 wins over a 12-game season.</li>
+          <li><b>Surplus</b> is on-field value minus market value. It averages zero across the 68 programs by construction, so it ranks programs against each other.</li>
+        </ol>
+      </article>
+      <article class="pb-card">
+        <h2>Ratings used</h2>
+        <dl class="pb-kv">
+          <dt>SP+</dt><dd>Bill Connelly's efficiency rating; early in the season it leans on a preseason projection that fades as games are played.</dd>
+          <dt>ESPN FPI</dt><dd>ESPN's predictive rating, also with a preseason prior.</dd>
+          <dt>SRS</dt><dd>Opponent-adjusted scoring margin, no prior.</dd>
+          <dt>Elo</dt><dd>Results-based, carried over from last season.</dd>
+        </dl>
+        <p>A check fit only on 2026 final scores, with no prior, was explained as well as SP+ and gave class year the same weight, so SP+'s preseason prior is not what drives the player weights. The full test is in the repository's reports/ratings_2026.md.</p>
+        <h3>What NIL Go leaves out</h3>
+        <p>Athletes report third-party deals worth <b data-draw="rule-min">—</b> or more to NIL Go, so smaller deals are not in its tables. The CSC has also raised the size of deal that skips its check on whether pay is in a reasonable range, reported in the trade press at up to <b data-draw="rule-review">—</b> unless an athlete passes <b data-draw="rule-season">—</b> in deals in an academic year.</p>
+      </article>
+    </div>
+    <article class="pb-card">
+      <h2>Limits</h2>
+      <ol class="pb-steps-plain">
+        <li>Individual contracts are private. Player values are ranks placed on the CSC's published distributions, so only program totals are shown.</li>
+        <li>Public data ranks players only moderately well; that uncertainty is the market-value range.</li>
+        <li>Defense is explained less well than offense, and kickers and punters barely move any rating.</li>
+        <li>Coaching, scheme and luck that the ratings pick up but player scores can't explain are not credited to anyone.</li>
+        <li>The market view stops at week 8, where the CollegeFootballRatings2026 weekly files stop; the published ratings run through the latest week.</li>
+      </ol>
+      <h3>Releases on file</h3>
+      <div class="pb-scroll">
+        <table class="pb-table" data-source="releases" data-row-key="id">
+          <thead><tr>
+            <th data-field="report">Report</th><th data-field="release">Release</th>
+            <th data-field="first_seen">First seen</th><th class="num" data-field="cohorts">Cohorts</th>
+          </tr></thead>
+          <tbody data-draw="release-rows"></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+</div>
+
+<script>
+// ---- football page: the shared page script runs first and provides the helpers used here.
+fill('fb-week', () => { const r = pick('totals'); return r && r.through_week != null ? String(r.through_week) : null; });
+fill('fb-last', () => { const r = pick('totals'); return r && r.last_game ? d3.utcFormat('%b %-d')(new Date(r.last_game + 'T00:00:00Z')) : null; });
+
+dash.calc('call_counts', {
+  inputs: ['rosters'],
+  title: 'Programs whose call holds under every rating',
+  description: 'A4 programs whose surplus has the same sign under SP+, ESPN FPI, SRS and Elo.',
+  fn: (rosters) => {
+    const up = rosters.filter((r) => r.call.startsWith('Surplus')).length, down = rosters.filter((r) => r.call.startsWith('Deficit')).length;
+    return [{ programs: rosters.length, agree: up + down, surplus: up, deficit: down }];
+  },
+});
+fill('f-calls-agree', () => { const r = pick('call_counts'); return r && String(r.agree); });
+fill('f-calls-all', () => { const r = pick('call_counts'); return r && String(r.programs); });
+fill('f-calls-up', () => { const r = pick('call_counts'); return r && String(r.surplus); });
+fill('f-calls-down', () => { const r = pick('call_counts'); return r && String(r.deficit); });
+
+dash.calc('market_gap', {
+  inputs: ['rosters'],
+  title: 'Market expectation against performance',
+  description: "The A4 programs whose market rating (CollegeFootballRatings2026) is furthest above and below the median of the four published ratings.",
+  fn: (rosters) => {
+    const r = rosters.filter((x) => x.market_rating != null && x.perf_rating != null)
+      .map((x) => ({ team: x.team, gap: x.market_rating - x.perf_rating })).sort((a, b) => b.gap - a.gap);
+    return r.length ? [{ end: 'over', ...r[0] }, { end: 'under', ...r[r.length - 1] }] : [];
+  },
+});
+const fmtPts = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1);
+fill('f-gap-pts', () => { const r = pick('market_gap', (x) => x.end === 'over'); return r && fmtPts(r.gap); });
+fill('f-gap-team', () => { const r = pick('market_gap', (x) => x.end === 'over'); return r && r.team; });
+fill('f-gap-low-team', () => { const r = pick('market_gap', (x) => x.end === 'under'); return r && r.team; });
+fill('f-gap-low-pts', () => { const r = pick('market_gap', (x) => x.end === 'under'); return r && fmtPts(r.gap) + ' points'; });
+
+// ---- market view: expectation against performance
+dash.draw('mv-scatter', (el) => {
+  el.replaceChildren();
+  const rows = (rowsOf('rosters') || []).filter((r) => r.market_rating != null && r.perf_rating != null);
+  if (!rows.length) return;
+  const W = Math.max(260, el.clientWidth), H = Math.min(360, Math.max(260, W * 0.75)), m = 14, mb = 34;
+  const all = rows.flatMap((r) => [r.market_rating, r.perf_rating]);
+  const lo = Math.floor(d3.min(all) / 5) * 5 - 2, hi = Math.ceil(d3.max(all) / 5) * 5 + 2;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Market rating against the median published rating by program');
+  const ticks = d3.ticks(lo, hi, W < 420 ? 4 : 6);
+  const ml = measure(svg, ticks.map(String)) + 10;
+  const x = d3.scaleLinear([lo, hi], [ml, W - m]), y = d3.scaleLinear([lo, hi], [H - mb, m]);
+  svg.append('g').selectAll('line').data(ticks).join('line').attr('class', 'pb-gridline')
+    .attr('x1', ml).attr('x2', W - m).attr('y1', (d) => y(d)).attr('y2', (d) => y(d));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(ticks).join('text')
+    .attr('x', ml - 8).attr('y', (d) => y(d)).attr('dy', '0.32em').attr('text-anchor', 'end').text(String);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(ticks).join('text')
+    .attr('x', (d) => x(d)).attr('y', H - 16).attr('text-anchor', 'middle').text(String);
+  svg.append('text').attr('class', 'pb-lab').attr('x', W - m).attr('y', H - 2).attr('text-anchor', 'end').text('how it has played');
+  svg.append('text').attr('class', 'pb-lab').attr('x', ml + 4).attr('y', m + 10).text('what the market expects');
+  svg.append('line').attr('class', 'pb-ref').attr('x1', x(lo)).attr('y1', y(lo)).attr('x2', x(hi)).attr('y2', y(hi));
+  const gap = (r) => r.market_rating - r.perf_rating;
+  const color = (r) => (gap(r) >= 0 ? dash.colors[3] : dash.colors[0]);
+  const sorted = [...rows].sort((a, b) => gap(b) - gap(a));
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.perf_rating)).attr('cy', (r) => y(r.market_rating))
+    .attr('r', 5).attr('fill', color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+  scatterLabels(svg, [...sorted.slice(0, 3), ...sorted.slice(-2).reverse()], (r) => x(r.perf_rating), (r) => y(r.market_rating), (r) => r.team, W);
+  const t = tip(el);
+  const pts = rows.map((r) => [x(r.perf_rating), y(r.market_rating), r]);
+  const finder = d3.Delaunay.from(pts, (d) => d[0], (d) => d[1]);
+  svg.append('rect').attr('x', ml).attr('y', m).attr('width', W - m - ml).attr('height', H - mb - m).attr('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [mx, my] = d3.pointer(ev);
+      const [px, py, r] = pts[finder.find(mx, my)];
+      if (Math.hypot(px - mx, py - my) > 28) { t.hidden = true; return; }
+      tipLines(t, `${r.team} · ${r.conference}`, [[color(r), `Market ${r.market_rating.toFixed(1)}, played ${r.perf_rating.toFixed(1)} (${fmtPts(gap(r))})`]]);
+      place(el, t, px, py);
+    })
+    .on('pointerleave', () => { t.hidden = true; });
+});
+
+dash.draw('mv-gaps', (el) => {
+  el.replaceChildren();
+  const rows = (rowsOf('rosters') || []).filter((r) => r.market_surplus != null);
+  if (!rows.length) return;
+  const d = (r) => r.market_surplus - r.surplus;
+  const sorted = [...rows].sort((a, b) => d(b) - d(a));
+  const pick2 = [...sorted.slice(0, 6), ...sorted.slice(-6)];
+  const W = Math.max(260, el.clientWidth), rowH = 22, mt = 6, mb = 26;
+  const H = mt + pick2.length * rowH + mb + 10;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Surplus from the market view against the published ratings');
+  const ml = measure(svg, pick2.map((r) => r.team)) + 12, mr = 12;
+  const vals = pick2.flatMap((r) => [r.market_surplus, r.surplus]);
+  const ext = d3.max(vals, Math.abs) * 1.08;
+  const x = d3.scaleLinear([-ext, ext], [ml, W - mr]);
+  const yOf = (i) => mt + i * rowH + (i >= 6 ? 10 : 0) + rowH / 2;
+  const xt = x.ticks(W < 420 ? 3 : 5);
+  svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
+    .attr('x1', (v) => x(v)).attr('x2', (v) => x(v)).attr('y1', mt).attr('y2', H - mb);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(xt).join('text')
+    .attr('x', (v) => x(v)).attr('y', H - 8).attr('text-anchor', 'middle').text((v) => (v === 0 ? '$0' : fmtSigned(v)));
+  svg.append('line').attr('class', 'pb-axisline').attr('x1', x(0)).attr('x2', x(0)).attr('y1', mt).attr('y2', H - mb);
+  const t = tip(el);
+  pick2.forEach((r, i) => {
+    const cy = yOf(i);
+    svg.append('text').attr('class', 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em').attr('text-anchor', 'end').text(r.team);
+    svg.append('line').attr('x1', x(r.surplus)).attr('x2', x(r.market_surplus)).attr('y1', cy).attr('y2', cy)
+      .attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2);
+    svg.append('circle').attr('cx', x(r.surplus)).attr('cy', cy).attr('r', 4.5).attr('fill', dash.colors[0]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    svg.append('circle').attr('cx', x(r.market_surplus)).attr('cy', cy).attr('r', 4.5).attr('fill', dash.colors[3]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    svg.append('rect').attr('x', 0).attr('y', cy - rowH / 2).attr('width', W).attr('height', rowH).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        tipLines(t, `${r.team} · ${r.conference}`, [[dash.colors[3], `Market view ${fmtSigned(r.market_surplus)}`],
+          [dash.colors[0], `Published ratings ${fmtSigned(r.surplus)}`]]);
+        place(el, t, x(r.market_surplus), d3.pointer(ev)[1]);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  });
+});
+
+// ---- the season so far
+dash.calc('season_weeks', {
+  inputs: ['season_games', 'season_signals'],
+  title: 'The model week by week',
+  description: "Per week: games priced, the average miss of the model's margin and of the market's line against final scores, how often the model picked the winner, and the signals' record and units.",
+  fn: (season_games, season_signals) => {
+    const weeks = [...new Set(season_games.map((g) => g.week))].sort((a, b) => a - b);
+    let cum = 0;
+    return weeks.map((w) => {
+      const g = season_games.filter((x) => x.week === w && x.final != null);
+      const withLine = g.filter((x) => x.line != null);
+      const decided = g.filter((x) => x.final !== 0 && x.model !== 0);
+      const s = season_signals.filter((x) => x.week === w && x.result);
+      const wins = s.filter((x) => x.result === 'win').length, losses = s.filter((x) => x.result === 'loss').length;
+      const pushes = s.filter((x) => x.result === 'push').length;
+      const units = s.reduce((a, x) => a + (x.units || 0), 0);
+      cum += units;
+      return { week: w, games: g.length,
+        model_miss: g.length ? g.reduce((a, x) => a + Math.abs(x.final - x.model), 0) / g.length : null,
+        market_miss: withLine.length ? withLine.reduce((a, x) => a + Math.abs(x.final + x.line), 0) / withLine.length : null,
+        winners: decided.length ? decided.filter((x) => Math.sign(x.final) === Math.sign(x.model)).length / decided.length : null,
+        record: s.length ? `${wins}–${losses}${pushes ? '–' + pushes : ''}` : 'none', units, cumulative: cum, live: w >= 7 };
+    });
+  },
+});
+dash.draw('mv-units', (el) => {
+  el.replaceChildren();
+  const rows = rowsOf('season_weeks');
+  if (!rows || !rows.length) return;
+  const W = Math.max(260, el.clientWidth), H = 190, mt = 18, mb = 26;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Signal units by week and cumulative');
+  const ext = d3.extent([0, ...rows.map((r) => r.units), ...rows.map((r) => r.cumulative)]);
+  const y = d3.scaleLinear([Math.floor(ext[0]) - 1, Math.ceil(ext[1]) + 1], [H - mb, mt]);
+  const yt = y.ticks(4);
+  const ml = measure(svg, yt.map((v) => (v > 0 ? '+' : '') + v)) + 10;
+  const x = d3.scaleBand(rows.map((r) => r.week), [ml, W - 8]).padding(0.35);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('class', 'pb-gridline').attr('x1', ml).attr('x2', W - 8).attr('y1', (v) => y(v)).attr('y2', (v) => y(v));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(yt).join('text').attr('x', ml - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
+    .attr('text-anchor', 'end').text((v) => (v > 0 ? '+' : '') + v);
+  svg.append('line').attr('class', 'pb-axisline').attr('x1', ml).attr('x2', W - 8).attr('y1', y(0)).attr('y2', y(0));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.week) + x.bandwidth() / 2).attr('y', H - 8)
+    .attr('text-anchor', 'middle').text((r) => 'Wk ' + r.week);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.week)).attr('width', x.bandwidth())
+    .attr('y', (r) => Math.min(y(0), y(r.units))).attr('height', (r) => Math.max(1, Math.abs(y(r.units) - y(0)))).attr('rx', 3)
+    .attr('fill', (r) => (r.units >= 0 ? dash.colors[0] : dash.colors[1])).attr('opacity', (r) => (r.live ? 1 : 0.55));
+  const line = d3.line().x((r) => x(r.week) + x.bandwidth() / 2).y((r) => y(r.cumulative));
+  svg.append('path').attr('d', line(rows)).attr('fill', 'none').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1.5);
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.week) + x.bandwidth() / 2).attr('cy', (r) => y(r.cumulative))
+    .attr('r', 3).attr('fill', 'var(--color-fg)');
+  const last = rows[rows.length - 1];
+  svg.append('text').attr('class', 'pb-lab-strong').attr('x', x(last.week) + x.bandwidth() / 2).attr('y', y(last.cumulative) - 8)
+    .attr('text-anchor', 'end').text(`${last.cumulative >= 0 ? '+' : ''}${last.cumulative.toFixed(1)} units`);
+  const t = tip(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.week) - 4).attr('width', x.bandwidth() + 8).attr('y', mt)
+    .attr('height', H - mb - mt).attr('fill', 'transparent')
+    .on('pointermove', (ev, r) => {
+      tipLines(t, `Week ${r.week} · ${r.live ? 'live' : 'backtest'}`, [[null, `Signals ${r.record}, ${r.units >= 0 ? '+' : ''}${r.units.toFixed(2)} units`],
+        [null, `Season ${r.cumulative >= 0 ? '+' : ''}${r.cumulative.toFixed(2)} units`]]);
+      place(el, t, x(r.week) + x.bandwidth() / 2, d3.pointer(ev)[1]);
+    })
+    .on('pointerleave', () => { t.hidden = true; });
+});
+dash.draw('mv-week-rows', (tb) => {
+  tb.replaceChildren();
+  const rows = rowsOf('season_weeks');
+  if (!rows) return;
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = String(r.week);
+    [`${r.week}${r.live ? ' · live' : ''}`, String(r.games), r.model_miss == null ? '' : r.model_miss.toFixed(1) + ' pts',
+      r.market_miss == null ? '' : r.market_miss.toFixed(1) + ' pts', r.winners == null ? '' : d3.format('.0%')(r.winners), r.record,
+      (r.units >= 0 ? '+' : '') + r.units.toFixed(2)].forEach((c, i) => {
+      const td = document.createElement('td'); if (i >= 1 && i !== 5) td.className = 'num'; td.textContent = c; tr.append(td);
+    });
+    tb.append(tr);
+  }
+});
+dash.draw('mv-graded-note', (el) => {
+  const s = rowsOf('season_signals');
+  if (!s) { el.textContent = '—'; return; }
+  const here = s.filter((x) => x.graded && x.graded.startsWith('here'));
+  const weeks = [...new Set(here.map((x) => x.week))].join(', ');
+  el.textContent = here.length
+    ? `${here.length} signals from week ${weeks} had no result in the weekly files yet; they are graded here from final scores with the same rules.`
+    : 'Every signal is graded in the weekly files.';
+});
+
+// ---- one team's season
+const teamGames = (team) => (rowsOf('season_games') || []).filter((g) => g.home === team || g.away === team)
+  .map((g) => {
+    const home = g.home === team, s = home ? 1 : -1;
+    return { id: g.id, week: g.week, opp: home ? g.away : g.home, site: g.neutral ? 'neutral' : home ? 'home' : 'away',
+      line: g.line == null ? null : g.line * s, model: g.model * s, final: g.final == null ? null : g.final * s };
+  }).sort((a, b) => a.week - b.week);
+const teamOf = () => dash.params().team || 'LSU';
+dash.draw('mv-team-select', (sel) => {
+  const g = rowsOf('season_games'), r = rowsOf('rosters');
+  if (!g || !r) { sel.replaceChildren(); return; }
+  const a4 = new Set(r.map((x) => x.team));
+  const teams = [...new Set(g.flatMap((x) => [x.home, x.away]))].filter((t) => a4.has(t)).sort();
+  sel.replaceChildren(...teams.map((t) => new Option(t, t)));
+  sel.value = teams.includes(teamOf()) ? teamOf() : teams[0];
+  sel.onchange = () => dash.setParams({ team: sel.value });
+});
+dash.draw('mv-team-chart', (el) => {
+  el.replaceChildren();
+  const rows = teamGames(teamOf()).filter((r) => r.final != null);
+  if (!rows.length) return;
+  const W = Math.max(260, el.clientWidth), H = 200, mt = 10, mb = 26;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Final margin against the model and the market line, by game');
+  const vals = rows.flatMap((r) => [r.final, r.model, r.line == null ? 0 : -r.line]);
+  const ext = Math.max(10, d3.max(vals, Math.abs)) * 1.1;
+  const y = d3.scaleLinear([-ext, ext], [H - mb, mt]);
+  const yt = y.ticks(5);
+  const ml = measure(svg, yt.map((v) => (v > 0 ? '+' : '') + v)) + 10;
+  const x = d3.scaleBand(rows.map((r) => r.id), [ml, W - 8]).padding(0.3);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('class', 'pb-gridline').attr('x1', ml).attr('x2', W - 8).attr('y1', (v) => y(v)).attr('y2', (v) => y(v));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(yt).join('text').attr('x', ml - 8).attr('y', (v) => y(v)).attr('dy', '0.32em')
+    .attr('text-anchor', 'end').text((v) => (v > 0 ? '+' : '') + v);
+  svg.append('line').attr('class', 'pb-axisline').attr('x1', ml).attr('x2', W - 8).attr('y1', y(0)).attr('y2', y(0));
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.id) + x.bandwidth() / 2).attr('y', H - 8)
+    .attr('text-anchor', 'middle').text((r) => 'Wk ' + r.week);
+  const cx = (r) => x(r.id) + x.bandwidth() / 2;
+  for (const r of rows) {
+    if (r.line != null) svg.append('line').attr('class', 'pb-ref').attr('x1', x(r.id)).attr('x2', x(r.id) + x.bandwidth()).attr('y1', y(-r.line)).attr('y2', y(-r.line));
+    svg.append('line').attr('x1', cx(r)).attr('x2', cx(r)).attr('y1', y(r.model)).attr('y2', y(r.final)).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 1.5);
+    svg.append('circle').attr('cx', cx(r)).attr('cy', y(r.model)).attr('r', 4).attr('fill', dash.colors[3]);
+    svg.append('circle').attr('cx', cx(r)).attr('cy', y(r.final)).attr('r', 5).attr('fill', dash.colors[0]).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+  }
+  const t = tip(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', (r) => x(r.id) - 4).attr('width', x.bandwidth() + 8).attr('y', mt)
+    .attr('height', H - mb - mt).attr('fill', 'transparent')
+    .on('pointermove', (ev, r) => {
+      tipLines(t, `Week ${r.week} · ${r.site === 'away' ? 'at ' : r.site === 'neutral' ? 'vs ' : 'vs '}${r.opp}`, [
+        [dash.colors[0], `Final ${fmtPts(r.final)}`], [dash.colors[3], `Model ${fmtPts(r.model)}`],
+        [null, r.line == null ? 'No line' : `Line ${fmtPts(r.line)} (expects ${fmtPts(-r.line)})`]]);
+      place(el, t, cx(r), d3.pointer(ev)[1]);
+    })
+    .on('pointerleave', () => { t.hidden = true; });
+});
+dash.draw('mv-team-rows', (tb) => {
+  tb.replaceChildren();
+  for (const r of teamGames(teamOf())) {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.id;
+    const vs = r.final == null || r.line == null ? '' : fmtPts(r.final + r.line);
+    [String(r.week), (r.site === 'away' ? 'at ' : 'vs ') + r.opp + (r.site === 'neutral' ? ' (neutral)' : ''),
+      r.line == null ? '' : (r.line > 0 ? '+' : r.line < 0 ? '−' : '') + Math.abs(r.line), fmtPts(r.model), r.final == null ? '' : fmtPts(r.final), vs]
+      .forEach((c, i) => { const td = document.createElement('td'); if (i >= 2) td.className = 'num'; td.textContent = c; tr.append(td); });
+    tb.append(tr);
+  }
+});
+</script>

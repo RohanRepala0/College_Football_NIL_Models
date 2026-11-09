@@ -477,8 +477,7 @@ def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
                         "$ per point": s.price_per_point.map(lambda v: f"${v:,.0f}")})
     rc = result["surplus_rank_corr"].rename(index=rt.LABELS, columns=rt.LABELS).round(2).reset_index(names="")
     counts = sur.agree.value_counts()
-    pub = [c for c in cols if c != "yours"]
-    agree_pub = int(((sur[pub] > 0).all(axis=1) | (sur[pub] < 0).all(axis=1)).sum())
+
     table = pd.DataFrame({"program": sur.index, "conference": sur.conference, "market value": (sur.value / 1e6).map("${:.1f}M".format),
                           **{rt.LABELS[c]: sur[c].map(m) for c in cols},
                           "range": [f"{m(a)} to {m(b)}" for a, b in zip(sur.low, sur.high)], "median": sur["median"].map(m),
@@ -502,11 +501,12 @@ def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
         "## Do the ratings agree on surplus?\n",
         "Rank correlation of program surplus between ratings:\n",
         _md(rc, ".2f"),
-        f"- **{counts.get('surplus everywhere', 0)}** programs show a surplus under every rating and "
-        f"**{counts.get('deficit everywhere', 0)}** a deficit under every rating; **{counts.get('depends on rating', 0)}** "
-        f"depend on the rating. Under the five public ratings alone, {agree_pub} of {len(sur)} keep one sign.\n",
+        f"- Under the four published ratings (SP+, FPI, SRS, Elo), which the roster numbers use, "
+        f"**{counts.get('surplus everywhere', 0)}** programs show a surplus under all four and "
+        f"**{counts.get('deficit everywhere', 0)}** a deficit; **{counts.get('depends on rating', 0)}** depend on the rating. "
+        "The results-only rating is a check on SP+'s prior, and your model is kept apart as the market's view.\n",
         "## Every A4 program\n",
-        "Sorted by median surplus across ratings.\n",
+        "Sorted by median surplus across the four published ratings; range and call are theirs too.\n",
         _md(table),
     ]
     path = path or config.ROOT / "reports" / f"ratings_{season}.md"

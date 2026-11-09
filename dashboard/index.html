@@ -81,6 +81,8 @@
 .pb-find-v { font-family: var(--font-anthropic-serif); font-size: calc(var(--cds-font-size-title) * 1.33); font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--color-fg); }
 .pb-find p { margin: 0; max-width: none; font-size: var(--cds-font-size-body); line-height: 1.5; letter-spacing: 0; color: var(--color-fg-muted); }
 .pb .pb-find p b, .pb .pb-card p b { color: var(--color-fg); font-weight: 500; white-space: nowrap; }
+.pb-link { color: var(--pb-accent); font-weight: 500; text-decoration: none; }
+.pb-link:hover { text-decoration: underline; }
 .pb-go { justify-self: start; margin-top: 4px; appearance: none; background: var(--pb-inner); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) - 4px); box-shadow: var(--pb-shadow-xs); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); font-weight: 500; padding: 4px 10px; cursor: pointer; }
 .pb-go:hover { border-color: var(--pb-line-hover); }
 .pb-go:focus-visible { outline: 2px solid var(--pb-accent); outline-offset: 2px; }
@@ -122,7 +124,7 @@
 <div class="pb">
   <header class="pb-head">
     <h1 class="pb-title">College athlete pay benchmarks</h1>
-    <p class="pb-take">Where an offer sits against what the College Sports Commission reports athletes are paid. The latest release was first seen <b data-draw="latest" data-source="summary" data-field="first_seen">—</b>, with <b data-draw="ncohorts" data-source="summary" data-field="cohorts">—</b> published cohorts across <b data-draw="nsports" data-source="summary" data-field="sports">—</b> sports. Revenue share and NIL Go are separate reports, and this page never combines them.</p>
+    <p class="pb-take">Where an offer sits against what the College Sports Commission reports athletes are paid. The latest release was first seen <b data-draw="latest" data-source="summary" data-field="first_seen">—</b>, with <b data-draw="ncohorts" data-source="summary" data-field="cohorts">—</b> published cohorts across <b data-draw="nsports" data-source="summary" data-field="sports">—</b> sports. Revenue share and NIL Go are separate reports, and this page never combines them. Football rosters, on-field value and the betting market's view are on the <a class="pb-link" href="https://claude.ai/artifact/9v4QgdKc6xqCNpqV6FuWuB" target="_blank" rel="noopener">football page</a>.</p>
   </header>
 
   <nav class="pb-tabs" role="tablist" aria-label="Views">
@@ -131,7 +133,6 @@
     <button class="pb-tab" role="tab" data-tab="football" aria-selected="false">Football market</button>
     <button class="pb-tab" role="tab" data-tab="basketball" aria-selected="false">Basketball</button>
     <button class="pb-tab" role="tab" data-tab="sports" aria-selected="false">All sports</button>
-    <button class="pb-tab" role="tab" data-tab="rosters" aria-selected="false">Rosters</button>
     <button class="pb-tab" role="tab" data-tab="method" aria-selected="false">Method</button>
   </nav>
 
@@ -167,11 +168,11 @@
         <span class="pb-find-v" data-draw="f-tier-nil-n" data-source="tier_summary" data-field="count" data-where="key=nil_p10">—</span>
         <p>of <b data-draw="f-tier-nil-of" data-source="tier_summary" data-field="of" data-where="key=nil_p10">—</b> published NIL Go 10th percentiles sit at exactly <b data-draw="f-tier-nil-v" data-source="tier_summary" data-field="value" data-where="key=nil_p10">—</b>, and <b data-draw="f-tier-rs-n" data-source="tier_summary" data-field="count" data-where="key=rs_flat">—</b> revenue-share cohorts have a run of equal percentiles at <b data-draw="f-tier-rs-v" data-source="tier_summary" data-field="value" data-where="key=rs_flat">—</b>. Many athletes getting the same amount points to standard group payments, not negotiated deals.</p>
       </article>
-      <article class="pb-find" id="find-surplus">
-        <span class="pb-find-k">Roster surplus</span>
-        <span class="pb-find-v" data-draw="f-sur-top-v" data-source="surplus_ends" data-field="surplus" data-where="end=top">—</span>
-        <p>for <b data-draw="f-sur-top" data-source="surplus_ends" data-field="team" data-where="end=top">—</b>, the most on-field value over its roster's market price of any A4 program. <b data-draw="f-sur-bot" data-source="surplus_ends" data-field="team" data-where="end=bottom">—</b> has the least, <b data-draw="f-sur-bot-v" data-source="surplus_ends" data-field="surplus" data-where="end=bottom">—</b>. On-field value prices each roster's SP+ rating points at the A4 market rate.</p>
-        <button class="pb-go" data-go="rosters">Rosters</button>
+      <article class="pb-find" id="find-basketball">
+        <span class="pb-find-k">Men's basketball</span>
+        <span class="pb-find-v" data-draw="f-bb-share" data-source="bb_top" data-field="share" data-row="0">—</span>
+        <p>of the <b data-draw="f-bb-conf" data-source="bb_top" data-field="cohort" data-row="0">—</b>'s rostered players were paid revenue share, the most of any conference. The highest paid median is the <b data-draw="f-bb-med-conf" data-source="bb_top" data-field="median_cohort" data-row="0">—</b>'s, <b data-draw="f-bb-med" data-source="bb_top" data-field="median" data-row="0">—</b>.</p>
+        <button class="pb-go" data-go="basketball">Basketball</button>
       </article>
     </div>
     <article class="pb-card" id="tiers-table">
@@ -314,50 +315,6 @@
             <th class="num" data-field="p90"><button data-sort="p90">90th</button></th>
           </tr></thead>
           <tbody data-draw="sports-rows"></tbody>
-        </table>
-      </div>
-    </article>
-  </section>
-
-  <section class="pb-page" id="rosters" hidden>
-    <p class="pb-foot">Market value is what a roster would cost in revenue share at the CSC's A4 market rates, with players ranked on public data from before the season. On-field value is what the roster delivers this season: each player's share of his unit's SP+ rating, priced at the same market rate per rating point. Surplus is the difference. These are market prices, not what schools actually pay.</p>
-    <div class="pb-filters">
-      <div class="pb-seg" role="group" aria-label="Conference">
-        <button class="pb-conf" data-conf="All" aria-pressed="true">All A4</button>
-        <button class="pb-conf" data-conf="SEC" aria-pressed="false">SEC</button>
-        <button class="pb-conf" data-conf="Big Ten" aria-pressed="false">Big Ten</button>
-        <button class="pb-conf" data-conf="Big 12" aria-pressed="false">Big 12</button>
-        <button class="pb-conf" data-conf="ACC" aria-pressed="false">ACC</button>
-      </div>
-    </div>
-    <div class="pb-grid">
-      <article class="pb-card" id="rosters-scatter-card">
-        <h2>What rosters deliver against what they cost</h2>
-        <p>Each dot is a program. Above the diagonal, the roster delivers more on the field than it would cost at market rates.</p>
-        <div class="pb-legend">
-          <span><i class="pb-sw" data-color="0"></i>Surplus</span>
-          <span><i class="pb-sw" data-color="1"></i>Deficit</span>
-        </div>
-        <div class="pb-chart" data-draw="rosters-scatter" data-source="rosters"></div>
-      </article>
-      <article class="pb-card" id="rosters-range-card">
-        <h2>Market value by program</h2>
-        <p>The dot is the estimate, the line its 80% range from uncertainty in how players rank. The dashed line is the calendar-2026 revenue-share cap, which covers every sport.</p>
-        <div class="pb-chart" data-draw="rosters-range" data-source="rosters"></div>
-      </article>
-    </div>
-    <article class="pb-card" id="rosters-table">
-      <h2>Every A4 program</h2>
-      <p>Sorted by surplus. Points per $1M is on-field rating points for each million dollars of market value.</p>
-      <div class="pb-scroll">
-        <table class="pb-table" data-source="rosters" data-row-key="id">
-          <thead><tr>
-            <th data-field="team">Program</th><th data-field="conference">Conference</th>
-            <th class="num" data-field="value">Market value</th><th class="num" data-field="on_field_value">On-field value</th>
-            <th class="num" data-field="surplus">Surplus</th><th class="num" data-field="points_per_million">Points per $1M</th>
-            <th class="num" data-field="sp_rating">SP+</th>
-          </tr></thead>
-          <tbody data-draw="rosters-rows"></tbody>
         </table>
       </div>
     </article>
@@ -933,12 +890,24 @@ dash.draw('release-rows', (tb) => {
 
 // ---- rosters: market value against on-field value
 const fmtM = (v) => (v < 0 ? '-' : '') + '$' + (Math.abs(v) / 1e6).toFixed(1) + 'M';
+const fmtSigned = (v) => (v >= 0 ? '+' : '−') + fmtM(Math.abs(v));
 const confRows = () => {
   const rows = rowsOf('rosters');
   if (!rows) return null;
   const c = dash.params().conf || 'All';
   return rows.filter((r) => c === 'All' || r.conference === c);
 };
+// Labels for a scatter: keep each one only where it doesn't overlap a label already placed.
+function scatterLabels(svg, rows, xOf, yOf, text, W) {
+  const placed = [];
+  for (const r of rows) {
+    const right = xOf(r) > W * 0.7, x0 = xOf(r) + (right ? -8 : 8), y0 = yOf(r);
+    const el = svg.append('text').attr('class', 'pb-lab-strong').attr('x', x0).attr('y', y0).attr('dy', '0.32em')
+      .attr('text-anchor', right ? 'end' : 'start').text(text(r));
+    const w = el.node().getComputedTextLength(), box = { x1: right ? x0 - w : x0, x2: right ? x0 : x0 + w, y1: y0 - 7, y2: y0 + 7 };
+    if (placed.some((b) => box.x1 < b.x2 + 4 && box.x2 > b.x1 - 4 && box.y1 < b.y2 && box.y2 > b.y1)) el.remove(); else placed.push(box);
+  }
+}
 dash.draw('rosters-scatter', (el) => {
   el.replaceChildren();
   const rows = confRows();
@@ -948,7 +917,7 @@ dash.draw('rosters-scatter', (el) => {
   const lo = d3.min(all) * 0.9, hi = d3.max(all) * 1.05;
   const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
     .attr('role', 'img').attr('aria-label', 'On-field value against market value by program');
-  const ticks = d3.scaleLinear([lo, hi]).ticks(W < 420 ? 4 : 6);
+  const ticks = d3.ticks(lo, hi, W < 420 ? 4 : 6);
   const ml = measure(svg, ticks.map(fmtM)) + 10;
   const x = d3.scaleLinear([lo, hi], [ml, W - m]), y = d3.scaleLinear([lo, hi], [H - mb, m]);
   svg.append('g').selectAll('line').data(ticks).join('line').attr('class', 'pb-gridline')
@@ -963,13 +932,9 @@ dash.draw('rosters-scatter', (el) => {
   svg.append('text').attr('class', 'pb-lab').attr('x', x(hi) - 4).attr('y', y(hi) + 14).attr('text-anchor', 'end').text('break-even');
   const color = (r) => dash.colors[r.surplus >= 0 ? 0 : 1];
   const sorted = [...rows].sort((a, b) => b.surplus - a.surplus);
-  const named = new Set([...sorted.slice(0, 3), ...sorted.slice(-3)].map((r) => r.id));
   svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(r.value)).attr('cy', (r) => y(r.on_field_value))
     .attr('r', 5).attr('fill', color).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
-  svg.append('g').selectAll('text').data(rows.filter((r) => named.has(r.id))).join('text').attr('class', 'pb-lab-strong')
-    .attr('x', (r) => x(r.value) + 8).attr('y', (r) => y(r.on_field_value)).attr('dy', '0.32em')
-    .attr('text-anchor', (r) => (x(r.value) > W * 0.7 ? 'end' : 'start'))
-    .attr('dx', (r) => (x(r.value) > W * 0.7 ? -16 : 0)).text((r) => r.team);
+  scatterLabels(svg, [...sorted.slice(0, 3), ...sorted.slice(-3).reverse()], (r) => x(r.value), (r) => y(r.on_field_value), (r) => r.team, W);
   const t = tip(el);
   const pts = rows.map((r) => [x(r.value), y(r.on_field_value), r]);
   const finder = d3.Delaunay.from(pts, (d) => d[0], (d) => d[1]);
@@ -978,8 +943,8 @@ dash.draw('rosters-scatter', (el) => {
       const [mx, my] = d3.pointer(ev);
       const [px, py, r] = pts[finder.find(mx, my)];
       if (Math.hypot(px - mx, py - my) > 28) { t.hidden = true; return; }
-      tipLines(t, `${r.team} · ${r.conference}`, [[color(r), `Surplus ${fmtM(r.surplus)}`], [null, `Market value ${fmtM(r.value)}`],
-        [null, `On-field value ${fmtM(r.on_field_value)} (${r.points.toFixed(1)} points)`], [null, `SP+ ${r.sp_rating.toFixed(1)}`]]);
+      tipLines(t, `${r.team} · ${r.conference}`, [[color(r), `Surplus ${fmtSigned(r.surplus)} (${fmtSigned(r.surplus_low)} to ${fmtSigned(r.surplus_high)})`],
+        [null, `Market value ${fmtM(r.value)}`], [null, `On-field value ${fmtM(r.on_field_value)}`], [null, r.call]]);
       place(el, t, px, py);
     })
     .on('pointerleave', () => { t.hidden = true; });
@@ -1022,6 +987,45 @@ dash.draw('rosters-range', (el) => {
       .on('pointerleave', () => { t.hidden = true; });
   }
 });
+// Surplus per program: the median across the four ratings, with their range.
+const CALL_COLOR = (r) => (r.call.startsWith('Surplus') ? dash.colors[0] : r.call.startsWith('Deficit') ? dash.colors[1] : 'var(--cds-chart-muted)');
+dash.draw('rosters-surplus', (el) => {
+  el.replaceChildren();
+  const rows = confRows();
+  if (!rows || !rows.length) return;
+  const sorted = [...rows].sort((a, b) => b.surplus - a.surplus);
+  const W = Math.max(260, el.clientWidth), rowH = 18, mt = 6, mb = 26;
+  const H = mt + sorted.length * rowH + mb;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', 'Surplus by program, median and range across four ratings');
+  const ml = measure(svg, sorted.map((r) => r.team)) + 12, mr = measure(svg, sorted.map((r) => fmtSigned(r.surplus))) + 14;
+  const ext = Math.max(d3.max(sorted, (r) => Math.abs(r.surplus_low)), d3.max(sorted, (r) => Math.abs(r.surplus_high))) * 1.05;
+  const x = d3.scaleLinear([-ext, ext], [ml, W - mr]);
+  const yb = d3.scaleBand(sorted.map((r) => r.id), [mt, mt + sorted.length * rowH]).padding(0.25);
+  const xt = x.ticks(W < 420 ? 3 : 5);
+  svg.append('g').selectAll('line').data(xt).join('line').attr('class', 'pb-gridline')
+    .attr('x1', (d) => x(d)).attr('x2', (d) => x(d)).attr('y1', mt).attr('y2', H - mb);
+  svg.append('g').attr('class', 'pb-axis').selectAll('text').data(xt).join('text')
+    .attr('x', (d) => x(d)).attr('y', H - 8).attr('text-anchor', 'middle').text((d) => (d === 0 ? '$0' : fmtSigned(d)));
+  svg.append('line').attr('class', 'pb-axisline').attr('x1', x(0)).attr('x2', x(0)).attr('y1', mt).attr('y2', H - mb);
+  const t = tip(el);
+  for (const r of sorted) {
+    const cy = yb(r.id) + yb.bandwidth() / 2, c = CALL_COLOR(r);
+    svg.append('text').attr('class', 'pb-lab').attr('x', ml - 12).attr('y', cy).attr('dy', '0.32em').attr('text-anchor', 'end').text(r.team);
+    svg.append('line').attr('x1', x(r.surplus_low)).attr('x2', x(r.surplus_high)).attr('y1', cy).attr('y2', cy)
+      .attr('stroke', c).attr('stroke-width', 3).attr('stroke-linecap', 'round').attr('opacity', 0.5);
+    svg.append('circle').attr('cx', x(r.surplus)).attr('cy', cy).attr('r', 4).attr('fill', c)
+      .attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    svg.append('text').attr('class', 'pb-lab-strong').attr('x', W - mr + 10).attr('y', cy).attr('dy', '0.32em').text(fmtSigned(r.surplus));
+    svg.append('rect').attr('x', 0).attr('y', yb(r.id) - 2).attr('width', W).attr('height', yb.bandwidth() + 4).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        tipLines(t, `${r.team} · ${r.conference}`, [[c, `Surplus ${fmtSigned(r.surplus)}, median of four ratings`],
+          [null, `SP+ ${fmtSigned(r.sp)} · FPI ${fmtSigned(r.fpi)}`], [null, `SRS ${fmtSigned(r.srs)} · Elo ${fmtSigned(r.elo)}`], [null, r.call]]);
+        place(el, t, x(r.surplus), d3.pointer(ev)[1]);
+      })
+      .on('pointerleave', () => { t.hidden = true; });
+  }
+});
 dash.draw('rosters-rows', (tb) => {
   tb.replaceChildren();
   const rows = confRows();
@@ -1029,9 +1033,9 @@ dash.draw('rosters-rows', (tb) => {
   for (const r of [...rows].sort((a, b) => b.surplus - a.surplus)) {
     const tr = document.createElement('tr');
     tr.dataset.key = r.id;
-    [r.team, r.conference, fmtM(r.value), fmtM(r.on_field_value), (r.surplus >= 0 ? '+' : '') + fmtM(r.surplus),
-      r.points_per_million.toFixed(2), r.sp_rating.toFixed(1)].forEach((c, i) => {
-      const td = document.createElement('td'); if (i >= 2) td.className = 'num'; td.textContent = c; tr.append(td);
+    [r.team, r.conference, fmtM(r.value), fmtM(r.on_field_value), fmtSigned(r.surplus), `${fmtSigned(r.surplus_low)} to ${fmtSigned(r.surplus_high)}`,
+      fmtSigned(r.sp), fmtSigned(r.fpi), fmtSigned(r.srs), fmtSigned(r.elo), r.call].forEach((c, i) => {
+      const td = document.createElement('td'); if (i >= 2 && i <= 9) td.className = 'num'; td.textContent = c; tr.append(td);
     });
     tb.append(tr);
   }
@@ -1119,7 +1123,6 @@ dash.calc('surplus_ends', {
     return s.length ? [{ end: 'top', team: s[0].team, surplus: s[0].surplus }, { end: 'bottom', team: s[s.length - 1].team, surplus: s[s.length - 1].surplus }] : [];
   },
 });
-const fmtSigned = (v) => (v >= 0 ? '+' : '−') + fmtM(Math.abs(v));
 const fmtM2 = (v) => '$' + (v / 1e6).toFixed(2) + 'M';
 const pct0 = d3.format('.0%');
 const pick = (id, where) => { const rows = rowsOf(id); return rows ? (where ? rows.find(where) : rows[0]) : null; };
@@ -1180,6 +1183,21 @@ dash.calc('bb_paid_share', {
       share: Number(paid.n) / Number(all.n) } : null;
   }).filter(Boolean),
 });
+dash.calc('bb_top', {
+  inputs: ['bb_paid_share', 'cohorts'],
+  title: "Men's basketball: most paid and highest paid",
+  description: "The conference paying the largest share of its men's basketball roster, and the one with the highest median among paid players.",
+  fn: (bb_paid_share, cohorts) => {
+    const top = bb_paid_share.filter((r) => r.gender === 'men').sort((a, b) => b.share - a.share)[0];
+    const med = cohorts.filter((r) => r.report === 'revenue_share' && r.sport === 'Basketball' && r.gender === 'men' && r.population === 'paid')
+      .sort((a, b) => Number(b.p50) - Number(a.p50))[0];
+    return top && med ? [{ cohort: top.cohort, share: top.share, median_cohort: med.cohort, median: Number(med.p50) }] : [];
+  },
+});
+fill('f-bb-share', () => { const r = pick('bb_top'); return r && pct0(r.share); });
+fill('f-bb-conf', () => { const r = pick('bb_top'); return r && r.cohort; });
+fill('f-bb-med-conf', () => { const r = pick('bb_top'); return r && r.median_cohort; });
+fill('f-bb-med', () => { const r = pick('bb_top'); return r && fmtUsd(r.median); });
 const bbGender = () => dash.params().bbg || 'men';
 const bbRows = (report) => {
   const coh = rowsOf('cohorts');
@@ -1219,7 +1237,7 @@ const showTab = (id) => {
 document.querySelectorAll('.pb-tab').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.tab); dash.setLink(b.dataset.tab); }));
 document.querySelectorAll('.pb-go').forEach((b) => b.addEventListener('click', () => { showTab(b.dataset.go); dash.setLink(b.dataset.go); }));
 const named = location.hash.slice(1);
-if (['findings', 'offer', 'football', 'basketball', 'sports', 'rosters', 'method'].includes(named)) showTab(named);
+if ([...document.querySelectorAll('.pb-tab')].some((b) => b.dataset.tab === named)) showTab(named);
 dash.onData(() => {
   const p = dash.params();
   document.querySelectorAll('.pb-amt').forEach((inp) => {

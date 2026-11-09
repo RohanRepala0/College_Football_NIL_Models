@@ -1,7 +1,8 @@
 """Build a standalone HTML copy of the dashboard: the same page, its data embedded, and a small stand-in
 for the dashboard host's `dash` API, styled in Board UI's look. Run after `nil dashboard-data`:
 
-    python dashboard/build_html.py OUT.html
+    python dashboard/build_html.py OUT.html                 # all sports
+    python dashboard/build_html.py OUT.html football.html   # the football page
 """
 
 from __future__ import annotations
@@ -12,11 +13,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "dashboard"
-DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals"]
+DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals", "season_games", "season_signals"]
 DEFAULT_PARAMS = {"cohort": "A4", "cut": "A4", "gender": "men", "nil": 40000, "position": "Linebacker",
                   "report": "revenue_share", "rs": 150000, "sport": "Football"}
 
-HEAD = """<title>College Athlete Pay Benchmarks</title>
+HEAD = """<title>{title}</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -134,26 +135,44 @@ SHIM = """
 """
 
 
-def build(out: Path) -> None:
-    page = (HERE / "index.html").read_text()
+PAGES = {"index.html": "College Athlete Pay Benchmarks", "football.html": "Football Roster Market"}
+
+
+def _parts(page: str) -> tuple[str, str, str]:
+    """(css, markup, script) of one page source."""
     css = page[page.index("<style>") + len("<style>"):page.index("</style>")]
-    css = css[css.index(".pb-head {"):]                      # component rules; tokens come from HEAD
     markup = page[page.index("</style>") + len("</style>"):page.index("<script>")].strip()
     script = page[page.index("<script>") + len("<script>"):page.rindex("</script>")]
-    data = {k: json.loads((DATA / f"{k}.json").read_text()) for k in DATASETS}
+    return css, markup, script
+
+
+def build(out: Path, page: str = "index.html") -> None:
+    """index.html is the all-sports page. Any other page uses index.html's styles and script (its shared
+    helpers and drawings) and adds its own."""
+    base_css, base_markup, base_script = _parts((HERE / "index.html").read_text())
+    base_css = base_css[base_css.index(".pb-head {"):]       # component rules; tokens come from HEAD
+    if page == "index.html":
+        css, markup, scripts = base_css, base_markup, [base_script]
+    else:
+        own_css, markup, own_script = _parts((HERE / page).read_text())
+        css, scripts = base_css + own_css, [base_script, own_script]
+    skip = {"season_games", "season_signals"} if page == "index.html" else set()     # football-only data
+    data = {k: json.loads(p.read_text()) for k in DATASETS if k not in skip and (p := DATA / f"{k}.json").exists()}
     data = {k: (v if isinstance(v, list) else v.get("rows", v)) for k, v in data.items()}
     as_json = lambda o: json.dumps(o, separators=(",", ":")).replace("</", "<\\/")
     foot = ('<p class="pb-source">Data: College Sports Commission, NIL Go Transparency Report and School Revenue-Share '
-            'Compensation Report; CollegeFootballData.com for rosters, production and SP+. '
+            'Compensation Report; CollegeFootballData.com for rosters, production, scores, SP+, ESPN FPI, SRS and Elo. '
             'Source: github.com/RohanRepala0/College_Football_NIL_Models.</p>')
     markup = markup[:markup.rindex("</div>")] + foot + "\n</div>"
-    html = (HEAD + css + "</style>\n\n<div class=\"pb-wrap\">\n" + markup + "\n</div>\n"
+    html = (HEAD.replace("{title}", PAGES[page]) + css + "</style>\n\n<div class=\"pb-wrap\">\n" + markup + "\n</div>\n"
             f'<script type="application/json" id="pb-data">{as_json(data)}</script>\n'
             f'<script type="application/json" id="pb-params">{as_json(DEFAULT_PARAMS)}</script>\n'
-            f"<script>{SHIM}</script>\n<script>{script}</script>\n")
+            f"<script>{SHIM}</script>\n" + "".join(f"<script>{s}</script>\n" for s in scripts))
     out.write_text(html)
     print(f"wrote {out} ({len(html.encode()) / 1e3:.0f} KB)")
 
 
 if __name__ == "__main__":
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "standalone.html")
+    # python dashboard/build_html.py [OUT.html] [index.html|football.html]
+    page = sys.argv[2] if len(sys.argv) > 2 else "index.html"
+    build(Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / page.replace(".html", "_standalone.html"), page)

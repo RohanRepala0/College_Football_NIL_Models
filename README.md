@@ -36,15 +36,20 @@ flowchart LR
 
 The two reports are never compared or combined.
 
-**Dashboard:** [College Athlete Pay Benchmarks](https://claude.ai/artifact/HddyzuWahnocHREU1FsbXD) opens on six
-findings worked out from the latest release (who gets paid, the position most often paid, the floor on what each A4
-program pays, the top of the quarterback market, flat payment tiers, roster surplus), then has an offer check that
-reads an amount off each report's curve, football pay by position with A4 and non-A4 paid shares side by side,
-basketball by conference, a searchable table of every cohort, roster market value against on-field value, and
-the method. It is one self-contained HTML file in [Board UI](https://www.boardui.com)'s look, built from
-`dashboard/index.html` and `data/dashboard/*.json` by `python dashboard/build_html.py`; `nil refresh` (or
-`nil dashboard-data`) rewrites the data with each new release. The same page also runs in the
-[hosted dashboard](https://claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU); re-upload the data files there after a release.
+**Pages:** two self-contained HTML pages in [Board UI](https://www.boardui.com)'s look, built by
+`dashboard/build_html.py` from `dashboard/*.html` and `data/dashboard/*.json` (`nil dashboard-data` rewrites the data).
+
+- [Football Roster Market](https://claude.ai/artifact/9v4QgdKc6xqCNpqV6FuWuB), for NIL analysts and roster managers: an
+  overview of the A4 football market, an offer check, pay by position, each A4 roster's market value against its
+  on-field value under SP+, ESPN FPI, SRS and Elo (median and range; `nil ratings`), and the betting market's view from
+  CollegeFootballRatings2026 with a week-by-week walk through the season.
+  `python dashboard/build_html.py OUT.html football.html`
+- [College Athlete Pay Benchmarks](https://claude.ai/artifact/HddyzuWahnocHREU1FsbXD), every sport: findings, an offer
+  check, football and basketball markets, every published cohort, and the method. `python dashboard/build_html.py OUT.html`
+
+Weekly: `nil surplus --fresh` and `nil ratings --fresh` pull the season's production, games and ratings (8 calls),
+then `nil dashboard-data` and the two builds. The hosted dashboard (claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) is no
+longer updated.
 
 **Project map:** [NIL Project Map](https://claude.ai/artifact/5YqTJbgYPaGe4WZ8NvwBcm) walks through every step
 of the project, with its results and the decisions behind them.
