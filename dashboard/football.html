@@ -5,6 +5,7 @@
 .pb-kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; font-size: var(--cds-font-size-body); }
 .pb-kv dt { color: var(--color-fg-muted); }
 .pb-kv dd { margin: 0; color: var(--color-fg); }
+.pb-clear { border-top: 1px solid var(--color-border-line); padding-top: 10px; }
 .pb-h2 { margin: 8px 0 0; font-size: var(--cds-font-size-heading); font-weight: 500; }
 .pb-select-row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
 .pb-select-row label { display: grid; gap: 6px; font-size: var(--cds-font-size-body); font-weight: 500; }
@@ -103,6 +104,7 @@
           <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
         </div>
         <div class="pb-chart" data-draw="nil-chart" data-source="curves cohorts"></div>
+        <p class="pb-clear">Not every deal clears. Since NIL Go launched, <b data-draw="nc-deal-share" data-source="clearance" data-field="deal_share" data-row="0">—</b> of submitted deals and <b data-draw="nc-value-share" data-source="clearance" data-field="value_share" data-row="0">—</b> of their value were not cleared (<b data-draw="nc-value" data-source="clearance" data-field="not_cleared_value" data-row="0">—</b> in <b data-draw="nc-deals" data-source="clearance" data-field="not_cleared_deals" data-row="0">—</b> deals). Deals not cleared averaged <b data-draw="nc-avg" data-source="clearance" data-field="not_cleared_avg" data-row="0">—</b>, against <b data-draw="c-avg" data-source="clearance" data-field="cleared_avg" data-row="0">—</b> for cleared ones. In <b data-draw="nc-latest" data-source="clearance" data-field="latest_period" data-row="0">—</b>, <b data-draw="nc-latest-share" data-source="clearance" data-field="latest_value_share" data-row="0">—</b> of submitted value was not cleared. All sports, from the CSC's NIL Data Reports.</p>
       </article>
     </div>
     <p class="pb-foot">The large number is the curve's estimate. Under it, "published" names the percentiles the CSC printed on either side of the amount, which hold with no model at all. A range such as "10th to 50th" means many athletes got exactly that amount. Past the 90th, the A4 tail is held to football's share of the revenue-share cap. Revenue share and NIL Go are separate reports and are never combined.</p>
@@ -273,6 +275,8 @@
           <dt>Elo</dt><dd>Results-based, carried over from last season.</dd>
         </dl>
         <p>A check fit only on 2026 final scores, with no prior, was explained as well as SP+ and gave class year the same weight, so SP+'s preseason prior is not what drives the player weights. The full test is in the repository's reports/ratings_2026.md.</p>
+        <h3>Checked against what schools actually paid</h3>
+        <p>In the first cap year, July 1, 2025 to June 30, 2026, schools paid <b data-draw="caps-total" data-source="totals" data-field="caps_total" data-row="0">—</b> in revenue share to <b data-draw="caps-ath" data-source="totals" data-field="caps_athletes" data-row="0">—</b> athletes. The published cohorts' floors add up to <b data-draw="caps-floor" data-source="totals" data-field="caps_floor" data-row="0">—</b>, safely under that; with fitted tails they would add up to <b data-draw="caps-est" data-source="totals" data-field="caps_estimate" data-row="0">—</b>, more than was paid, so past the 90th the estimates outside A4 football are upper bounds. A4 football can take at most <b data-draw="caps-max" data-source="totals" data-field="football_share_max" data-row="0">—</b> of the cap, because the schools' other sports were paid at least their floor; the calibration assumes 75%.</p>
         <h3>What NIL Go leaves out</h3>
         <p>Athletes report third-party deals worth <b data-draw="rule-min">—</b> or more to NIL Go, so smaller deals are not in its tables. The CSC has also raised the size of deal that skips its check on whether pay is in a reasonable range, reported in the trade press at up to <b data-draw="rule-review">—</b> unless an athlete passes <b data-draw="rule-season">—</b> in deals in an academic year.</p>
       </article>

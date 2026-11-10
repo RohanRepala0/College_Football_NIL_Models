@@ -35,8 +35,16 @@ TAIL_SCENARIOS = {"light": 0.5, "fitted": 1.0, "heavy": 1.5}   # multipliers on 
 # assumption is named in `constraint_notes()`, which the report prints beside the results.
 #
 # Revenue share: all 68 A4 programs pay football out of one cap that covers every sport. Football's share
-# of it is an assumption (reported expectations cluster near 75%).
+# of it is an assumption (reported expectations cluster near 75%). Its high end is also held below what the
+# CAPS year-one totals allow (`football_share_bound`): A4 schools can't pay more than the cap, and their
+# other sports were paid at least the published percentiles' floor.
 FOOTBALL_CAP_SHARE = (0.75, 0.60, 0.90)
+# CAPS, the first cap year (July 1, 2025 to June 30, 2026), from the CSC's release of Oct 19, 2026: what schools
+# paid athletes directly, with 68 schools at the cap or within 5% of it.
+CAPS_2025_26 = {"revenue_share": 1_770_453_776, "alston": 42_034_090, "scholarships": 163_485_499,
+                "athletes": 34_915, "schools_paid": 307, "schools_at_cap": 68}
+CAPS_SOURCE = ("https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-"
+               "to-student-athletes-during-first-year-of-revenue-sharing/")
 # NIL Go: football deal holders can't have more cleared value than all sports together, over football's NIL Go
 # window (Jan 1 to Sep 30, 2026). All-sports cleared value comes from the CSC's NIL Data Reports as captured in
 # data/csc/nil_data_periods.csv (`nil_data`); a period that straddles the window counts in proportion to its days.
@@ -72,12 +80,81 @@ def nil_go_cleared(start: date = NIL_GO_WINDOW[0], end: date = NIL_GO_WINDOW[1],
     return total, note + (f", counting {'; '.join(partial)}" if partial else "")
 
 
-def constraint_notes() -> list[str]:
+def _base_floors(df: pd.DataFrame, report: str = "revenue_share") -> pd.DataFrame:
+    """Per published cohort of a report: its base population's athletes and the floor on their total pay (each
+    athlete paid at least the published percentile below him), from the percentiles alone. Revenue share uses
+    paid athletes where published, else everyone rostered (whose unpaid add $0)."""
+    d = df[(df.report == report) & df.value_usd.notna()]
+    key = ["sport", "gender", "position", "cohort"]
+    rows = []
+    for k, g in d.groupby(key, dropna=False):
+        pops = set(g.population)
+        pop = "paid" if "paid" in pops else "deal_holders" if "deal_holders" in pops else "all_rostered"
+        g = g[g.population == pop]
+        n = g.n.dropna()
+        if n.empty:
+            continue
+        pts = [(float(p), float(v)) for p, v in zip(g.percentile, g.value_usd) if v > 0]
+        rows.append({**dict(zip(key, k)), "population": pop, "athletes": int(n.iloc[0]),
+                     "floor": int(n.iloc[0]) * floor_mean(pts), "window_start": g.window_start.iloc[0],
+                     "window_end": g.window_end.iloc[0]})
+    out = pd.DataFrame(rows)
+    out["group"] = np.select([out.sport == "Football", out.sport == "Basketball"], ["Football", "Basketball"], "Other sports")
+    out["a4"] = out.cohort != "Non-A4"
+    return out
+
+
+def football_share_bound(df: pd.DataFrame) -> float:
+    """The most of the A4 cap football can take: A4 schools pay at most 68 x the 2025-26 cap, and their other
+    sports were paid at least their floor in that cap year. Approximate in one way: football's own window is
+    calendar 2026, so this assumes football's share is about the same in both."""
+    f = _base_floors(df)
+    other = f[f.a4 & (f.sport != "Football")].floor.sum()
+    return float(1 - other / (A4_FOOTBALL_PROGRAMS * CAP_2025_26))
+
+
+def caps_check(df: pd.DataFrame, football_a4_total: float | None = None) -> dict:
+    """The published revenue-share cohorts against CAPS's year-one totals: floors (no model) and estimates (fitted
+    tails, or A4 football's calibrated total when given) by group; the most of the A4 cap football can take; and
+    how much of CAPS's total and athletes the published cohorts cover."""
+    f = _base_floors(df)
+    est = []
+    by_key = {(c.key.sport, c.key.gender, c.key.position, c.key.cohort): c for c in bm.curves(df)[0]
+              if c.key.report == "revenue_share"}
+    for r in f.itertuples(index=False):
+        c = by_key.get((r.sport, r.gender, r.position, r.cohort))
+        est.append(r.athletes * curve_mean(c, 1.0) if c is not None and c.fitted else r.floor)
+    f["estimate"] = est
+    if football_a4_total is not None:
+        m = (f.sport == "Football") & f.a4
+        f.loc[m, "estimate"] = football_a4_total * f.loc[m, "floor"] / f.loc[m, "floor"].sum()
+    groups = (f.assign(where=np.where(f.a4, "A4", "Non-A4"))
+              .groupby(["group", "where"], sort=False)[["athletes", "floor", "estimate"]].sum().reset_index())
+    a4_cap = A4_FOOTBALL_PROGRAMS * CAP_2025_26
+    other_a4 = f[f.a4 & (f.sport != "Football")]
+    return {"groups": groups, "floor_total": float(f.floor.sum()), "estimate_total": float(f.estimate.sum()),
+            "caps_total": CAPS_2025_26["revenue_share"], "athletes_published": int(f.athletes.sum()),
+            "athletes_caps": CAPS_2025_26["athletes"], "a4_cap_total": a4_cap,
+            "other_a4_floor": float(other_a4.floor.sum()), "other_a4_estimate": float(other_a4.estimate.sum()),
+            "football_share_max": float(1 - other_a4.floor.sum() / a4_cap),
+            "football_share_published": float(1 - other_a4.estimate.sum() / a4_cap)}
+
+
+def football_cap_share(df: pd.DataFrame) -> tuple[float, float, float]:
+    """(central, low, high) football share of the A4 cap: the assumption, its high end held to the CAPS bound."""
+    mid, low, high = FOOTBALL_CAP_SHARE
+    return mid, low, min(high, football_share_bound(df))
+
+
+def constraint_notes(df: pd.DataFrame | None = None) -> list[str]:
     nil_total, how = nil_go_cleared()
+    mid, low, high = football_cap_share(df) if df is not None else FOOTBALL_CAP_SHARE
+    held = (f" (the assumed {FOOTBALL_CAP_SHARE[2]:.0%} is above what CAPS's year-one totals allow)"
+            if df is not None and high < FOOTBALL_CAP_SHARE[2] else "")
     return [
         "Revenue share: A4 football spending per program = football's share of the calendar-2026 cap "
         f"(${CAP_CALENDAR_2026 / 1e6:.2f}M, the average of the 2025-26 and 2026-27 caps). Football's share is assumed "
-        f"to be {FOOTBALL_CAP_SHARE[0]:.0%}, tested from {FOOTBALL_CAP_SHARE[1]:.0%} to {FOOTBALL_CAP_SHARE[2]:.0%}.",
+        f"to be {mid:.0%}, tested from {low:.0%} to {high:.0%}{held}.",
         f"NIL Go: football's cleared value, Jan 1 to Sep 30, 2026, is a share of all sports' cleared value: {how}. "
         f"Football's share is assumed to be {NIL_FOOTBALL_SHARE[0]:.0%}, tested from {NIL_FOOTBALL_SHARE[1]:.0%} to "
         f"{NIL_FOOTBALL_SHARE[2]:.0%}.",
@@ -194,7 +271,7 @@ def solve_tail(parts: list[_Part], target: float, hi: float = 3.0) -> float | No
 def calibrate(df: pd.DataFrame) -> pd.DataFrame:
     """Tail multipliers that make each report's football total match its outside constraint, at the
     central assumption and at each end of its range."""
-    specs = [("revenue_share", ("A4",), A4_FOOTBALL_PROGRAMS * CAP_CALENDAR_2026, FOOTBALL_CAP_SHARE),
+    specs = [("revenue_share", ("A4",), A4_FOOTBALL_PROGRAMS * CAP_CALENDAR_2026, football_cap_share(df)),
              ("nil_go", ("A4", "Non-A4"), nil_go_cleared()[0], NIL_FOOTBALL_SHARE)]
     rows = []
     for report, cohorts, base, (mid, low, high) in specs:

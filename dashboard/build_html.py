@@ -160,7 +160,7 @@ def build(out: Path, page: str = "index.html") -> None:
     else:
         own_css, markup, own_script = _parts((HERE / page).read_text())
         css, scripts = base_css + own_css, [base_script, own_script]
-    skip = {"season_games"} if page == "index.html" else {"nil_flow"}     # data only one page uses
+    skip = {"season_games"} if page == "index.html" else set()     # data only the football page uses
     data = {k: json.loads(p.read_text()) for k in DATASETS if k not in skip and (p := DATA / f"{k}.json").exists()}
     data = {k: (v if isinstance(v, list) else v.get("rows", v)) for k, v in data.items()}
     as_json = lambda o: json.dumps(o, separators=(",", ":")).replace("</", "<\\/")

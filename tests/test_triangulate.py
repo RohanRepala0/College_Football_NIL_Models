@@ -49,3 +49,17 @@ def test_first_real_release(con):
     assert 0 < cal["revenue_share", "central"] < cal["revenue_share", "high"] < 1
     assert 0 < cal["nil_go", "central"] < cal["nil_go", "high"] < 1
     assert np.isnan(cal["revenue_share", "low"]) and np.isnan(cal["nil_go", "low"])
+
+
+@pytest.mark.skipif(len(REAL) != 2, reason="the 2026-10-30 releases are not on disk")
+def test_caps_year_one_bounds_footballs_share(con):
+    for path in REAL:
+        csc.ingest_archive(con, path.parent)
+    df = con.execute("SELECT * FROM csc_latest").df()
+    bound = tri.football_share_bound(df)
+    assert 0.75 < bound < 0.90                                   # other A4 sports' floor leaves football at most ~88%
+    assert tri.football_cap_share(df)[2] == pytest.approx(bound)
+    c = tri.caps_check(df)
+    assert c["floor_total"] < c["caps_total"] < c["estimate_total"]    # floors hold; fitted tails overshoot
+    assert c["athletes_published"] < c["athletes_caps"]
+    assert c["football_share_published"] < c["football_share_max"]

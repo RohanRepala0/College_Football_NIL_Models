@@ -75,6 +75,16 @@ flowchart LR
   ([`reports/triangulation_2026-11-09.md`](../reports/triangulation_2026-11-09.md)). The benchmark, the offer check
   and the dashboard now answer with these tails for A4 football revenue share and all football NIL.
 
+**Checked against CAPS's year one** (the CSC's Oct 19, 2026 release: $1,770.5M in revenue share to 34,915 athletes,
+July 2025 to June 2026; `tri.caps_check`, reported in the triangulation report):
+
+- The published cohorts' floors total $1,232.9M, safely under what schools paid; the cohorts cover 23,346 paid athletes.
+- With fitted tails they would total $1,962.1M, more than was paid, so outside A4 football the uncalibrated tails run
+  heavy too: those estimates are upper bounds.
+- A4 schools pay at most 68 x the cap, and their other sports were paid at least $167.5M, so football can take at
+  most **88%** of the A4 cap. The revenue-share calibration's high case is held there (it was 90%); the published
+  sports put football near 77% before unpublished sports are counted, which fits the assumed 75%.
+
 **Simulation** ([`reports/simulation_2026-10-30.md`](../reports/simulation_2026-10-30.md)), 3 markets per
 scenario, rank correlation between estimated and true pay:
 

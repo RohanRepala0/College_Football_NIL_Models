@@ -24,7 +24,7 @@ Under the fitted tail, A4 football alone would take 97% of the cap, and under th
 
 ## Tails calibrated to outside totals
 
-- Revenue share: A4 football spending per program = football's share of the calendar-2026 cap ($21.04M, the average of the 2025-26 and 2026-27 caps). Football's share is assumed to be 75%, tested from 60% to 90%.
+- Revenue share: A4 football spending per program = football's share of the calendar-2026 cap ($21.04M, the average of the 2025-26 and 2026-27 caps). Football's share is assumed to be 75%, tested from 60% to 88% (the assumed 90% is above what CAPS's year-one totals allow).
 - NIL Go: football's cleared value, Jan 1 to Sep 30, 2026, is a share of all sports' cleared value: from the CSC's NIL Data Reports (current as of 2026-11-01), $550.01M, counting 30 of the 61 days of Sept. 1 – Oct. 31, 2026 ($94.7M). Football's share is assumed to be 55%, tested from 40% to 75%.
 
 The multiplier is solved so the football total matches the target. "Below a flat tail" means even paying everyone in the top 10% exactly the published 90th overshoots, so that assumption is ruled out.
@@ -33,10 +33,27 @@ The multiplier is solved so the football total matches the target. "Below a flat
 |:--------------|:-------------|:-----------------|:----------|:------------------|:--------------------|:------------------|
 | revenue_share | central      | 75%              | $1,073.0M | $1,035.1M         | $1,384.2M           | x0.20             |
 | revenue_share | low          | 60%              | $858.4M   | $1,035.1M         | $1,384.2M           | below a flat tail |
-| revenue_share | high         | 90%              | $1,287.6M | $1,035.1M         | $1,384.2M           | x0.84             |
+| revenue_share | high         | 88%              | $1,258.8M | $1,035.1M         | $1,384.2M           | x0.78             |
 | nil_go        | central      | 55%              | $302.5M   | $233.9M           | $669.8M             | x0.44             |
 | nil_go        | low          | 40%              | $220.0M   | $233.9M           | $669.8M             | below a flat tail |
 | nil_go        | high         | 75%              | $412.5M   | $233.9M           | $669.8M             | x0.73             |
+
+## Checked against what schools actually paid
+
+CAPS recorded [$1,770.5M in revenue-share payments](https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-to-student-athletes-during-first-year-of-revenue-sharing/) in the first cap year (July 1, 2025 to June 30, 2026), to 34,915 athletes at 307 schools; 68 schools paid the cap or came within 5% of it. The published cohorts, by group. Most sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates use the fitted tails, except A4 football's calibrated total.
+
+| group        |        |   paid athletes | floor (no model)   | estimate   |
+|:-------------|:-------|----------------:|:-------------------|:-----------|
+| Other sports | A4     |           3,941 | $24.1M             | $70.2M     |
+| Other sports | Non-A4 |           3,078 | $11.5M             | $20.8M     |
+| Basketball   | A4     |           1,237 | $143.4M            | $246.4M    |
+| Basketball   | Non-A4 |           3,771 | $130.1M            | $290.4M    |
+| Football     | A4     |           5,817 | $797.1M            | $1,073.0M  |
+| Football     | Non-A4 |           5,502 | $126.7M            | $261.3M    |
+
+- **Floors:** $1,232.9M, safely under CAPS's $1,770.5M. The published cohorts hold 23,346 paid athletes against CAPS's 34,915: sports too small to publish, and football's different window, make up the rest.
+- **Fitted tails** would total $1,962.1M, more than schools paid, so outside A4 football the fitted tails run heavy too (non-A4 basketball and football especially). The floors are safe; those estimates are upper bounds.
+- **Football's share of the A4 cap:** A4 schools can pay at most $1,394.0M (68 x the 2025-26 cap), and their other sports were paid at least $167.5M, so football can take at most **88%**. The tail calibration's high case is held there. With the published sports' estimates ($316.6M) football's share would be about 77%, and less once the unpublished sports are counted, which fits the assumed 75%.
 
 ## What calibration changes at the top
 

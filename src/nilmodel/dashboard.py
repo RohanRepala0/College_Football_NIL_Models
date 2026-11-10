@@ -132,11 +132,17 @@ def totals(df: pd.DataFrame) -> list[dict]:
     cal = tri.calibrate(df)
     mult = float(cal[(cal.report == "revenue_share") & (cal.case == "central")].tail_mult.iloc[0])
     qb = bm.find(bm.curves(df)[0], "revenue_share", "Football", "Quarterback", "A4")
+    fb = float(cal[(cal.report == "revenue_share") & (cal.case == "central")].target.iloc[0])
+    caps = tri.caps_check(df, fb)
     return [{"id": "revenue_share|A4", "report": "revenue_share", "cohort": "A4", "programs": pp["programs"],
              "rostered_per_program": round(pp["rostered_per_program"], 1), "floor_per_program": round(pp["floor"]),
              "floor_cap_share": round(pp["floor_cap_share"], 4), "cap": tri.CAP_CALENDAR_2026,
              "tail_mult": round(mult, 4), "qb_p90": dict(qb.published[qb.population]).get(90),
-             "qb_p99_fitted": round(tri.tail_value(qb, 99, 1.0)), "qb_p99_calibrated": round(tri.tail_value(qb, 99, mult))}]
+             "qb_p99_fitted": round(tri.tail_value(qb, 99, 1.0)), "qb_p99_calibrated": round(tri.tail_value(qb, 99, mult)),
+             "caps_total": caps["caps_total"], "caps_athletes": caps["athletes_caps"], "caps_floor": round(caps["floor_total"]),
+             "caps_estimate": round(caps["estimate_total"]), "caps_athletes_published": caps["athletes_published"],
+             "football_share_max": round(caps["football_share_max"], 4),
+             "football_share_published": round(caps["football_share_published"], 4)}]
 
 
 def export(con: duckdb.DuckDBPyConnection, out_dir: Path | None = None) -> list[Path]:

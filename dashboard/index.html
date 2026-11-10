@@ -81,6 +81,7 @@
 .pb-find-v { font-family: var(--font-anthropic-serif); font-size: calc(var(--cds-font-size-title) * 1.33); font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--color-fg); }
 .pb-find p { margin: 0; max-width: none; font-size: var(--cds-font-size-body); line-height: 1.5; letter-spacing: 0; color: var(--color-fg-muted); }
 .pb .pb-find p b, .pb .pb-card p b { color: var(--color-fg); font-weight: 500; white-space: nowrap; }
+.pb-clear { border-top: 1px solid var(--color-border-line); padding-top: 10px; }
 .pb-link { color: var(--pb-accent); font-weight: 500; text-decoration: none; }
 .pb-link:hover { text-decoration: underline; }
 .pb-go { justify-self: start; margin-top: 4px; appearance: none; background: var(--pb-inner); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) - 4px); box-shadow: var(--pb-shadow-xs); color: var(--color-fg); font: inherit; font-size: var(--cds-font-size-caption); font-weight: 500; padding: 4px 10px; cursor: pointer; }
@@ -237,6 +238,7 @@
           <span><i class="pb-sw pb-sw-dash"></i>Past the published 10th–90th</span>
         </div>
         <div class="pb-chart" id="offer-nil-chart" data-draw="nil-chart" data-source="curves cohorts"></div>
+        <p class="pb-clear">Not every deal clears. Since NIL Go launched, <b data-draw="nc-deal-share" data-source="clearance" data-field="deal_share" data-row="0">—</b> of submitted deals and <b data-draw="nc-value-share" data-source="clearance" data-field="value_share" data-row="0">—</b> of their value were not cleared (<b data-draw="nc-value" data-source="clearance" data-field="not_cleared_value" data-row="0">—</b> in <b data-draw="nc-deals" data-source="clearance" data-field="not_cleared_deals" data-row="0">—</b> deals). Deals not cleared averaged <b data-draw="nc-avg" data-source="clearance" data-field="not_cleared_avg" data-row="0">—</b>, against <b data-draw="c-avg" data-source="clearance" data-field="cleared_avg" data-row="0">—</b> for cleared ones. In <b data-draw="nc-latest" data-source="clearance" data-field="latest_period" data-row="0">—</b>, <b data-draw="nc-latest-share" data-source="clearance" data-field="latest_value_share" data-row="0">—</b> of submitted value was not cleared. All sports, from the CSC's NIL Data Reports.</p>
       </article>
     </div>
     <p class="pb-foot">The large number is the curve's estimate. Under it, "published" names the percentiles the CSC printed on either side of the amount, which hold with no model at all. A range such as "10th to 50th" means many athletes got exactly that amount. Dots are the published percentiles; the dashed line is the amount you entered.</p>
@@ -363,6 +365,8 @@
         </ol>
         <h3>What NIL Go leaves out</h3>
         <p>Athletes report third-party deals worth <b data-draw="rule-min">—</b> or more to NIL Go, so smaller deals are not in its tables. The CSC has also raised the size of deal that skips its check on whether pay is in a reasonable range, reported in the trade press at up to <b data-draw="rule-review">—</b> unless an athlete passes <b data-draw="rule-season">—</b> in deals in an academic year. Flat tiers such as <b data-draw="rule-tier" data-source="tier_summary" data-field="value" data-where="key=nil_p10">—</b> at the 10th percentile may be standard payments of that kind.</p>
+        <h3>Checked against what schools actually paid</h3>
+        <p>In the first cap year, July 1, 2025 to June 30, 2026, schools paid <b data-draw="caps-total" data-source="totals" data-field="caps_total" data-row="0">—</b> in revenue share to <b data-draw="caps-ath" data-source="totals" data-field="caps_athletes" data-row="0">—</b> athletes. The published cohorts' floors add up to <b data-draw="caps-floor" data-source="totals" data-field="caps_floor" data-row="0">—</b>, safely under that; with fitted tails they would add up to <b data-draw="caps-est" data-source="totals" data-field="caps_estimate" data-row="0">—</b>, more than was paid, so past the 90th the estimates outside A4 football are upper bounds. A4 football can take at most <b data-draw="caps-max" data-source="totals" data-field="football_share_max" data-row="0">—</b> of the cap, because the schools' other sports were paid at least their floor; the calibration assumes 75%.</p>
         <h3>NIL Go totals in the tail calibration</h3>
         <p>The A4 football NIL tail past the 90th is held to a share of all sports' cleared value from January 1 to September 30, 2026: <b data-draw="flow-window" data-source="nil_flow">—</b> from the NIL Data Reports, counting September as its share of the September–October period's days.</p>
         <h3>Releases on file</h3>
@@ -1252,6 +1256,38 @@ dash.draw('flow-chart', (el) => {
     })
     .on('pointerleave', () => { t.hidden = true; });
 });
+
+// ---- NIL Go clearance (offer check) and the CAPS check (method)
+dash.calc('clearance', {
+  inputs: ['nil_flow'],
+  title: 'NIL Go deals not cleared',
+  description: 'Share of submitted NIL Go deals and value not cleared since launch and in the latest period, with average deal sizes.',
+  fn: (nil_flow) => {
+    const sum = (rows, k) => rows.reduce((a, r) => a + Number(r[k] || 0), 0);
+    const cd = sum(nil_flow, 'cleared_deals'), cv = sum(nil_flow, 'cleared_value');
+    const nd = sum(nil_flow, 'not_cleared_deals'), nv = sum(nil_flow, 'not_cleared_value');
+    const last = [...nil_flow].sort((a, b) => (a.start < b.start ? 1 : -1))[0];
+    return [{ not_cleared_deals: nd, not_cleared_value: nv, deal_share: nd / (cd + nd), value_share: nv / (cv + nv),
+      not_cleared_avg: nv / nd, cleared_avg: cv / cd, latest_period: last.period,
+      latest_value_share: last.not_cleared_value / (last.cleared_value + last.not_cleared_value) }];
+  },
+});
+const pct1 = d3.format('.1%');
+const fmtK = (v) => (v >= 1e6 ? fmtM(v) : '$' + d3.format(',.0f')(Math.round(v / 100) * 100));
+fill('nc-deal-share', () => { const r = pick('clearance'); return r && pct1(r.deal_share); });
+fill('nc-value-share', () => { const r = pick('clearance'); return r && pct1(r.value_share); });
+fill('nc-value', () => { const r = pick('clearance'); return r && fmtM(r.not_cleared_value); });
+fill('nc-deals', () => { const r = pick('clearance'); return r && d3.format(',')(r.not_cleared_deals); });
+fill('nc-avg', () => { const r = pick('clearance'); return r && fmtK(r.not_cleared_avg); });
+fill('c-avg', () => { const r = pick('clearance'); return r && fmtK(r.cleared_avg); });
+fill('nc-latest', () => { const r = pick('clearance'); return r && r.latest_period; });
+fill('nc-latest-share', () => { const r = pick('clearance'); return r && pct1(r.latest_value_share); });
+const fmtMc = (v) => '$' + d3.format(',.1f')(v / 1e6) + 'M';
+fill('caps-total', () => { const r = pick('totals'); return r && r.caps_total ? fmtMc(r.caps_total) : null; });
+fill('caps-ath', () => { const r = pick('totals'); return r && r.caps_athletes ? d3.format(',')(r.caps_athletes) : null; });
+fill('caps-floor', () => { const r = pick('totals'); return r && r.caps_floor ? fmtMc(r.caps_floor) : null; });
+fill('caps-est', () => { const r = pick('totals'); return r && r.caps_estimate ? fmtMc(r.caps_estimate) : null; });
+fill('caps-max', () => { const r = pick('totals'); return r && r.football_share_max ? pct0(r.football_share_max) : null; });
 
 // ---- basketball
 const CONF_ORDER = ['SEC', 'Big Ten', 'Big 12', 'ACC', 'Non-A4'];

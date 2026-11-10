@@ -180,10 +180,11 @@ def triangulation_report(con, path: Path | None = None) -> Path:
         f"Under the fitted tail, A4 football alone would take {pp['fitted_cap_share']:.0%} of the cap, and under "
         f"the heavy tail {pp['heavy_cap_share']:.0%}, which is impossible.\n",
         "## Tails calibrated to outside totals\n",
-        *[f"- {note}" for note in tri.constraint_notes()],
+        *[f"- {note}" for note in tri.constraint_notes(df)],
         "\nThe multiplier is solved so the football total matches the target. \"Below a flat tail\" means even "
         "paying everyone in the top 10% exactly the published 90th overshoots, so that assumption is ruled out.\n",
         _md(cal_table),
+        *caps_section(df, cal),
         "## What calibration changes at the top\n",
         "Dollars past the published 90th, A4 football, at the central assumption. The fitted tail is what the "
         "benchmark extrapolates with today.\n",
@@ -512,3 +513,38 @@ def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
     path = path or config.ROOT / "reports" / f"ratings_{season}.md"
     path.write_text("\n".join(parts))
     return path
+
+
+def caps_section(df: pd.DataFrame, cal: pd.DataFrame) -> list[str]:
+    """The published revenue-share cohorts against CAPS's year-one totals."""
+    from . import triangulate as tri
+
+    def m(v):
+        return f"${v / 1e6:,.1f}M"
+
+    fb = cal[(cal.report == "revenue_share") & (cal.case == "central")].target.iloc[0]
+    c = tri.caps_check(df, fb)
+    g = c["groups"]
+    table = pd.DataFrame({"group": g.group, "": g["where"], "paid athletes": g.athletes.map("{:,}".format),
+                          "floor (no model)": g.floor.map(m), "estimate": g.estimate.map(m)})
+    caps = tri.CAPS_2025_26
+    return [
+        "## Checked against what schools actually paid\n",
+        f"CAPS recorded [{m(caps['revenue_share'])} in revenue-share payments]({tri.CAPS_SOURCE}) in the first cap year "
+        f"(July 1, 2025 to June 30, 2026), to {caps['athletes']:,} athletes at {caps['schools_paid']} schools; "
+        f"{caps['schools_at_cap']} schools paid the cap or came within 5% of it. The published cohorts, by group. Most "
+        "sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates use the "
+        "fitted tails, except A4 football's calibrated total.\n",
+        _md(table),
+        f"- **Floors:** {m(c['floor_total'])}, safely under CAPS's {m(c['caps_total'])}. The published cohorts hold "
+        f"{c['athletes_published']:,} paid athletes against CAPS's {c['athletes_caps']:,}: sports too small to publish, "
+        "and football's different window, make up the rest.",
+        f"- **Fitted tails** would total {m(c['estimate_total'])}, more than schools paid, so outside A4 football the "
+        "fitted tails run heavy too (non-A4 basketball and football especially). The floors are safe; those estimates "
+        "are upper bounds.",
+        f"- **Football's share of the A4 cap:** A4 schools can pay at most {m(c['a4_cap_total'])} (68 x the 2025-26 cap), "
+        f"and their other sports were paid at least {m(c['other_a4_floor'])}, so football can take at most "
+        f"**{c['football_share_max']:.0%}**. The tail calibration's high case is held there. With the published sports' "
+        f"estimates ({m(c['other_a4_estimate'])}) football's share would be about {c['football_share_published']:.0%}, "
+        "and less once the unpublished sports are counted, which fits the assumed 75%.\n",
+    ]
