@@ -46,11 +46,19 @@ The two reports are never compared or combined.
   week-by-week walk through the season. The page has no betting content (no lines, picks or units), so it suits
   athletic department staff.
   `python dashboard/build_html.py OUT.html football.html`
+- [Football Model Review](https://claude.ai/artifact/Qw7RPvegvpVaXS3P9shGEq): which football outputs are ready to draw
+  insights from (ready, use with caution, not ready), the stress tests behind each verdict (`nil validate-football`,
+  `reports/football_validation.md`), this week's quality gates, and the production plan.
+  `python dashboard/build_html.py OUT.html football_review.html`
 - [College Athlete Pay Benchmarks](https://claude.ai/artifact/HddyzuWahnocHREU1FsbXD), every sport: findings, an offer
   check, football and basketball markets, every published cohort, and the method. `python dashboard/build_html.py OUT.html`
 
-Weekly: `nil surplus --fresh` and `nil ratings --fresh` pull the season's production, games and ratings (8 calls),
-then `nil dashboard-data` and the two builds. The hosted dashboard (claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) is no
+Weekly, `.github/workflows/football-weekly.yml` (Mondays) runs the football refresh from an empty database: CSC
+releases from the archive, `nil players`, `nil surplus` and `nil ratings` (about 23 CollegeFootballData calls),
+`nil dashboard-data`, then `nil validate-football --gate --snapshot`, which stops the job before the pages are built
+when a quality gate fails, and saves the week's outputs under `data/players/history/`. The pages are built into
+`site/` and committed. It needs the `CFBD_API_KEY` repository secret, and `RATINGS_REPO_TOKEN` for the pre-game
+projections. By hand: the same commands in that order. The hosted dashboard (claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) is no
 longer updated.
 
 **Project map:** [NIL Project Map](https://claude.ai/artifact/5YqTJbgYPaGe4WZ8NvwBcm) walks through every step

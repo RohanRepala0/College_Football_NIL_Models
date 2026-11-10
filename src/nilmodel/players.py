@@ -98,20 +98,22 @@ def _z(x: pd.Series) -> pd.Series:
 
 
 def base_frame(con: duckdb.DuckDBPyConnection, scope: str = "a4", usage: str = "cfbd_usage", ppa: str = "cfbd_ppa",
-               stats: str = "cfbd_stats") -> pd.DataFrame:
+               stats: str = "cfbd_stats", roster: str = "cfbd_roster",
+               recruits: tuple[str, ...] = ("cfbd_recruits",)) -> pd.DataFrame:
     """Players with their CSC group, raw features and standardized features (z within group over the
     scope: "a4" or "fbs"). Production comes from the named usage, PPA and stats tables (one season).
     Missing production counts as the group's lowest (no stats usually means little playing time); a
-    missing rating as the group's 10th percentile."""
+    missing rating as the group's 10th percentile. `roster` and `recruits` name the season's tables (the
+    current season by default; football_validation fits last season from its own)."""
     teams = con.execute("SELECT school, conference FROM cfbd_teams").df()
-    roster = con.execute("SELECT * FROM cfbd_roster").df().merge(teams, left_on="team", right_on="school", how="left")
+    roster = con.execute(f"SELECT * FROM {roster}").df().merge(teams, left_on="team", right_on="school", how="left")
     roster["a4"] = roster.conference.isin(A4_CONFERENCES) | roster.team.isin(A4_INDEPENDENTS)
     p = roster[roster.a4 if scope == "a4" else roster.conference.notna()].copy()
     p["id"] = p["id"].astype(str)
     p["group"] = p.position.map(POSITION_GROUPS).fillna("Position Unspecified")
     p["experience"] = pd.to_numeric(p.year, errors="coerce").clip(1, 6)
 
-    rec = con.execute("SELECT id, rating FROM cfbd_recruits").df()
+    rec = pd.concat([con.execute(f"SELECT id, rating FROM {t}").df() for t in recruits], ignore_index=True)
     rating_by_id = dict(zip(rec.id.astype(str), pd.to_numeric(rec.rating, errors="coerce")))
     p["recruit_rating"] = [max([rating_by_id[i] for i in ids if i in rating_by_id and pd.notna(rating_by_id[i])],
                                default=np.nan) for ids in p.recruitIds]

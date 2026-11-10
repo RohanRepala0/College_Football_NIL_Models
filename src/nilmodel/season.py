@@ -9,6 +9,7 @@ reports; the football page doesn't use it.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import duckdb
@@ -16,7 +17,9 @@ import pandas as pd
 
 from . import config
 
-RATINGS_SEASON_DIR = config.ROOT.parent / "CollegeFootballRatings2026" / "2026"
+# CollegeFootballRatings2026's season folder; NIL_RATINGS_DIR overrides it (the weekly job checks that repository out
+# inside its workspace).
+RATINGS_SEASON_DIR = Path(os.environ.get("NIL_RATINGS_DIR") or config.ROOT.parent / "CollegeFootballRatings2026" / "2026")
 
 
 def _week(path: Path) -> int:

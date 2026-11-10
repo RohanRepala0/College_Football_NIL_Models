@@ -1,0 +1,90 @@
+# Weekly football refresh: this season's games, production and ratings, the roster models, the stress tests and
+# the football pages. Runs Monday after the weekend's games.
+#
+# It starts from an empty database: the CSC releases come from the archive in the repository, everything else from
+# CollegeFootballData (about 23 calls a week, well inside the free tier's monthly limit). The quality gates in
+# `nil validate-football --gate` run before the pages are built: when one fails, the job stops, nothing is
+# committed, and the report is kept as a workflow artifact for 30 days.
+#
+# Needs the CFBD_API_KEY secret (Settings > Secrets and variables > Actions). For the Expectations tab, a
+# RATINGS_REPO_TOKEN secret that can read RohanRepala0/CollegeFootballRatings2026; without it the job keeps last
+# week's projections.
+name: Football weekly
+
+on:
+  schedule:
+    - cron: "41 14 * * 1"     # Mondays at 14:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: capture              # never at the same time as the daily CSC capture, which also commits
+  cancel-in-progress: false
+
+jobs:
+  football:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CFBD_API_KEY: ${{ secrets.CFBD_API_KEY }}
+      HAS_RATINGS_TOKEN: ${{ secrets.RATINGS_REPO_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: CollegeFootballRatings2026 (pre-game projections)
+        if: env.HAS_RATINGS_TOKEN == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: RohanRepala0/CollegeFootballRatings2026
+          token: ${{ secrets.RATINGS_REPO_TOKEN }}
+          path: ratings-repo
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: uv run pytest
+      - name: Check the API key
+        run: test -n "$CFBD_API_KEY" || { echo "Add the CFBD_API_KEY secret."; exit 1; }
+      - name: CSC releases from the archive
+        run: uv run nil refresh --offline
+      - name: Rosters, recruiting, portal and last season's production
+        run: uv run nil players --fresh
+      - name: This season's production and SP+, and the unit model
+        run: uv run nil surplus --fresh
+      - name: Games and the four published ratings
+        run: |
+          if [ -d ratings-repo/2026 ]; then export NIL_RATINGS_DIR="$PWD/ratings-repo/2026"; fi
+          uv run nil ratings --fresh
+      - name: Page data
+        run: |
+          if [ -d ratings-repo/2026 ]; then export NIL_RATINGS_DIR="$PWD/ratings-repo/2026"; fi
+          uv run nil dashboard-data
+      - name: Stress tests and quality gates
+        id: gates
+        run: uv run nil validate-football --pull --gate --snapshot
+      - name: Pages
+        run: |
+          mkdir -p site
+          uv run python dashboard/build_html.py site/football-roster-market.html football.html
+          uv run python dashboard/build_html.py site/football-model-review.html football_review.html
+          uv run python dashboard/build_html.py site/college-athlete-pay-benchmarks.html index.html
+      - name: Commit
+        run: |
+          git add data/players data/dashboard reports site
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Football weekly refresh $(date -u +%Y-%m-%d)"
+          git pull --rebase origin main
+          git push
+      - name: Keep the report when a gate fails
+        if: failure() && steps.gates.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: football-validation
+          path: |
+            reports/football_validation.md
+            data/dashboard/football_validation.json
+          retention-days: 30

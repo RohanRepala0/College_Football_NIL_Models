@@ -173,8 +173,8 @@ def surplus(season: int = typer.Option(2026), fresh: bool = typer.Option(False, 
 
 @app.command("ratings")
 def ratings_cmd(season: int = typer.Option(2026), fresh: bool = typer.Option(False, help="Call CFBD again."),
-                weeks_dir: Path = typer.Option(Path("../CollegeFootballRatings2026/2026"),
-                                               help="CollegeFootballRatings2026's season folder of week-NN/ratings.csv")):
+                weeks_dir: Path = typer.Option(None, help="CollegeFootballRatings2026's season folder of week-NN/ratings.csv "
+                                                          "(default: NIL_RATINGS_DIR, or ../CollegeFootballRatings2026/2026)")):
     """Surplus against SP+, FPI, SRS, Elo, a 2026 results-only rating and your model's ratings (4 calls with --fresh)."""
     from . import ratings as rt
     from .fetch import Fetcher
@@ -183,12 +183,47 @@ def ratings_cmd(season: int = typer.Option(2026), fresh: bool = typer.Option(Fal
     con = _con()
     if fresh or not con.execute(f"SELECT count(*) FROM information_schema.tables WHERE table_name = 'cfbd_games_{season}'").fetchone()[0]:
         typer.echo(rt.pull(con, Fetcher(con, min_interval=0.5), season, fresh))
+    from .season import RATINGS_SEASON_DIR
+
+    weeks_dir = weeks_dir or RATINGS_SEASON_DIR
     result = rt.run(con, weeks_dir if weeks_dir.exists() else None, season)
     out = config.DATA_DIR / "players" / f"surplus_by_rating_{season}.csv"
     s = result["surplus"]
     money = [c for c in s.columns if c not in ("conference", "agree", "perf_rating", "expected_rating")]
     s.assign(team=s.index).round({**{c: 0 for c in money}, "perf_rating": 2, "expected_rating": 2}).to_csv(out, index=False)
     typer.echo(f"wrote {out}\nwrote {ratings_report(season, result)}")
+
+
+@app.command("validate-football")
+def validate_football(gate: bool = typer.Option(False, help="Exit 1 when a quality gate fails."),
+                      snapshot: bool = typer.Option(False, help="Save this week's outputs under data/players/history/."),
+                      pull: bool = typer.Option(False, help="Pull last season's rosters, SP+ and oldest recruits first (3 calls).")):
+    """Stress-test the football models: verdicts, quality gates, report and the review page's data."""
+    import json
+    from datetime import date
+
+    from . import football_validation as fv
+    from .reports import football_validation_report
+
+    con = _con()
+    today = date.today().isoformat()
+    if pull:
+        from .fetch import Fetcher
+
+        typer.echo(fv.pull_prior(con, Fetcher(con, min_interval=0.5)))
+    result = fv.run(con)
+    g, v = fv.gates(result, today), fv.verdicts(result)
+    out = config.DATA_DIR / "dashboard" / "football_validation.json"
+    payload = {**fv.to_json(result), "gates": fv.to_json(g), "verdicts": fv.to_json(v), "run_on": today}
+    out.write_text(json.dumps(payload, separators=(",", ":")))
+    typer.echo(f"wrote {out}\nwrote {football_validation_report(result, g, v)}")
+    if snapshot:
+        typer.echo(f"wrote {fv.snapshot(today)}")
+    failed = g[~g.passed]
+    for r in failed.itertuples():
+        typer.echo(f"GATE FAILED: {r.check} (value {r.value})", err=True)
+    if gate and len(failed):
+        raise typer.Exit(1)
 
 
 @app.command("dashboard-data")

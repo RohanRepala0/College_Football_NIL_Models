@@ -3,6 +3,7 @@ for the dashboard host's `dash` API, styled in Board UI's look. Run after `nil d
 
     python dashboard/build_html.py OUT.html                 # all sports
     python dashboard/build_html.py OUT.html football.html   # the football page
+    python dashboard/build_html.py OUT.html football_review.html   # the football model review
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent / "data" / "dashboard"
-DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals", "season_games", "nil_flow"]
+DATASETS = ["cohorts", "curves", "releases", "validation", "rosters", "totals", "season_games", "nil_flow", "football_validation"]
 DEFAULT_PARAMS = {"cohort": "A4", "cut": "A4", "gender": "men", "nil": 40000, "position": "Linebacker",
                   "report": "revenue_share", "rs": 150000, "sport": "Football"}
 
@@ -84,7 +85,7 @@ SHIM = """
   let params = { ...DEFAULTS };
   const sets = {};
   for (const [id, rows] of Object.entries(RAW)) {
-    sets[id] = { status: 'ok', data: rows, columns: Object.keys(rows[0] || {}), refreshing: false, message: '', meta: [] };
+    sets[id] = { status: 'ok', data: rows, columns: Array.isArray(rows) ? Object.keys(rows[0] || {}) : [], refreshing: false, message: '', meta: [] };
   }
   const calcs = [], draws = new Map(), watchers = [];
   const runCalcs = () => {
@@ -139,7 +140,12 @@ SHIM = """
 """
 
 
-PAGES = {"index.html": "College Athlete Pay Benchmarks", "football.html": "Football Roster Market"}
+PAGES = {"index.html": "College Athlete Pay Benchmarks", "football.html": "Football Roster Market",
+         "football_review.html": "Football Model Review"}
+# Data each page leaves out (the review page carries only what it shows).
+PAGE_SKIP = {"index.html": {"season_games", "football_validation"},
+             "football.html": {"football_validation"},
+             "football_review.html": {"cohorts", "curves", "releases", "validation", "rosters", "season_games", "nil_flow"}}
 
 
 def _parts(page: str) -> tuple[str, str, str]:
@@ -160,7 +166,7 @@ def build(out: Path, page: str = "index.html") -> None:
     else:
         own_css, markup, own_script = _parts((HERE / page).read_text())
         css, scripts = base_css + own_css, [base_script, own_script]
-    skip = {"season_games"} if page == "index.html" else set()     # data only the football page uses
+    skip = PAGE_SKIP.get(page, set())
     data = {k: json.loads(p.read_text()) for k in DATASETS if k not in skip and (p := DATA / f"{k}.json").exists()}
     data = {k: (v if isinstance(v, list) else v.get("rows", v)) for k, v in data.items()}
     as_json = lambda o: json.dumps(o, separators=(",", ":")).replace("</", "<\\/")

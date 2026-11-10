@@ -562,3 +562,39 @@ def caps_section(df: pd.DataFrame, cal: pd.DataFrame) -> list[str]:
         "covers every non-A4 cohort (football, basketball and the other sports); the offer check uses the central case.\n",
         _md(na_table),
     ]
+
+
+def football_validation_report(result: dict, gates: pd.DataFrame, verdicts: pd.DataFrame, path: Path | None = None) -> Path:
+    """The football stress tests: verdicts, gates, and every test's table."""
+    status = {"ready": "Ready", "caution": "Use with caution", "not ready": "Not ready"}
+    v = verdicts.assign(status=verdicts.status.map(status))[["output", "status", "evidence"]]
+    g = gates.assign(value=[("" if x is None or pd.isna(x) else f"{x:.2f}") for x in gates.value],
+                     passed=gates.passed.map({True: "pass", False: "FAIL"}))[["check", "value", "threshold", "passed", "note"]]
+    s, o = result["surplus"], result["season"]
+    loco = s["loco"].pivot_table(index="held_out", columns="source", values="corr").round(2).reset_index()
+    parts = [
+        "# Football model review\n",
+        "Stress tests for the football models before reading insights off them. Method: "
+        "[`src/nilmodel/football_validation.py`](../src/nilmodel/football_validation.py). Rerun with `nil validate-football`.\n",
+        "## Verdicts\n", _md(v),
+        "## Quality gates\n", "The weekly job stops before publishing when one fails.\n", _md(g, ".2f"),
+        "## Offer benchmark on football\n", "Mean, median and 90th-percentile miss in percentile points, leave-one-out.\n",
+        _md(result["benchmark"], ".2f"),
+        "## The top of the A4 market\n", _md(result["tails"].assign(
+            qb_p95=result["tails"].qb_p95.map(lambda x: "" if pd.isna(x) else f"${x / 1e6:.2f}M"),
+            qb_p99=result["tails"].qb_p99.map(lambda x: "" if pd.isna(x) else f"${x / 1e6:.2f}M")), ".2f"),
+        "## Roster market value under other assumptions\n", _md(result["market"]["variants"], ".3f"),
+        "## On-field value\n", "Placebo: players dealt to random teams within their position.\n",
+        _md(s["placebo"], ".3f"), f"Leave one conference out (correlation of predicted and actual ratings):\n", _md(loco, ".2f"),
+        f"Position values, bootstrap over teams ({s['boots']} resamples, four ratings): average points per team "
+        "from each group, median and 10th to 90th percentile.\n", _md(s["positions"], ".2f"),
+        f"Out of season: fit on 2025 ({o['teams_2025']} teams, weights {o['weights']}, CV R² {o['cv_r2_2025']:.2f}), "
+        "predicting 2026.\n", _md(o["results"], ".3f"),
+        "## Program surplus under resampling\n", _md(s["programs"].assign(
+            surplus_median=s["programs"].surplus_median.map(lambda x: f"${x / 1e6:+.1f}M"),
+            surplus_low=s["programs"].surplus_low.map(lambda x: f"${x / 1e6:+.1f}M"),
+            surplus_high=s["programs"].surplus_high.map(lambda x: f"${x / 1e6:+.1f}M")), ".0f"),
+    ]
+    path = path or config.REPORTS_DIR / "football_validation.md"
+    path.write_text("\n".join(parts))
+    return path

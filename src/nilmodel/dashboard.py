@@ -110,6 +110,12 @@ def build(con: duckdb.DuckDBPyConnection) -> dict[str, list[dict]]:
                            "expected_rating": None if pd.isna(r.get("expected_rating")) else round(r.expected_rating, 2),
                            "expected_surplus": rnd(r.get("projected")), "cap": CAP_CALENDAR_2026}
                           for team, r in t.iterrows()]
+        prev = config.DATA_DIR / "dashboard" / "rosters.json"
+        if "projected" not in t and prev.exists():      # no projections this run: keep last run's
+            old = {r["id"]: r for r in json.loads(prev.read_text())}
+            for r in out["rosters"]:
+                for k in ("expected_rating", "expected_surplus"):
+                    r[k] = old.get(r["id"], {}).get(k)
     if con.execute("SELECT count(*) FROM information_schema.tables WHERE table_name = 'cfbd_games_2026'").fetchone()[0]:
         from . import season
 
