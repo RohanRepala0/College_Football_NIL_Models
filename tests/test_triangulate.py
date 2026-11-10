@@ -63,3 +63,21 @@ def test_caps_year_one_bounds_footballs_share(con):
     assert c["floor_total"] < c["caps_total"] < c["estimate_total"]    # floors hold; fitted tails overshoot
     assert c["athletes_published"] < c["athletes_caps"]
     assert c["football_share_published"] < c["football_share_max"]
+
+
+@pytest.mark.skipif(len(REAL) != 2, reason="the 2026-10-30 releases are not on disk")
+def test_non_a4_tails_fit_what_caps_leaves(con):
+    for path in REAL:
+        csc.ingest_archive(con, path.parent)
+    df = con.execute("SELECT * FROM csc_latest").df()
+    na = tri.calibrate_non_a4(df).set_index("case")
+    assert 0 < na.tail_mult["low"] < na.tail_mult["central"] < na.tail_mult["high"] < 1    # thinner than fitted
+    parts = tri.non_a4_parts(df)
+    assert tri.parts_total(parts, na.tail_mult["central"]) == pytest.approx(na.target["central"], rel=1e-6)
+    mults = bm.calibrated_mults(df)
+    assert mults[("revenue_share", "Basketball", "Non-A4")] == pytest.approx(na.tail_mult["central"])
+    assert mults[("revenue_share", "Football", "Non-A4")] == pytest.approx(na.tail_mult["central"])
+    assert ("revenue_share", "Basketball", "SEC") not in mults                                 # A4 conferences keep the fitted tail
+    c = tri.caps_check(df, tri.football_a4_cap_year(df), na.tail_mult["central"])
+    assert c["estimate_total"] == pytest.approx(c["caps_total"], rel=0.01)
+    assert c["estimate_total"] < c["fitted_total"]

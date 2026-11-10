@@ -516,35 +516,49 @@ def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
 
 
 def caps_section(df: pd.DataFrame, cal: pd.DataFrame) -> list[str]:
-    """The published revenue-share cohorts against CAPS's year-one totals."""
+    """The published revenue-share cohorts against CAPS's year-one totals, and the non-A4 tail calibration."""
     from . import triangulate as tri
 
     def m(v):
         return f"${v / 1e6:,.1f}M"
 
-    fb = cal[(cal.report == "revenue_share") & (cal.case == "central")].target.iloc[0]
-    c = tri.caps_check(df, fb)
+    fb = tri.football_a4_cap_year(df)          # cap-year terms, to compare with CAPS
+    na = tri.calibrate_non_a4(df)
+    mult = na[na.case == "central"].tail_mult.iloc[0]
+    c = tri.caps_check(df, fb, None if pd.isna(mult) else float(mult))
     g = c["groups"]
     table = pd.DataFrame({"group": g.group, "": g["where"], "paid athletes": g.athletes.map("{:,}".format),
                           "floor (no model)": g.floor.map(m), "estimate": g.estimate.map(m)})
+    na_table = pd.DataFrame({"case": na.case.map({"central": "central", "high": "generous", "low": "strict"}),
+                             "A4 schools pay": na.a4_spend_share.map("{:.1%} of the cap".format),
+                             "left for non-A4": na.target.map(m), "flat-tail total": na.flat_tail_total.map(m),
+                             "fitted-tail total": na.fitted_total.map(m),
+                             "tail multiplier": ["below a flat tail" if pd.isna(v) else f"x{v:.2f}" for v in na.tail_mult]})
     caps = tri.CAPS_2025_26
     return [
         "## Checked against what schools actually paid\n",
         f"CAPS recorded [{m(caps['revenue_share'])} in revenue-share payments]({tri.CAPS_SOURCE}) in the first cap year "
         f"(July 1, 2025 to June 30, 2026), to {caps['athletes']:,} athletes at {caps['schools_paid']} schools; "
         f"{caps['schools_at_cap']} schools paid the cap or came within 5% of it. The published cohorts, by group. Most "
-        "sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates use the "
-        "fitted tails, except A4 football's calibrated total.\n",
+        "sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates put "
+        "A4 football at its assumed share of the 2025-26 cap (the cap-year figure), the non-A4 tails as calibrated below, "
+        "and fitted tails elsewhere.\n",
         _md(table),
         f"- **Floors:** {m(c['floor_total'])}, safely under CAPS's {m(c['caps_total'])}. The published cohorts hold "
-        f"{c['athletes_published']:,} paid athletes against CAPS's {c['athletes_caps']:,}: sports too small to publish, "
-        "and football's different window, make up the rest.",
-        f"- **Fitted tails** would total {m(c['estimate_total'])}, more than schools paid, so outside A4 football the "
-        "fitted tails run heavy too (non-A4 basketball and football especially). The floors are safe; those estimates "
-        "are upper bounds.",
+        f"{c['athletes_published']:,} paid athletes against CAPS's {c['athletes_caps']:,} (CAPS counts each athlete "
+        "once, and football's window differs, so the counts don't compare exactly).",
+        f"- **With fitted tails outside A4 football** the published cohorts would total {m(c['fitted_total'])}, more "
+        f"than schools paid. With the non-A4 tails calibrated they total {m(c['estimate_total'])}, against CAPS's "
+        f"{m(c['caps_total'])}.",
         f"- **Football's share of the A4 cap:** A4 schools can pay at most {m(c['a4_cap_total'])} (68 x the 2025-26 cap), "
         f"and their other sports were paid at least {m(c['other_a4_floor'])}, so football can take at most "
         f"**{c['football_share_max']:.0%}**. The tail calibration's high case is held there. With the published sports' "
         f"estimates ({m(c['other_a4_estimate'])}) football's share would be about {c['football_share_published']:.0%}, "
         "and less once the unpublished sports are counted, which fits the assumed 75%.\n",
+        "### Non-A4 tails\n",
+        "What CAPS recorded, less the A4 schools' spending, is what every non-A4 cohort can sum to. The 68 schools at "
+        "the cap or within 5% of it are taken to be the 68 A4 programs. Sports too small to publish get no allowance, "
+        "so the tails are thinned only as far as the total forces. One multiplier on the fitted slope past the 90th "
+        "covers every non-A4 cohort (football, basketball and the other sports); the offer check uses the central case.\n",
+        _md(na_table),
     ]

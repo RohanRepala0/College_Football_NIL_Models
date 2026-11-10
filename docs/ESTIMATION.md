@@ -79,8 +79,13 @@ flowchart LR
 July 2025 to June 2026; `tri.caps_check`, reported in the triangulation report):
 
 - The published cohorts' floors total $1,232.9M, safely under what schools paid; the cohorts cover 23,346 paid athletes.
-- With fitted tails they would total $1,962.1M, more than was paid, so outside A4 football the uncalibrated tails run
-  heavy too: those estimates are upper bounds.
+- With A4 football calibrated and fitted tails elsewhere they would total $1,934.6M (A4 football in cap-year terms),
+  more than was paid. So every non-A4 revenue-share cohort's tail is calibrated too (`tri.calibrate_non_a4`): CAPS's
+  total less the A4 schools (the 68 at or near the cap, paying 97.5% of it; 95-100% as the range) leaves $411.3M for
+  the non-A4 cohorts, which holds their tails to **x0.42** of the fitted slope (x0.16 to x0.61). The non-A4 men's
+  basketball 99th moves from $1.32M to $504k, the non-A4 quarterback 99th from $1.51M to $546k. With it the published
+  cohorts total $1,773.4M, against CAPS's $1,770.5M. Sports too small to publish get no allowance, so this thins the
+  tails only as far as the total forces.
 - A4 schools pay at most 68 x the cap, and their other sports were paid at least $167.5M, so football can take at
   most **88%** of the A4 cap. The revenue-share calibration's high case is held there (it was 90%); the published
   sports put football near 77% before unpublished sports are counted, which fits the assumed 75%.

@@ -40,20 +40,30 @@ The multiplier is solved so the football total matches the target. "Below a flat
 
 ## Checked against what schools actually paid
 
-CAPS recorded [$1,770.5M in revenue-share payments](https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-to-student-athletes-during-first-year-of-revenue-sharing/) in the first cap year (July 1, 2025 to June 30, 2026), to 34,915 athletes at 307 schools; 68 schools paid the cap or came within 5% of it. The published cohorts, by group. Most sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates use the fitted tails, except A4 football's calibrated total.
+CAPS recorded [$1,770.5M in revenue-share payments](https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-to-student-athletes-during-first-year-of-revenue-sharing/) in the first cap year (July 1, 2025 to June 30, 2026), to 34,915 athletes at 307 schools; 68 schools paid the cap or came within 5% of it. The published cohorts, by group. Most sports' window is that cap year; basketball's ends April 6, 2026; football's is calendar 2026. Estimates put A4 football at its assumed share of the 2025-26 cap (the cap-year figure), the non-A4 tails as calibrated below, and fitted tails elsewhere.
 
 | group        |        |   paid athletes | floor (no model)   | estimate   |
 |:-------------|:-------|----------------:|:-------------------|:-----------|
 | Other sports | A4     |           3,941 | $24.1M             | $70.2M     |
-| Other sports | Non-A4 |           3,078 | $11.5M             | $20.8M     |
+| Other sports | Non-A4 |           3,078 | $11.5M             | $16.3M     |
 | Basketball   | A4     |           1,237 | $143.4M            | $246.4M    |
-| Basketball   | Non-A4 |           3,771 | $130.1M            | $290.4M    |
-| Football     | A4     |           5,817 | $797.1M            | $1,073.0M  |
-| Football     | Non-A4 |           5,502 | $126.7M            | $261.3M    |
+| Basketball   | Non-A4 |           3,771 | $130.1M            | $203.5M    |
+| Football     | A4     |           5,817 | $797.1M            | $1,045.5M  |
+| Football     | Non-A4 |           5,502 | $126.7M            | $191.6M    |
 
-- **Floors:** $1,232.9M, safely under CAPS's $1,770.5M. The published cohorts hold 23,346 paid athletes against CAPS's 34,915: sports too small to publish, and football's different window, make up the rest.
-- **Fitted tails** would total $1,962.1M, more than schools paid, so outside A4 football the fitted tails run heavy too (non-A4 basketball and football especially). The floors are safe; those estimates are upper bounds.
+- **Floors:** $1,232.9M, safely under CAPS's $1,770.5M. The published cohorts hold 23,346 paid athletes against CAPS's 34,915 (CAPS counts each athlete once, and football's window differs, so the counts don't compare exactly).
+- **With fitted tails outside A4 football** the published cohorts would total $1,934.6M, more than schools paid. With the non-A4 tails calibrated they total $1,773.4M, against CAPS's $1,770.5M.
 - **Football's share of the A4 cap:** A4 schools can pay at most $1,394.0M (68 x the 2025-26 cap), and their other sports were paid at least $167.5M, so football can take at most **88%**. The tail calibration's high case is held there. With the published sports' estimates ($316.6M) football's share would be about 77%, and less once the unpublished sports are counted, which fits the assumed 75%.
+
+### Non-A4 tails
+
+What CAPS recorded, less the A4 schools' spending, is what every non-A4 cohort can sum to. The 68 schools at the cap or within 5% of it are taken to be the 68 A4 programs. Sports too small to publish get no allowance, so the tails are thinned only as far as the total forces. One multiplier on the fitted slope past the 90th covers every non-A4 cohort (football, basketball and the other sports); the offer check uses the central case.
+
+| case     | A4 schools pay    | left for non-A4   | flat-tail total   | fitted-tail total   | tail multiplier   |
+|:---------|:------------------|:------------------|:------------------|:--------------------|:------------------|
+| central  | 97.5% of the cap  | $411.3M           | $360.8M           | $572.5M             | x0.42             |
+| generous | 95.0% of the cap  | $446.2M           | $360.8M           | $572.5M             | x0.61             |
+| strict   | 100.0% of the cap | $376.5M           | $360.8M           | $572.5M             | x0.16             |
 
 ## What calibration changes at the top
 

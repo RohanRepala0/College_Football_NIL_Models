@@ -43,6 +43,11 @@ FOOTBALL_CAP_SHARE = (0.75, 0.60, 0.90)
 # paid athletes directly, with 68 schools at the cap or within 5% of it.
 CAPS_2025_26 = {"revenue_share": 1_770_453_776, "alston": 42_034_090, "scholarships": 163_485_499,
                 "athletes": 34_915, "schools_paid": 307, "schools_at_cap": 68}
+# Non-A4 revenue share: CAPS's year-one total, less the A4 schools' spending, is what every non-A4 cohort can sum
+# to. The 68 schools at the cap or within 5% of it are taken to be the 68 A4 programs, paying (central, generous,
+# strict) 97.5%, 95% and 100% of the cap. Sports too small to publish get no allowance, which leans toward heavier
+# tails: the calibration thins them only as far as the total forces.
+A4_SPEND_SHARE = (0.975, 0.95, 1.0)
 CAPS_SOURCE = ("https://www.collegesportscommission.org/college-sports-commission-tracks-1-8-billion-in-payments-"
                "to-student-athletes-during-first-year-of-revenue-sharing/")
 # NIL Go: football deal holders can't have more cleared value than all sports together, over football's NIL Go
@@ -113,26 +118,33 @@ def football_share_bound(df: pd.DataFrame) -> float:
     return float(1 - other / (A4_FOOTBALL_PROGRAMS * CAP_2025_26))
 
 
-def caps_check(df: pd.DataFrame, football_a4_total: float | None = None) -> dict:
+def caps_check(df: pd.DataFrame, football_a4_total: float | None = None, non_a4_mult: float | None = None) -> dict:
     """The published revenue-share cohorts against CAPS's year-one totals: floors (no model) and estimates (fitted
-    tails, or A4 football's calibrated total when given) by group; the most of the A4 cap football can take; and
-    how much of CAPS's total and athletes the published cohorts cover."""
+    tails, A4 football's calibrated total when given, and non-A4 tails scaled by `non_a4_mult` when given) by
+    group; the most of the A4 cap football can take; and how much of CAPS's total and athletes the published
+    cohorts cover. `fitted_total` is the same with every non-A4 tail left as fitted."""
     f = _base_floors(df)
     est = []
     by_key = {(c.key.sport, c.key.gender, c.key.position, c.key.cohort): c for c in bm.curves(df)[0]
               if c.key.report == "revenue_share"}
+    fitted = []
     for r in f.itertuples(index=False):
         c = by_key.get((r.sport, r.gender, r.position, r.cohort))
-        est.append(r.athletes * curve_mean(c, 1.0) if c is not None and c.fitted else r.floor)
-    f["estimate"] = est
+        ok = c is not None and c.fitted
+        fitted.append(r.athletes * curve_mean(c, 1.0) if ok else r.floor)
+        mult = non_a4_mult if (non_a4_mult is not None and r.cohort == "Non-A4") else 1.0
+        est.append(r.athletes * curve_mean(c, mult) if ok else r.floor)
+    f["estimate"], f["fitted"] = est, fitted
     if football_a4_total is not None:
         m = (f.sport == "Football") & f.a4
-        f.loc[m, "estimate"] = football_a4_total * f.loc[m, "floor"] / f.loc[m, "floor"].sum()
+        for col in ("estimate", "fitted"):
+            f.loc[m, col] = football_a4_total * f.loc[m, "floor"] / f.loc[m, "floor"].sum()
     groups = (f.assign(where=np.where(f.a4, "A4", "Non-A4"))
               .groupby(["group", "where"], sort=False)[["athletes", "floor", "estimate"]].sum().reset_index())
     a4_cap = A4_FOOTBALL_PROGRAMS * CAP_2025_26
     other_a4 = f[f.a4 & (f.sport != "Football")]
     return {"groups": groups, "floor_total": float(f.floor.sum()), "estimate_total": float(f.estimate.sum()),
+            "fitted_total": float(f.fitted.sum()), "non_a4_mult": non_a4_mult,
             "caps_total": CAPS_2025_26["revenue_share"], "athletes_published": int(f.athletes.sum()),
             "athletes_caps": CAPS_2025_26["athletes"], "a4_cap_total": a4_cap,
             "other_a4_floor": float(other_a4.floor.sum()), "other_a4_estimate": float(other_a4.estimate.sum()),
@@ -268,6 +280,26 @@ def solve_tail(parts: list[_Part], target: float, hi: float = 3.0) -> float | No
     return (lo + hi) / 2
 
 
+def non_a4_parts(df: pd.DataFrame) -> list[_Part]:
+    """Every published non-A4 revenue-share cohort (all sports); one without a curve counts at its floor."""
+    return [_Part(c) for c in bm.curves(df)[0]
+            if c.key.report == "revenue_share" and c.key.cohort == "Non-A4" and c.n is not None]
+
+
+def calibrate_non_a4(df: pd.DataFrame) -> pd.DataFrame:
+    """The tail multiplier, shared by every non-A4 revenue-share cohort, at which their total equals CAPS's
+    year-one total less the A4 schools' spending: central, generous ("high") and strict ("low") cases."""
+    parts = non_a4_parts(df)
+    rows = []
+    for case, share in zip(("central", "high", "low"), A4_SPEND_SHARE):
+        a4 = A4_FOOTBALL_PROGRAMS * CAP_2025_26 * share
+        target = CAPS_2025_26["revenue_share"] - a4
+        rows.append({"report": "revenue_share", "scope": "Non-A4", "case": case, "a4_spend_share": share,
+                     "a4_spend": a4, "target": target, "tail_mult": solve_tail(parts, target),
+                     "fitted_total": parts_total(parts, 1.0), "flat_tail_total": parts_total(parts, 0.0)})
+    return pd.DataFrame(rows)
+
+
 def calibrate(df: pd.DataFrame) -> pd.DataFrame:
     """Tail multipliers that make each report's football total match its outside constraint, at the
     central assumption and at each end of its range."""
@@ -296,3 +328,9 @@ def tail_quantile(curve: bm.Curve, q, tail_mult: float = 1.0) -> np.ndarray:
 def tail_value(curve: bm.Curve, percentile: float, tail_mult: float) -> float:
     """Dollars at a percentile of the positive part, with the tail slope scaled by `tail_mult`."""
     return float(tail_quantile(curve, percentile / 100, tail_mult))
+
+
+def football_a4_cap_year(df: pd.DataFrame) -> float:
+    """A4 football revenue share over CAPS's first cap year at the central share of the 2025-26 cap: the
+    football figure that compares with CAPS's year-one totals (the calibration itself uses calendar 2026)."""
+    return football_cap_share(df)[0] * A4_FOOTBALL_PROGRAMS * CAP_2025_26

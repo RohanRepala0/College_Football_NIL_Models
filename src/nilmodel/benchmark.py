@@ -192,9 +192,10 @@ def curves(df: pd.DataFrame, method: str = METHOD,
 
 def calibrated_mults(df: pd.DataFrame) -> dict[tuple[str, str, str], float]:
     """Tail multipliers past the top point, from the triangulation's central case, for the cohorts whose
-    totals an outside constraint pins: A4 football revenue share (the cap) and football NIL Go (NIL Go's
-    all-sports totals). Every other cohort keeps the fitted tail."""
-    from .triangulate import calibrate
+    totals an outside constraint pins: A4 football revenue share (the cap), football NIL Go (NIL Go's all-sports
+    totals), and every non-A4 revenue-share cohort (CAPS's year-one total less the A4 schools). Every other
+    cohort keeps the fitted tail."""
+    from .triangulate import calibrate, calibrate_non_a4
 
     cal = calibrate(df)
     central = cal[cal.case == "central"].set_index("report").tail_mult
@@ -204,11 +205,17 @@ def calibrated_mults(df: pd.DataFrame) -> dict[tuple[str, str, str], float]:
     if pd.notna(central.get("nil_go")):
         for cut in ("A4", "Non-A4"):
             out[("nil_go", "Football", cut)] = float(central["nil_go"])
+    na = calibrate_non_a4(df)
+    m = na[na.case == "central"].tail_mult.iloc[0]
+    if pd.notna(m):
+        for sport in df[(df.report == "revenue_share") & (df.cohort == "Non-A4")].sport.unique():
+            out[("revenue_share", sport, "Non-A4")] = float(m)
     return out
 
 
 def calibrated_curves(df: pd.DataFrame) -> tuple[list[Curve], list[dict]]:
-    """The curves the benchmark answers with: fitted, with the calibrated football tails."""
+    """The curves the benchmark answers with: fitted, with the calibrated tails (A4 football, football NIL,
+    non-A4 revenue share)."""
     return curves(df, top_mults=calibrated_mults(df))
 
 # ---------------------------------------------------------------- answers
