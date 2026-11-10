@@ -4,6 +4,7 @@ for the dashboard host's `dash` API, styled in Board UI's look. Run after `nil d
     python dashboard/build_html.py OUT.html                 # all sports
     python dashboard/build_html.py OUT.html football.html   # the football page
     python dashboard/build_html.py OUT.html football_review.html   # the football model review
+    python dashboard/build_html.py --site DIR                # the GitHub Pages site: every page, linked
 """
 
 from __future__ import annotations
@@ -141,11 +142,25 @@ SHIM = """
 
 
 PAGES = {"index.html": "College Athlete Pay Benchmarks", "football.html": "Football Roster Market",
-         "football_review.html": "Football Model Review"}
+         "football_review.html": "Football Model Review", "home.html": "College Football NIL Models"}
+# The GitHub Pages site: each page's file name, and the claude.ai links between pages rewritten to them.
+SITE = {"home.html": "index.html", "football.html": "football-roster-market.html",
+        "football_review.html": "football-model-review.html", "index.html": "college-athlete-pay-benchmarks.html"}
+ARTIFACT_LINKS = {"https://claude.ai/artifact/9v4QgdKc6xqCNpqV6FuWuB": "football-roster-market.html",
+                  "https://claude.ai/artifact/Qw7RPvegvpVaXS3P9shGEq": "football-model-review.html",
+                  "https://claude.ai/artifact/HddyzuWahnocHREU1FsbXD": "college-athlete-pay-benchmarks.html"}
+SITE_HEAD = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Public-data analytics on college football pay and roster value.">
+"""
 # Data each page leaves out (the review page carries only what it shows).
 PAGE_SKIP = {"index.html": {"season_games", "football_validation"},
              "football.html": {"football_validation"},
-             "football_review.html": {"cohorts", "curves", "releases", "validation", "rosters", "season_games", "nil_flow"}}
+             "football_review.html": {"cohorts", "curves", "releases", "validation", "rosters", "season_games", "nil_flow"},
+             "home.html": set()}            # replaced by every dataset in build()
 
 
 def _parts(page: str) -> tuple[str, str, str]:
@@ -156,9 +171,10 @@ def _parts(page: str) -> tuple[str, str, str]:
     return css, markup, script
 
 
-def build(out: Path, page: str = "index.html") -> None:
+def build(out: Path, page: str = "index.html", site: bool = False) -> None:
     """index.html is the all-sports page. Any other page uses index.html's styles and script (its shared
-    helpers and drawings) and adds its own."""
+    helpers and drawings) and adds its own. `site` writes a full HTML document for GitHub Pages, with the links
+    between pages made relative; otherwise the page is a fragment for a claude.ai artifact."""
     base_css, base_markup, base_script = _parts((HERE / "index.html").read_text())
     base_css = base_css[base_css.index(".pb-head {"):]       # component rules; tokens come from HEAD
     if page == "index.html":
@@ -166,7 +182,7 @@ def build(out: Path, page: str = "index.html") -> None:
     else:
         own_css, markup, own_script = _parts((HERE / page).read_text())
         css, scripts = base_css + own_css, [base_script, own_script]
-    skip = PAGE_SKIP.get(page, set())
+    skip = set(DATASETS) if page == "home.html" else PAGE_SKIP.get(page, set())
     data = {k: json.loads(p.read_text()) for k in DATASETS if k not in skip and (p := DATA / f"{k}.json").exists()}
     data = {k: (v if isinstance(v, list) else v.get("rows", v)) for k, v in data.items()}
     as_json = lambda o: json.dumps(o, separators=(",", ":")).replace("</", "<\\/")
@@ -174,15 +190,36 @@ def build(out: Path, page: str = "index.html") -> None:
             'Compensation Report; CollegeFootballData.com for rosters, production, scores, SP+, ESPN FPI, SRS and Elo. '
             'Source: github.com/RohanRepala0/College_Football_NIL_Models.</p>')
     markup = markup[:markup.rindex("</div>")] + foot + "\n</div>"
-    html = (HEAD.replace("{title}", PAGES[page]) + css + "</style>\n\n<div class=\"pb-wrap\">\n" + markup + "\n</div>\n"
+    if site:
+        for url, name in ARTIFACT_LINKS.items():
+            markup = markup.replace(f'href="{url}" target="_blank" rel="noopener"', f'href="{name}"').replace(url, name)
+        markup = markup.replace("</header>", '<p class="pb-site-nav"><a class="pb-link" href="index.html">All pages</a></p>\n  </header>', 1) \
+            if page != "home.html" else markup
+        css += ("\nbody { margin: 0; }\n[hidden] { display: none !important; }\n"
+                ".pb-site-nav { margin: 0; font-size: var(--cds-font-size-caption); }\n")
+    body = ("<div class=\"pb-wrap\">\n" + markup + "\n</div>\n"
             f'<script type="application/json" id="pb-data">{as_json(data)}</script>\n'
             f'<script type="application/json" id="pb-params">{as_json(DEFAULT_PARAMS)}</script>\n'
             f"<script>{SHIM}</script>\n" + "".join(f"<script>{s}</script>\n" for s in scripts))
+    head = HEAD.replace("{title}", PAGES[page]) + css + "</style>\n"
+    html = (SITE_HEAD + head + "</head>\n<body>\n" + body + "</body>\n</html>\n") if site else (head + "\n" + body)
     out.write_text(html)
     print(f"wrote {out} ({len(html.encode()) / 1e3:.0f} KB)")
 
 
+def build_site(out_dir: Path) -> None:
+    """Every page as a full document in `out_dir`, with index.html the home page: the GitHub Pages site."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for page, name in SITE.items():
+        build(out_dir / name, page, site=True)
+    (out_dir / ".nojekyll").write_text("")
+
+
 if __name__ == "__main__":
-    # python dashboard/build_html.py [OUT.html] [index.html|football.html]
-    page = sys.argv[2] if len(sys.argv) > 2 else "index.html"
-    build(Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / page.replace(".html", "_standalone.html"), page)
+    # python dashboard/build_html.py [OUT.html] [index.html|football.html|football_review.html]
+    # python dashboard/build_html.py --site DIR
+    if len(sys.argv) > 2 and sys.argv[1] == "--site":
+        build_site(Path(sys.argv[2]))
+    else:
+        page = sys.argv[2] if len(sys.argv) > 2 else "index.html"
+        build(Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / page.replace(".html", "_standalone.html"), page)

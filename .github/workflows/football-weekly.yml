@@ -1,10 +1,10 @@
 # Weekly football refresh: this season's games, production and ratings, the roster models, the stress tests and
-# the football pages. Runs Monday after the weekend's games.
+# the page data. Runs Monday after the weekend's games; the Pages workflow then rebuilds and deploys the site.
 #
 # It starts from an empty database: the CSC releases come from the archive in the repository, everything else from
 # CollegeFootballData (about 23 calls a week, well inside the free tier's monthly limit). The quality gates in
-# `nil validate-football --gate` run before the pages are built: when one fails, the job stops, nothing is
-# committed, and the report is kept as a workflow artifact for 30 days.
+# `nil validate-football --gate` run before anything is committed: when one fails, the job stops, nothing is
+# committed (so the site keeps last week's numbers), and the report is kept as a workflow artifact for 30 days.
 #
 # Needs the CFBD_API_KEY secret (Settings > Secrets and variables > Actions). For the Expectations tab, a
 # RATINGS_REPO_TOKEN secret that can read RohanRepala0/CollegeFootballRatings2026; without it the job keeps last
@@ -61,15 +61,9 @@ jobs:
       - name: Stress tests and quality gates
         id: gates
         run: uv run nil validate-football --pull --gate --snapshot
-      - name: Pages
-        run: |
-          mkdir -p site
-          uv run python dashboard/build_html.py site/football-roster-market.html football.html
-          uv run python dashboard/build_html.py site/football-model-review.html football_review.html
-          uv run python dashboard/build_html.py site/college-athlete-pay-benchmarks.html index.html
       - name: Commit
         run: |
-          git add data/players data/dashboard reports site
+          git add data/players data/dashboard reports
           if git diff --cached --quiet; then
             echo "Nothing changed."
             exit 0

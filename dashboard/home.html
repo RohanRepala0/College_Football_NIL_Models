@@ -1,0 +1,48 @@
+<meta name="dash-one-writer">
+<style>
+.hm-cards { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.hm-card { display: grid; gap: 8px; align-content: start; background: var(--color-panel); border-radius: calc(var(--cds-radius) + 4px); padding: 18px; text-decoration: none; color: var(--color-fg); border: 1px solid transparent; transition: border-color 150ms ease; }
+.hm-card:hover { border-color: var(--pb-line-hover); }
+.hm-card:focus-visible { outline: 2px solid var(--pb-accent); outline-offset: 2px; }
+.hm-card b { font-size: var(--cds-font-size-heading); font-weight: 500; }
+.hm-card span { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); line-height: 1.5; }
+.hm-card i { font-style: normal; color: var(--pb-accent); font-size: var(--cds-font-size-caption); font-weight: 500; }
+.hm-notes { margin: 0; padding-left: 1.25rem; display: grid; gap: 6px; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); line-height: 1.5; max-width: 80ch; }
+</style>
+
+<div class="pb">
+  <header class="pb-head">
+    <h1 class="pb-title">College football NIL models</h1>
+    <p class="pb-take">Public-data analytics on what college football players are paid and what rosters deliver, built from the College Sports Commission's published pay distributions, CollegeFootballData, and four published team ratings. Refreshed by scheduled jobs; every number traces back to a public source.</p>
+  </header>
+  <div class="hm-cards">
+    <a class="hm-card" href="football-roster-market.html">
+      <i>Start here</i>
+      <b>Football roster market</b>
+      <span>What A4 football players are paid by position, an offer check, each A4 roster's market value against its on-field value under SP+, ESPN FPI, SRS and Elo, and how teams compare with their pre-game projections.</span>
+    </a>
+    <a class="hm-card" href="football-model-review.html">
+      <i>Read before drawing insights</i>
+      <b>Football model review</b>
+      <span>Which outputs are ready, which need caution and which aren't ready, the stress tests behind each verdict, this week's quality gates, and how the weekly refresh runs.</span>
+    </a>
+    <a class="hm-card" href="college-athlete-pay-benchmarks.html">
+      <i>Every sport</i>
+      <b>College athlete pay benchmarks</b>
+      <span>The CSC's published pay for every sport: findings, an offer check, football and basketball markets, NIL Go deal flow, and every published cohort.</span>
+    </a>
+  </div>
+  <article class="pb-card">
+    <h2>About the data</h2>
+    <ul class="hm-notes">
+      <li>Pay distributions are the College Sports Commission's published percentiles, captured daily and versioned. Revenue share and NIL Go are separate reports and are never combined.</li>
+      <li>Individual contracts are private. Roster values are program totals at the CSC's market rates, not what any school actually pays.</li>
+      <li>Rosters, production, scores and the four team ratings come from CollegeFootballData.com.</li>
+      <li>Source code and every intermediate file: <a class="pb-link" href="https://github.com/RohanRepala0/College_Football_NIL_Models">github.com/RohanRepala0/College_Football_NIL_Models</a>.</li>
+    </ul>
+  </article>
+</div>
+
+<script>
+// The home page draws nothing; the shared script still runs for its styles' behaviour.
+</script>

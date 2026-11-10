@@ -495,6 +495,7 @@ def ratings_report(season: int, result: dict, path: Path | None = None) -> Path:
         (f"- **Your model** is the team rating implied by CollegeFootballRatings2026's posted model margins, {y['games']} "
          f"games, {y['weeks'].replace('-', ' ')}; home edge {y['home_edge']:.1f}. Those files stop at week 8.\n" if y else ""),
         "- SP+, ESPN FPI, SRS and Elo are CollegeFootballData's current 2026 ratings. Player production is this season's.\n",
+        *_pooled_lines(result),
         "## How well each rating is explained\n",
         "Out-of-sample R² (5 folds over 138 FBS teams). \"Recruiting + class only\" leaves production out: a rating that "
         "leans on a preseason prior built from recruiting should be explained better by it.\n",
@@ -598,3 +599,22 @@ def football_validation_report(result: dict, gates: pd.DataFrame, verdicts: pd.D
     path = path or config.REPORTS_DIR / "football_validation.md"
     path.write_text("\n".join(parts))
     return path
+
+
+def _pooled_lines(result: dict) -> list[str]:
+    pool = result.get("pooled")
+    if not pool:
+        return ["Each rating's player-score weights are this season's best by cross-validation.\n"]
+    s = result["summary"]
+    s = s[s.cv_r2_this_season_own_best.notna()] if "cv_r2_this_season_own_best" in s else s
+    prev, cur = pool["seasons"]
+    t = pd.DataFrame({"rating": s.label, f"R² {cur}, pooled weights": s.cv_r2_this_season_pooled_weights.map("{:.3f}".format),
+                      f"R² {cur}, its own best": s.cv_r2_this_season_own_best.map("{:.3f}".format),
+                      f"its own best ({cur})": s.own_best_this_season.map(lambda w: " / ".join(f"{x:.1f}" for x in w)),
+                      f"R² {prev}, pooled weights": s.cv_r2_last_season_pooled_weights.map("{:.3f}".format)})
+    w = pool["weights"]
+    return ["## Player-score weights, pooled\n",
+            f"One set of weights for {prev} and {cur} together ({pool['team_seasons']} team-seasons, each season scored on "
+            f"its own rosters and production, a baseline per season, folds grouped by program): production {w[0]:.1f} / "
+            f"rating {w[1]:.1f} / class year {w[2]:.1f}. Each published rating's position values are fit on both seasons. "
+            "What it gives up against each season's own best:\n", _md(t)]

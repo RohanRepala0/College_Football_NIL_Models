@@ -55,13 +55,13 @@
           <li><b>Read NIL Go percentiles as roughly ±10 points.</b> Revenue-share percentiles are good to about 1 to 2 points.</li>
           <li><b>Value positions only where they're stable:</b> quarterback, offensive line, linebacker and running back. Defensive backs and wide receivers can't be valued from public data.</li>
           <li><b>Rank across FBS before ranking within a conference.</b> Within-conference rankings are weaker, the Big 12's most of all.</li>
-          <li><b>Don't read the player-score weights.</b> They change between seasons while the team-level predictions hold.</li>
+          <li><b>Read the player-score weights as production first.</b> They are one set fit on two seasons; nearby sets fit almost as well, so the exact shares carry little meaning.</li>
           <li><b>Check that this week's gates passed</b> before using a new week's numbers.</li>
         </ol>
       </article>
       <article class="pb-card">
         <h2>This week's quality gates</h2>
-        <p>The weekly refresh stops before building pages when any of these fails.</p>
+        <p>The weekly refresh stops before committing when any of these fails, so the site keeps last week's numbers.</p>
         <div class="pb-scroll">
           <table class="pb-table fv-wrap">
             <thead><tr><th>Check</th><th class="num">Value</th><th class="num">Needs</th><th>Result</th></tr></thead>
@@ -159,7 +159,7 @@
   <section class="pb-page" id="production" hidden>
     <article class="pb-card">
       <h2>How it runs</h2>
-      <p>Two scheduled jobs in the GitHub repository, both committing their results. Nothing is published unless the checks pass.</p>
+      <p>Two scheduled jobs in the GitHub repository commit their results, and a third publishes the site to GitHub Pages after each of them. Nothing is published unless the checks pass.</p>
       <h3>Daily: College Sports Commission capture (running since October 30)</h3>
       <div class="fv-flow">
         <div class="fv-step"><b>Fetch</b><span>The NIL Go and revenue-share pages, and every NIL Data Report.</span></div>
@@ -172,7 +172,7 @@
         <div class="fv-step"><b>Model</b><span>Roster market value, on-field value under each rating, surplus with ranges.</span></div>
         <div class="fv-step"><b>Test</b><span><code>nil validate-football --gate</code>: the stress tests on this page and the quality gates.</span></div>
         <div class="fv-step"><b>Snapshot</b><span>The week's outputs saved under <code>data/players/history/&lt;date&gt;</code> for week-over-week checks and audit.</span></div>
-        <div class="fv-step"><b>Build</b><span>The football pages rebuilt as self-contained HTML in <code>site/</code> and committed.</span></div>
+        <div class="fv-step"><b>Publish</b><span>The week's data committed; the Pages workflow rebuilds the site and deploys it to GitHub Pages.</span></div>
       </div>
     </article>
     <div class="pb-grid">
@@ -182,6 +182,7 @@
           <li><b>Daily capture</b> of the CSC pages and NIL Data Reports, versioned in the repository.</li>
           <li><b>Weekly workflow</b> (<code>.github/workflows/football-weekly.yml</code>) with the gates as a hard stop.</li>
           <li><b>Stress tests</b> as a command, <code>nil validate-football</code>, and a report in <code>reports/football_validation.md</code>.</li>
+          <li><b>A GitHub Pages workflow</b> (<code>.github/workflows/pages.yml</code>) that rebuilds and deploys the site after every capture and refresh.</li>
           <li><b>Week-by-week snapshots</b>, starting <b data-draw="fv-run-on-2" data-source="football_validation">—</b>.</li>
           <li><b>Automated tests</b> for every module, run before each job.</li>
         </ol>
@@ -191,7 +192,7 @@
         <ol class="fv-list">
           <li><b>Add the <code>CFBD_API_KEY</code> secret</b> to the repository (Settings, Secrets and variables, Actions). The weekly job stops at its first step without it.</li>
           <li><b>Optional: a <code>RATINGS_REPO_TOKEN</code> secret</b> that can read CollegeFootballRatings2026, for the Expectations tab. Without it the job keeps last week's projections.</li>
-          <li><b>Decide where the pages live.</b> Shared claude.ai pages work today and stay private until shared, but are republished by hand. For athletic department staff, an internal site behind your sign-in is the durable choice. GitHub Pages would make them public.</li>
+          <li><b>Turn on GitHub Pages</b>: Settings, Pages, Build and deployment, Source: GitHub Actions. The site is public, like the repository, at rohanrepala0.github.io/College_Football_NIL_Models.</li>
           <li><b>Name who gets failure emails.</b> GitHub emails the repository owner when a gate or a capture fails.</li>
         </ol>
       </article>
@@ -199,7 +200,7 @@
     <article class="pb-card">
       <h2>Model work before wider use</h2>
       <ol class="fv-list">
-        <li><b>Pool seasons for the player-score weights.</b> Fitting 2025 and 2026 together would fix one set of weights instead of letting them swing between seasons.</li>
+        <li><b>Add seasons as they come.</b> The weights and position values are pooled over 2025 and 2026; each new season adds a block of team-seasons.</li>
         <li><b>Better defensive inputs.</b> Public box-score stats can't tell defensive backs apart; coverage data would be needed to value them.</li>
         <li><b>A season of history.</b> Weekly snapshots will show how surplus moves as games are played, and whether pre-season market value predicts the final ratings.</li>
         <li><b>Reported deals as a check.</b> A ledger of reported contracts, run through the credibility tests, would be the first outside check on program market values.</li>
@@ -289,7 +290,7 @@ dash.draw('fv-season-rows', (tb) => {
 dash.draw('fv-season-note', (el) => {
   const d = fvData(); if (!d) { el.textContent = '—'; return; }
   const w = d.season.weights, sp = d.surplus.weights.find((x) => x.source === 'sp');
-  el.textContent = `Fit on ${d.season.teams_2025} teams in 2025 (cross-validated R² ${d.season.cv_r2_2025.toFixed(2)}). The 2025 fit weights production ${w.production.toFixed(1)}, rating ${w.rating.toFixed(1)} and class year ${w.experience.toFixed(1)}; this season's fit uses ${sp.production.toFixed(1)}, ${sp.rating.toFixed(1)} and ${sp.experience.toFixed(1)}. The predictions hold even though the weights move.`;
+  el.textContent = `Fit on ${d.season.teams_2025} teams in 2025 alone (cross-validated R² ${d.season.cv_r2_2025.toFixed(2)}, weights production ${w.production.toFixed(1)}, rating ${w.rating.toFixed(1)}, class year ${w.experience.toFixed(1)}), so nothing from this season informs it. The pages use one set of weights fit on both seasons: production ${sp.production.toFixed(1)}, rating ${sp.rating.toFixed(1)}, class year ${sp.experience.toFixed(1)}.`;
 });
 
 dash.draw('fv-positions', (el) => {

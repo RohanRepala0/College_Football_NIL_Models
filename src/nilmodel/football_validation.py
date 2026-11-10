@@ -176,21 +176,28 @@ def surplus_tests(con: duckdb.DuckDBPyConnection, df: pd.DataFrame, boots: int =
                          "rank_high": np.quantile(ranks, 0.9, axis=0),
                          "sign_stable": ((med > 0).mean(axis=0) >= 0.9) | ((med < 0).mean(axis=0) >= 0.9)})
     prog = prog.sort_values("surplus_median", ascending=False).reset_index(drop=True)
-    weights = summary.loc[rt.PUBLIC, ["label", "production", "rating", "experience", "cv_r2"]].reset_index()
+    keep = ["label", "production", "rating", "experience", "cv_r2", "cv_r2_this_season_pooled_weights",
+            "cv_r2_this_season_own_best", "cv_r2_last_season_pooled_weights"]
+    weights = summary.loc[rt.PUBLIC, [c for c in keep if c in summary]].reset_index()
+    weights["pooled"] = out.get("pooled") is not None
     return {"placebo": pd.DataFrame(placebo), "loco": pd.DataFrame(loco), "positions": positions, "programs": prog,
             "weights": weights, "boots": boots, "perms": perms}
 
 
 def pull_prior(con: duckdb.DuckDBPyConnection, fetcher, season: int = 2026, fresh: bool = False) -> dict:
-    """Last season's rosters and final SP+, and the recruiting class five years before it (its oldest players),
-    for `out_of_season` (3 calls). Stored apart from this season's tables."""
+    """Last season's rosters, its final SP+, ESPN FPI, SRS and Elo, and the recruiting class five years before it
+    (its oldest players), for `out_of_season` and the pooled weights (6 calls). Stored apart from this season's
+    tables."""
     api = pl.CFBD(fetcher, config.secret("CFBD_API_KEY") or "")
     prev = season - 1
     roster = pd.DataFrame(api.get("/roster", fresh, year=prev))
     roster["recruitIds"] = roster["recruitIds"].map(lambda v: [str(x) for x in v] if isinstance(v, list) else [])
     frames = {f"cfbd_roster_{prev}": roster, f"cfbd_sp_{prev}": pd.json_normalize(api.get("/ratings/sp", fresh, year=prev)),
               f"cfbd_recruits_{prev - 5}": pd.json_normalize(api.get("/recruiting/players", fresh, year=prev - 5,
-                                                                     classification="HighSchool"))}
+                                                                     classification="HighSchool")),
+              f"cfbd_fpi_{prev}": pd.json_normalize(api.get("/ratings/fpi", fresh, year=prev)),
+              f"cfbd_srs_{prev}": pd.json_normalize(api.get("/ratings/srs", fresh, year=prev)),
+              f"cfbd_elo_{prev}": pd.json_normalize(api.get("/ratings/elo", fresh, year=prev))}
     return {t: pl._store(con, t, df.astype({c: str for c in df.columns if df[c].dtype == object and c != "recruitIds"}))
             for t, df in frames.items()}
 
@@ -386,11 +393,22 @@ def verdicts(result: dict) -> pd.DataFrame:
          "rankings across FBS are firmer than within a conference."),
         ("Pre-season market value as a guide to results", "caution",
          f"Correlates {prem['corr']:.2f} with how A4 teams have played: it explains about {prem['corr'] ** 2:.0%} of it."),
-        ("Player-score weights", "not ready",
-         f"The 2025 fit weights production {w25['production']:.1f} / rating {w25['rating']:.1f} / class year "
-         f"{w25['experience']:.1f}; the 2026 fit {w26.production:.1f} / {w26.rating:.1f} / {w26.experience:.1f}. Don't read "
-         "meaning into the weights."),
+        _weights_verdict(s["weights"], w25),
         ("Individual player values", "not ready",
          "No individual contracts exist to test against, so only program totals are shown."),
     ]
     return pd.DataFrame(rows, columns=["output", "status", "evidence"])
+
+
+def _weights_verdict(weights: pd.DataFrame, w25: dict) -> tuple[str, str, str]:
+    w = weights.iloc[0]
+    if bool(weights.pooled.iloc[0]):
+        loss = float((weights.cv_r2_this_season_own_best - weights.cv_r2_this_season_pooled_weights).max())
+        return ("Player-score weights", "caution",
+                f"One set fit on 2025 and 2026 together, each season on its own rosters: production {w.production:.1f} / "
+                f"rating {w.rating:.1f} / class year {w.experience:.1f}. Against each rating's own best for this season it "
+                f"gives up at most {loss:.2f} R². Read it as production first, not as exact shares.")
+    return ("Player-score weights", "not ready",
+            f"The 2025 fit weights production {w25['production']:.1f} / rating {w25['rating']:.1f} / class year "
+            f"{w25['experience']:.1f}; the 2026 fit {w.production:.1f} / {w.rating:.1f} / {w.experience:.1f}. Don't read "
+            "meaning into the weights.")

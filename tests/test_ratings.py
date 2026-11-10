@@ -37,3 +37,20 @@ def test_signals_graded_like_the_ratings_repo():
     assert season._grade("spread", "home", -6.5, 28, 21) == "win"         # home by 7 covers -6.5
     assert season._grade("spread", "away", 6.5, 28, 21) == "loss"
     assert season._grade("spread", "away", 7.0, 28, 21) == "push"
+
+
+def test_pooled_fit_ignores_season_baselines_and_groups_folds_by_program():
+    rng = np.random.default_rng(1)
+    teams = [f"T{i}" for i in range(60)]
+    beta = np.array([2.0, 0.5, 0.0])
+    blocks = []
+    for offset in (10.0, -7.0):                       # each season's ratings sit on a different baseline
+        X = pd.DataFrame(rng.random((60, 3)), index=teams, columns=["a", "b", "c"])
+        y = pd.Series(X.to_numpy() @ beta + offset + rng.normal(0, 0.05, 60), index=teams)
+        blocks.append((X, y))
+    fit, means = rt._centred_fit([(X.to_numpy(), y.to_numpy()) for X, y in blocks])
+    assert np.allclose(fit, beta, atol=0.1)
+    assert [round(m[1]) for m in means] == [round(blocks[0][1].mean()), round(blocks[1][1].mean())]
+    assert rt.pooled_cv(blocks) > 0.95
+    shuffled = [(X, pd.Series(rng.permutation(y.to_numpy()), index=y.index)) for X, y in blocks]
+    assert rt.pooled_cv(shuffled) < 0.1

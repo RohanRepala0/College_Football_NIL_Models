@@ -36,7 +36,7 @@ flowchart LR
 
 The two reports are never compared or combined.
 
-**Pages:** two self-contained HTML pages in [Board UI](https://www.boardui.com)'s look, built by
+**Site:** [rohanrepala0.github.io/College_Football_NIL_Models](https://rohanrepala0.github.io/College_Football_NIL_Models/) (GitHub Pages, public, deployed by `.github/workflows/pages.yml` after every capture and refresh; `python dashboard/build_html.py --site DIR` builds it locally). The pages: self-contained HTML pages in [Board UI](https://www.boardui.com)'s look, built by
 `dashboard/build_html.py` from `dashboard/*.html` and `data/dashboard/*.json` (`nil dashboard-data` rewrites the data).
 
 - [Football Roster Market](https://claude.ai/artifact/9v4QgdKc6xqCNpqV6FuWuB), for NIL analysts and roster managers: an
@@ -55,9 +55,9 @@ The two reports are never compared or combined.
 
 Weekly, `.github/workflows/football-weekly.yml` (Mondays) runs the football refresh from an empty database: CSC
 releases from the archive, `nil players`, `nil surplus` and `nil ratings` (about 23 CollegeFootballData calls),
-`nil dashboard-data`, then `nil validate-football --gate --snapshot`, which stops the job before the pages are built
-when a quality gate fails, and saves the week's outputs under `data/players/history/`. The pages are built into
-`site/` and committed. It needs the `CFBD_API_KEY` repository secret, and `RATINGS_REPO_TOKEN` for the pre-game
+`nil dashboard-data`, then `nil validate-football --gate --snapshot`, which stops the job before anything is
+committed when a quality gate fails, and saves the week's outputs under `data/players/history/`. The Pages workflow
+then rebuilds and deploys the site. It needs the `CFBD_API_KEY` repository secret, and `RATINGS_REPO_TOKEN` for the pre-game
 projections. By hand: the same commands in that order. The hosted dashboard (claude.ai/artifact/QbV3GphFyEs3L5mZNhggdU) is no
 longer updated.
 

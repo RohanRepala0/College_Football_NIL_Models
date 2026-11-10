@@ -1,0 +1,52 @@
+# The GitHub Pages site: the football pages, the model review and the all-sports benchmarks, rebuilt from the
+# committed page data (data/dashboard/) and deployed. Runs when page code or data changes on main, after each
+# daily CSC capture and weekly football refresh (their pushes use the workflow token, which doesn't start other
+# workflows, so this listens for them finishing), and by hand.
+#
+# One-time setup: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# The site is public: https://rohanrepala0.github.io/College_Football_NIL_Models/
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dashboard/**"
+      - "data/dashboard/**"
+      - ".github/workflows/pages.yml"
+  workflow_run:
+    workflows: ["Football weekly", "Capture CSC releases"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build the site
+        run: python dashboard/build_html.py --site _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

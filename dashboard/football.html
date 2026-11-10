@@ -261,7 +261,7 @@
         <ol class="pb-steps-plain">
           <li><b>Score every player</b> on this season's production (usage, expected points added, tackles, sacks and the like), recruiting or transfer-portal rating, and class year.</li>
           <li><b>Turn players into position-group strength.</b> Each group has starter slots (1 QB, 1 RB, 3 WR, 1 TE, 5 OL, 4 DL, 3 LB, 4 DB, 1 K, 1 P); the next players count 30%, and only the part of a score above a national replacement level counts.</li>
-          <li><b>Regress each team rating on those strengths</b> across all 138 FBS teams, with weights that can't go negative. That says how many rating points each group is worth. The player-score weights are chosen per rating by cross-validation.</li>
+          <li><b>Regress each team rating on those strengths</b> across all 138 FBS teams, with weights that can't go negative. That says how many rating points each group is worth. The player-score weights are one set, chosen by cross-validation across this season and last (each scored on its own rosters), and each rating's position values are fit on both seasons.</li>
           <li><b>Price the points</b> at the A4 market: total A4 market value divided by total A4 points, so a rating point costs about half a million dollars. One point is about 0.3 wins over a 12-game season.</li>
           <li><b>Surplus</b> is on-field value minus market value. It averages zero across the 68 programs by construction, so it ranks programs against each other.</li>
         </ol>
